@@ -443,8 +443,8 @@ function find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
     dtV   = minimum([dx1,dx2]) ^1 * inv(abs(V_ip))               #Advection time
     dtD   = minimum([dx1,dx2]) ^2 * inv(maximum([D_l,D_r]))      #Diffusion time
     dtV1  = dtV * dt_drop
-    dtV2  = dtV * CFL * 50.0
-    #@show dtV1 dtV2
+    dtV2  = dtV * CFL * 5.0
+    @show dtV dtD dtV2
     dt    = minimum([dtV1,dtV2])
     if V_ip == 0.0
         dt   = dtD * CFL
@@ -482,7 +482,6 @@ function fill_matrix!(C,x,D,dt,ndim,nels)
     #Reset matrices------------------------------------------------------------
     L_g     = spzeros(length(x),length(x))                #size changes every iteration
     R_g     = zeros(length(x),1)                          #size changes every iteration
-    # Co      = deepcopy(C)
     Co      = copy(C)
     _dt     = inv(dt)
     #Make global matrices------------------------------------------------------
@@ -510,8 +509,6 @@ function fill_matrix!(C,x,D,dt,ndim,nels)
         Lloc = Mloc .* _dt .+ Kloc
         Rloc = Mloc .* _dt  * Co[iel:iel+1]  
         #Global matrices-------------------------------------------------------
-        # L_g[iel:iel+1,iel:iel+1]  = L_g[iel:iel+1,iel:iel+1] .+ Lloc
-        # R_g[iel:iel+1]            = R_g[iel:iel+1]           .+ Rloc
         L_g[iel:iel+1,iel:iel+1]  .+= Lloc
         R_g[iel:iel+1]            .+= Rloc
     end     
@@ -704,7 +701,6 @@ function newton_solver(S, d, n, tol, max_iter,verbose)
     Res = 1e23                                                      #Some large number
     for i in 1:max_iter
         Fx  = (1 - x^n) * inv(1 - x) - (S *inv(d))                         #Function to solve
-        # dFx = (-n * x^(n - 1) * (1 - x) + (1 - x^n)) *inv((1 - x)^2)    #Derivative
         _dFx = inv(fma(-n * x^(n - 1), (1 - x), (1 - x^n)) *inv((1 - x)^2))    #Derivative
         Res = abs(Fx)                                              #Residual
         if Res < tol
@@ -755,7 +751,6 @@ function pchip(x,y,X)
     d   = zeros(n,1)
     for i in 1:n
         if i == 1
-            # d[i] = ((2.0 * h[1] + h[2]) * m[1] - h[1] * m[2]) / (h[1] + h[2])
             d[i] = (fma(fma(2.0, h[1], h[2]), m[1], - (h[1] * m[2]))) * inv(h[1] + h[2])
             if m[i] * m[i+1] < 0.0 || m[i] == 0.0 || m[i+1] == 0.0
                 d[i] = 0.0
@@ -952,18 +947,16 @@ Set the inner boundary conditions at the interface using fluxes.
 """
 function set_inner_bc_flux!(L_g,R_g,KD,D_l,D_r,x_left,x_right,V_ip,rho,nr)
     #Reduce the condition Number---------------------------------------
-    #ScF = maximum(diag(L_g))
+    ScF = maximum(diag(L_g))
     #ScF      = sum(diag_L_g) / length(diag(L_g))
-    ScF = 1.0
+    #ScF = 1.0
     #ScF = mean(diag(L_g))
     #inner BC1---------------------------------------------------------------
-    #L_g[nr[1],:]         .= 0.0
     fill!(L_g[nr[1],:],0.0)
     L_g[nr[1],nr[1]]     = 1.0 * ScF
     L_g[nr[1],nr[1]+1]   = - KD * ScF
     R_g[nr[1]]           = 0.0
     #inner BC2---------------------------------------------------------------
-    #L_g[nr[1]+1,:]       .= 0.0
     fill!(L_g[nr[1]+1,:],0.0)
     L_g[nr[1]+1,nr[1]+1] = (-V_ip + rho[2] * D_r * inv(x_right[2] - x_right[1])) * ScF
     L_g[nr[1]+1,nr[1]+2] =       (- rho[2] * D_r * inv(x_right[2] - x_right[1])) * ScF
@@ -997,13 +990,11 @@ function set_inner_bc_mb!(L_g,R_g,dVolC,Mtot,KD,nr)
     #ScF      = sum(diag_L_g) / length(diag(L_g))
     ScF = 1.0
     #Inner BC1 (MB)--------------------------------------------------------
-    # L_g[nr[1],:] .= 0.0
     fill!(L_g[nr[1],:],0.0)
     L_g[nr[1],:] = copy(dVolC)
     R_g[nr[1]]   = copy(Mtot)
     #Inner BC2 (KD)--------------------------------------------------------
-    fill!(L_g[nr[1]+1,:],0.0)
-    #L_g[nr[1]+1,:      ] .= 0.0                       
+    fill!(L_g[nr[1]+1,:],0.0)                      
     L_g[nr[1]+1,nr[1]+0] = - 1.0 * ScF                
     L_g[nr[1]+1,nr[1]+1] = + KD * ScF               
     R_g[nr[1]+1]         = 0.0
@@ -1086,12 +1077,10 @@ function set_inner_bc_Lasaga!(Cl_i,beta,t, KD,D_r,D_l,D0,C_left,C_right,dx1,dx2,
     #Reduce the condition Number---------------------------------------
     ScF      = sum(diag(L_g)) * inv(length(diag(L_g)))
     #inner BC1---------------------------------------------------------------
-    #L_g[nr[1],:]         .= 0.0
     fill!(L_g[nr[1],:],0.0)
     L_g[nr[1],nr[1]]     = 1.0 * ScF
     R_g[nr[1]]           = BC_left * ScF
     #inner BC2---------------------------------------------------------------
-    #L_g[nr[1]+1,:]       .= 0.0
     fill!(L_g[nr[1]+1,:],0.0)
     L_g[nr[1]+1,nr[1]+1] = 1.0 * ScF
     R_g[nr[1]+1]         = BC_right * ScF

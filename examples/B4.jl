@@ -134,7 +134,7 @@ p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
 p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
 p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", lw=1.5,
            grid=:on, label=L"Initial\ condition",legendfontsize = 4)
-p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC,title = L"Concentration\ profile", color=:grey68, lw=2,label=L"Interface")
+p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC,title = L"Concentration\ profile", color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
 p2 = plot((x_left/Ri0[2]).^(n),C_left, lw=2, label=L"Numerical\ solution\ solid")
 p2 = plot!((x_right/Ri0[2]).^(n),C_right, lw=2, label=L"Numerical\ solution\ liquid")
 p2 = scatter!([Ray_Fs[1:100:end]],[Ray_Cs[1:100:end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue,label=L"Solid\ Rayleigh", 

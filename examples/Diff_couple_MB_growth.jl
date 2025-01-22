@@ -17,7 +17,7 @@ function main()
                                     #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     D0      = [2.75*1e-6    3.9*1e-7;]#Pre-exponential factor in [m^2/s]
     rho     = [1.0      1.0;]       #Normalized densities in [g/mol]
-    Ri      = [0.002    0.5;]       #Initial radii [interface    total length] in [m]
+    Ri      = [0.0002    0.1;]      #Initial radii [interface    total length] in [m]
     Cl_i    = 0.6                   #Initial concentration left side in [mol]
     Cr_i    = 0.3                   #Initial concentration right side in [mol]
     V_ip    = 3.17e-14              #Interface velocity in [m/s]
@@ -25,14 +25,14 @@ function main()
     Ea1     = 292879.6767           #Activation energy for the left side in [J/mol]
     Ea2     = 360660.4018           #Activation energy for the right side in [J/mol]
     Myr2Sec = 60*60*24*365.25*1e6   #Conversion factor from Myr to s
-    t_tot   = 1.0 * Myr2Sec         #Total time [s]
+    t_tot   = 1.0e-2 * Myr2Sec      #Total time [s]
     n       = 1                     #Geometry; 1: planar, 2: cylindric, 3: spherical
     #History dependent parameters-----------------------------------
     KD_ar   = LinRange(0.9,0.9,1000)        #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
                                             #The last value must be equal to the partition coefficient at t = t_tot.
     t_ar    = LinRange(0.0,t_tot,1000)      #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
                                             #The user is prompted to specify suitable time intervals in relation to the respective destination.               
-    T_ar    = LinRange(973.15,723.15,1000) #Temperature arrray in [K] to calculate temperature history; T changes with respect to time; 
+    T_ar    = LinRange(1273.15,923.15,1000) #Temperature arrray in [K] to calculate temperature history; T changes with respect to time; 
                                             #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
     CFL    = 0.5                    #CFL condition
@@ -115,12 +115,13 @@ function main()
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
     calc_mass_err(Mass,Mass0)
-    return x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0
+    return x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0, maxC
 end
 #Call main function-------------------------------------------------------------
-x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0 = main()
+x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0, maxC = main()
 #Plotting------------------------------------------------------
 plot(x_left,C_left, lw=2, label=L"Left\ side")
 plot!(x_right,C_right, lw=2, label=L"Right\ side")
-plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion/ couple/ 1D/ MB/ condition", lw=1.5,
+plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ -\ growth\ (MB)", lw=1.5,
       grid=:on, label=L"Initial\ condition")
+plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68, lw=2,label=L"Interface", linestyle=:dashdot)

@@ -89,6 +89,9 @@ function main()
     return x, C, x0, C0, D, t, t_tot, Cini, nmodes, Amp, L
 end
 #Run main function------------------------------------------------------
+
+const  plotting = false
+if plotting
 x, C, x0, C0, Di, t, t_tot, Cini, nmodes, Amp, L  = main()
 xan = copy(x)
 Can = sinusoid_profile(Cini,nmodes,L,Di,t,Amp,xan)
@@ -98,5 +101,5 @@ plot!(x0,C0, label=L"Initial\ concentration",color=:black,linestyle=:dash,xlabel
       ylabel = L"Concentration", title = L"Simple\ diffusion\ planar\ (1D)", lw=1.5, grid=:on)   
 scatter!([xan],[Can], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
             markerstrokecolor=:crimson, markercolor=:crimson)
-
+end
 

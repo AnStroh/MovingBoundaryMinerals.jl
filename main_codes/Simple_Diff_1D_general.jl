@@ -9,7 +9,7 @@ using Plots, LinearAlgebra,LaTeXStrings
 # Main function -------------------------------------------------------
 function main()
     #------------------------------------------------------------------
-    verbose =  true
+    verbose =  false
     # Physics ---------------------------------------------------------
     Di      = 2.65*1e-18        #Diffusion coefficient in [m^2/s]
                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0]
@@ -92,7 +92,7 @@ x, C, x0, C0, Di, t, t_tot  = main()
 # Plotting -------------------------------------------------------------
 plot(x,C, lw=2, label=L"Current\ concentration")
 plot!(x0,C0, label=L"Initial\ concentration",color=:black,linestyle=:dash,xlabel = L"Distance",
-     ylabel = L"Concentration", title = L"Diffusion\ couple\ 1D\ flux\S condition", lw=1.5, grid=:on)   
+     ylabel = L"Concentration", title = L"Diffusion\ couple\ 1D\ flux\ condition", lw=1.5, grid=:on)   
 
 
 

@@ -1,10 +1,10 @@
 using Test
-include("../examples/A2.jl")
+include("../examples/B1.jl")
 #Testing-----------------------------------------------------------------------
-@testset "Simple diffusion - sphere" begin
-    x, C, x0, C0, Di, t, t_tot  = main()
+@testset "Diffusion couple (flux)" begin
+    x_left, x_right, x0, C_left, C_right, C0, t, D = main()
     nterms  = 1000           #Number of terms within the analytical solution (degree of the polynomial)
-    xan,Can = Calc_sinus_sphere(x0,C0,Di,t_tot,nterms)
+    xan,Can = calc_sinus_sphere(x0,C0,D[1],t,nterms)
     @test Can ≈ C rtol = 1e-6
 end
 

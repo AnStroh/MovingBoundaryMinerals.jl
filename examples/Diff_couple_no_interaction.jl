@@ -9,7 +9,9 @@ using Plots, LinearAlgebra, Revise, LaTeXStrings
 #Main function-------------------------------------------------
 function main()
     #------------------------------------------------------------------
-    verbose =  false
+    verbose  = false
+    plot_sim = true
+    global plot_end = true
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
     #Phyics-------------------------------------------------------
     #Di = [-1.0 -1.0]
@@ -127,6 +129,14 @@ function main()
             Massnow = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
             push!(Mass, Massnow)  #Stores the mass of the system
         end
+        if plot_sim  
+            #Plotting------------------------------------------------------
+            p = plot(x_left,C_left, lw=2, label=L"Left\ side")
+            p = plot!(x_right,C_right, lw=2, label=L"Right\ side")
+            p = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ (no\ interaction)", lw=1.5,
+                      grid=:on, label=L"Initial condition")
+            display(p)
+        end
     end
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
@@ -139,12 +149,14 @@ xan_l = copy(x_left)
 xan_r = copy(x_right)
 Can_l = sinusoid_profile(Cini_l,nmodes_l,Ri[1],Di[1],t,Amp_l,xan_l)
 Can_r = sinusoid_profile(Cini_r,nmodes_r,Ri[2]-Ri[1],Di[2],t,Amp_r,x_right)
-#Plotting------------------------------------------------------
-plot(x_left,C_left, lw=2, label=L"Left\ side")
-plot!(x_right,C_right, lw=2, label=L"Right\ side")
-plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ (no\ interaction)", lw=1.5,
-      grid=:on, label=L"Initialß condition")
-scatter!([xan_l],[Can_l], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
-         markerstrokecolor=:crimson, markercolor=:crimson)
-scatter!([xan_r],[Can_r], marker=:circle, markersize=2.0, label="",
-         markerstrokecolor=:crimson, markercolor=:crimson)
+if plot_end  
+    #Plotting------------------------------------------------------
+    plot(x_left,C_left, lw=2, label=L"Left\ side")
+    plot!(x_right,C_right, lw=2, label=L"Right\ side")
+    plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ (no\ interaction)", lw=1.5,
+          grid=:on, label=L"Initial condition")
+    scatter!([xan_l],[Can_l], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
+             markerstrokecolor=:crimson, markercolor=:crimson)
+    scatter!([xan_r],[Can_r], marker=:circle, markersize=2.0, label="",
+             markerstrokecolor=:crimson, markercolor=:crimson)
+end

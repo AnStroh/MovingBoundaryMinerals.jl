@@ -9,7 +9,9 @@ using Plots, LinearAlgebra,LaTeXStrings
 # Main function -------------------------------------------------------
 function main()
     #------------------------------------------------------------------
-    verbose =  false
+    verbose  = false
+    plot_sim = true
+    global plot_end = true
     # Physics ---------------------------------------------------------
     Di      = 2.65*1e-18        #Diffusion coefficient in [m^2/s]
                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0]
@@ -82,6 +84,13 @@ function main()
         L_g, R_g = set_outer_bc!(BCout,L_g,R_g,Co[1],Co[end],ScF)
         #Solve system --------------------------------------------------
         C = L_g \ R_g
+        if plot_end
+            # Plotting -------------------------------------------------------------
+            p = plot(x,C, lw=2, label=L"Current\ concentration")
+            p = plot!(x0,C0, label=L"Initial\ concentration",color=:black,linestyle=:dash,xlabel = L"Distance",
+                      ylabel = L"Concentration", title = L"Diffusion\ couple\ 1D\ flux\ condition", lw=1.5, grid=:on)   
+            display(p)
+            end
     end
     Mass = calc_mass_vol_simple_diff(x,C,n,rho)
     calc_mass_err(Mass,Mass0)
@@ -89,10 +98,11 @@ function main()
 end
 #Run main function------------------------------------------------------
 x, C, x0, C0, Di, t, t_tot  = main()
+if plot_end
 # Plotting -------------------------------------------------------------
-plot(x,C, lw=2, label=L"Current\ concentration")
-plot!(x0,C0, label=L"Initial\ concentration",color=:black,linestyle=:dash,xlabel = L"Distance",
-     ylabel = L"Concentration", title = L"Diffusion\ couple\ 1D\ flux\ condition", lw=1.5, grid=:on)   
-
+    plot(x,C, lw=2, label=L"Current\ concentration")
+    plot!(x0,C0, label=L"Initial\ concentration",color=:black,linestyle=:dash,xlabel = L"Distance",
+          ylabel = L"Concentration", title = L"Diffusion\ couple\ 1D\ flux\ condition", lw=1.5, grid=:on)   
+end
 
 

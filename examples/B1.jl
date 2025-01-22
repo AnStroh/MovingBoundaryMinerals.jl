@@ -9,7 +9,9 @@ using Plots, LinearAlgebra, Revise, LaTeXStrings
 #Main function-------------------------------------------------
 function main()
     #------------------------------------------------------------------
-    verbose =  false
+    verbose  = false
+    plot_sim = true
+    global plot_end = true
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
     #Phyics-------------------------------------------------------
     Di      = [2.65*1e-18   2.65*1e-18;]#Initial diffusion coefficient in [m^2/s]; 
@@ -111,20 +113,30 @@ function main()
             Massnow = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
             push!(Mass, Massnow)  #Stores the mass of the system
         end
+        if plot_sim
+            #Plotting------------------------------------------------------
+            p = plot(x_left,C_left, lw=2, label=L"Left\ side")
+            p = plot!(x_right,C_right, lw=2, label=L"Right\ side")
+            p = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ (flux)", lw=1.5,
+                  grid=:on, label=L"Initial\ condition")
+            display(p)
+        end
     end
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
     calc_mass_err(Mass,Mass0)
     return x_left, x_right, x0, C_left, C_right, C0, t, Di
 end
-#Call main function-------------------------------------------------------------
+#Call main function------------------------------------------------------------
 x_left, x_right, x0, C_left, C_right, C0, t, D = main()
 nterms  = 1000           #Number of terms within the analytical solution (degree of the polynomial)
 xan,Can = calc_sinus_sphere(x0,C0,D[1],t,nterms)
-#Plotting------------------------------------------------------
-plot(x_left,C_left, lw=2, label=L"Left\ side")
-plot!(x_right,C_right, lw=2, label=L"Right\ side")
-plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ (flux)", lw=1.5,
-      grid=:on, label=L"Initial\ condition")
-scatter!([xan],[Can], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
-         markerstrokecolor=:crimson, markercolor=:crimson)
+if plot_end
+    #Plotting------------------------------------------------------
+    plot(x_left,C_left, lw=2, label=L"Left\ side")
+    plot!(x_right,C_right, lw=2, label=L"Right\ side")
+    plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ (flux)", lw=1.5,
+          grid=:on, label=L"Initial\ condition")
+    scatter!([xan],[Can], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
+             markerstrokecolor=:crimson, markercolor=:crimson)
+end

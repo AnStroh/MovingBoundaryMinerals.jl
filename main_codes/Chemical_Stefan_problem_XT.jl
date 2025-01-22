@@ -14,7 +14,9 @@ using Diff_Coupled
 using Plots, LinearAlgebra, DelimitedFiles, SparseArrays, LaTeXStrings
 #Main function-------------------------------------------------
 function main()
-    verbose =  false
+    verbose  = false
+    plot_sim = true
+    global plot_end = true
     #-------------------------------------------------------------
     #If you find a [] with two entires this belong to the respective side of 
     #the diffusion couple ([left right])
@@ -161,6 +163,45 @@ function main()
         dtV   = minimum([dx1,dx2]) ^1 .* inv((abs(V_ip)))
         dtD   = minimum([dx1,dx2]) ^2 .* inv((maximum([D_l,D_r])))
         dt    = minimum([dtD,dtV]) * CFL
+        if plot_sim
+            #Plotting------------------------------------------------------
+            Tp_min = Tstop * 0.95
+            Tp_max = Tstart * 1.05
+            first_val, last_val = values_between_known_indices!(Tlin,KDlin,Tstart,Tstop)        #Just works for constantly dropping temperature
+            #Concentration profile
+            p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
+            p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
+            p1 = plot!([x_left[end]; x_left[end]],[0; 1]*maxC,color=:grey,linestyle=:dash, lw=2, label=L"Interface")
+            p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Concentration\ profile", lw=1.5,
+                  grid=:on, label=L"Initial\ condition")
+            p1 = annotate!(0.05, maxC - 0.05,"(d)", transform=:axes)
+            #Phase diagram
+            p2 = plot(Tlin,XC_left, lw=2, label=L"Left\ side")
+            p2 = plot!(Tlin,XC_right, lw=2, label=L"Right\ side")
+            p2 = scatter!([T],[C_left[end]],marker=:circle, markersize=2, markercolor=:black, 
+                          markerstrokecolor=:black,label = "")
+            p2 = scatter!([T],[C_right[1]],marker=:circle, markersize=2, markercolor=:black, 
+                          markerstrokecolor=:black,label = "")
+            p2 = plot!([T; T],[0; maximum([C_left[end],C_right[1]])],lw=1.5, label="",color=:black,linestyle=:dash)
+            p2 = plot!([T; 0],[C_left[end];C_left[end]],lw=1.5, label="",color=:midnightblue)
+            p2 = plot!([T; 0],[C_right[1];C_right[1]],lw=1.5, label="",xlims=(Tp_min, Tp_max), ylims=(0, 1),color=:crimson)
+            p2 = plot!([Tstop*0.3; Tstart*1.5],[Mass[end]; Mass[end]],color=:purple,linestyle=:dash,lw=1.5, label="")
+            p2 = plot!([Tstop*0.3; Tstart*1.5],[Mass0; Mass0],color=:green,linestyle=:dash,lw=1.5, label="",
+                        xlabel = L"Temperature", ylabel = L"X", title = L"Phase\ diagram",grid=:on)
+            p2 = annotate!(0.05, 0.95,"(a)", transform=:axes)
+            #evolution of KD(T)
+            p3 = plot(Tlin, KDlin, lw=2, label="")
+            p3 = scatter!([T_sim[end]],[KD_sim[end]],marker=:circle, markersize=2, markercolor=:black,markerstrokecolor=:black,
+                          xlabel = L"Temperature", ylabel = L"K_{D}", title = L"K_{D}(T)\ evolution", lw=1.5,
+                          grid=:on, label="",xlims=(Tp_min, Tp_max), ylims=(first_val-0.01,last_val+0.01))
+            p3 = annotate!(0.05, maximum(KDlin)- 0.05, "(b)", transform=:axes)
+            #ln(KD) vs 1/T)
+            #p4 = plot(1.0 ./ T_sim,log.(KD_sim),xlabel = L"1/T", ylabel = L"ln(K_{D})", title = L"Arrhenius plot", lw=1.5,
+            #            grid=:on, label="")
+            #p4 = annotate!(0.05, maximum(log.(KD_sim)) - 0.05,"(c)", transform=:axes)
+            p = plot(p2,p3,p1,suptitle = L"Thermodynamical\ constrained,\ Stefan\ condition")
+            display(p)
+        end
     end
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
@@ -175,39 +216,41 @@ function main()
 end
 #Calculate the Stefan condition--------------------------------
 x_left, x_right, x0, C_left, C_right, C0, maxC, Tlin, XC_left, XC_right, T, Tstart, Tstop, KDlin, KD_sim,T_sim, Mass0, Mass = main()
-#Plotting------------------------------------------------------
-Tp_min = Tstop * 0.95
-Tp_max = Tstart * 1.05
-first_val, last_val = values_between_known_indices!(Tlin,KDlin,Tstart,Tstop)        #Just works for constantly dropping temperature
-#Concentration profile
-p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
-p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
-p1 = plot!([x_left[end]; x_left[end]],[0; 1]*maxC,color=:grey,linestyle=:dash, lw=2, label=L"Interface")
-p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Concentration\ profile", lw=1.5,
-      grid=:on, label=L"Initial\ condition")
-p1 = annotate!(0.05, maxC - 0.05,"(d)", transform=:axes)
-#Phase diagram
-p2 = plot(Tlin,XC_left, lw=2, label=L"Left\ side")
-p2 = plot!(Tlin,XC_right, lw=2, label=L"Right\ side")
-p2 = scatter!([T],[C_left[end]],marker=:circle, markersize=2, markercolor=:black, 
-              markerstrokecolor=:black,label = "")
-p2 = scatter!([T],[C_right[1]],marker=:circle, markersize=2, markercolor=:black, 
-              markerstrokecolor=:black,label = "")
-p2 = plot!([T; T],[0; maximum([C_left[end],C_right[1]])],lw=1.5, label="",color=:black,linestyle=:dash)
-p2 = plot!([T; 0],[C_left[end];C_left[end]],lw=1.5, label="",color=:midnightblue)
-p2 = plot!([T; 0],[C_right[1];C_right[1]],lw=1.5, label="",xlims=(Tp_min, Tp_max), ylims=(0, 1),color=:crimson)
-p2 = plot!([Tstop*0.3; Tstart*1.5],[Mass[end]; Mass[end]],color=:purple,linestyle=:dash,lw=1.5, label="")
-p2 = plot!([Tstop*0.3; Tstart*1.5],[Mass0; Mass0],color=:green,linestyle=:dash,lw=1.5, label="",
-            xlabel = L"Temperature", ylabel = L"X", title = L"Phase\ diagram",grid=:on)
-p2 = annotate!(0.05, 0.95,"(a)", transform=:axes)
-#evolution of KD(T)
-p3 = plot(Tlin, KDlin, lw=2, label="")
-p3 = scatter!([T_sim[end]],[KD_sim[end]],marker=:circle, markersize=2, markercolor=:black,markerstrokecolor=:black,
-              xlabel = L"Temperature", ylabel = L"K_{D}", title = L"K_{D}(T)\ evolution", lw=1.5,
-              grid=:on, label="",xlims=(Tp_min, Tp_max), ylims=(first_val-0.01,last_val+0.01))
-p3 = annotate!(0.05, maximum(KDlin)- 0.05, "(b)", transform=:axes)
-#ln(KD) vs 1/T)
-#p4 = plot(1.0 ./ T_sim,log.(KD_sim),xlabel = L"1/T", ylabel = L"ln(K_{D})", title = L"Arrhenius plot", lw=1.5,
-#            grid=:on, label="")
-#p4 = annotate!(0.05, maximum(log.(KD_sim)) - 0.05,"(c)", transform=:axes)
-plot(p2,p3,p1,suptitle = L"Thermodynamical\ constrained,\ Stefan\ condition")
+if plot_end
+    #Plotting------------------------------------------------------
+    Tp_min = Tstop * 0.95
+    Tp_max = Tstart * 1.05
+    first_val, last_val = values_between_known_indices!(Tlin,KDlin,Tstart,Tstop)        #Just works for constantly dropping temperature
+    #Concentration profile
+    p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
+    p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
+    p1 = plot!([x_left[end]; x_left[end]],[0; 1]*maxC,color=:grey,linestyle=:dash, lw=2, label=L"Interface")
+    p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Concentration\ profile", lw=1.5,
+          grid=:on, label=L"Initial\ condition")
+    p1 = annotate!(0.05, maxC - 0.05,"(d)", transform=:axes)
+    #Phase diagram
+    p2 = plot(Tlin,XC_left, lw=2, label=L"Left\ side")
+    p2 = plot!(Tlin,XC_right, lw=2, label=L"Right\ side")
+    p2 = scatter!([T],[C_left[end]],marker=:circle, markersize=2, markercolor=:black, 
+                  markerstrokecolor=:black,label = "")
+    p2 = scatter!([T],[C_right[1]],marker=:circle, markersize=2, markercolor=:black, 
+                  markerstrokecolor=:black,label = "")
+    p2 = plot!([T; T],[0; maximum([C_left[end],C_right[1]])],lw=1.5, label="",color=:black,linestyle=:dash)
+    p2 = plot!([T; 0],[C_left[end];C_left[end]],lw=1.5, label="",color=:midnightblue)
+    p2 = plot!([T; 0],[C_right[1];C_right[1]],lw=1.5, label="",xlims=(Tp_min, Tp_max), ylims=(0, 1),color=:crimson)
+    p2 = plot!([Tstop*0.3; Tstart*1.5],[Mass[end]; Mass[end]],color=:purple,linestyle=:dash,lw=1.5, label="")
+    p2 = plot!([Tstop*0.3; Tstart*1.5],[Mass0; Mass0],color=:green,linestyle=:dash,lw=1.5, label="",
+                xlabel = L"Temperature", ylabel = L"X", title = L"Phase\ diagram",grid=:on)
+    p2 = annotate!(0.05, 0.95,"(a)", transform=:axes)
+    #evolution of KD(T)
+    p3 = plot(Tlin, KDlin, lw=2, label="")
+    p3 = scatter!([T_sim[end]],[KD_sim[end]],marker=:circle, markersize=2, markercolor=:black,markerstrokecolor=:black,
+                  xlabel = L"Temperature", ylabel = L"K_{D}", title = L"K_{D}(T)\ evolution", lw=1.5,
+                  grid=:on, label="",xlims=(Tp_min, Tp_max), ylims=(first_val-0.01,last_val+0.01))
+    p3 = annotate!(0.05, maximum(KDlin)- 0.05, "(b)", transform=:axes)
+    #ln(KD) vs 1/T)
+    #p4 = plot(1.0 ./ T_sim,log.(KD_sim),xlabel = L"1/T", ylabel = L"ln(K_{D})", title = L"Arrhenius plot", lw=1.5,
+    #            grid=:on, label="")
+    #p4 = annotate!(0.05, maximum(log.(KD_sim)) - 0.05,"(c)", transform=:axes)
+    plot(p2,p3,p1,suptitle = L"Thermodynamical\ constrained,\ Stefan\ condition")
+end

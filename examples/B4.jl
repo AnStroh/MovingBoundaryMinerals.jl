@@ -15,7 +15,7 @@ function main(plot_sim,verbose)
                                     #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     D0      = [2.75*1e-6   1.0e4;]  #Pre-exponential factor in [m^2/s]
     rho     = [1.0      1.0;]       #Normalized densities in [g/mol]
-    Ri      = [1e-4    1.0;]        #Initial radii [interface    total length] in [m]
+    Ri      = [1e-4    0.1;]        #Initial radii [interface    total length] in [m]
     Cl_i    = 0.6                   #Initial concentration left side in [mol]
     Cr_i    = 0.3                   #Initial concentration right side in [mol]
     V_ip    = 3.17e-11              #Interface velocity in [m/s]
@@ -34,9 +34,9 @@ function main(plot_sim,verbose)
                                             #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
     CFL    = 0.3                    #CFL condition
-    res    = [500 750;]             #Number of grid points
+    res    = [100 150;]             #Number of grid points
     resmin = copy(res)              #Minimum number of grid points
-    MRefin = 4.0                    #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
+    MRefin = 20.0                    #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     BCout  = [0 0]                  #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
                                     #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Check, if t_ar is valid (increasing in time)----------------------------------------
@@ -100,16 +100,6 @@ function main(plot_sim,verbose)
         #Set outer boundary conditions and scale matrices---------------
         L_g, R_g = set_outer_bc!(BCout,L_g,R_g,Co_l[1],Co_r[end],ScF)
         #Solve system---------------------------------------------------
-        #=if it == 1250
-            @show ScF 
-            @show R_g
-            plot(x_left,C_left)
-            plot!(x_right, C_right)
-            #@show isnan.(L_g)
-            #@show isnan.(R_g)
-            @show L_g\R_g
-        end
-        @show minimum(R_g)=#
         C_left, C_right = solve_soe(L_g,R_g,res)
         #Regrid---------------------------------------------------------
         x_left, x_right, C_left, C_right, dx1, dx2, res = regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, res, resmin, MRefin,verbose)
@@ -120,24 +110,13 @@ function main(plot_sim,verbose)
         end
         if plot_sim
             #Plotting------------------------------------------------------
+            maxC = maximum([maximum(C_left),maximum(C_right)])
             p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
             p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
             p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", lw=1.5,
-                       grid=:on, label=L"Initial\ condition",legendfontsize = 4)
+                       grid=:on, label=L"Initial\ condition",legendfontsize = 4,title = L"Diffusion\ couple\ (flux)\ -\ Rayleigh\ fractionation")
             p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC,title = L"Concentration\ profile", color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
-            p2 = plot((x_left/Ri0[2]).^(n),C_left, lw=2, label=L"Numerical\ solution\ solid")
-            p2 = plot!((x_right/Ri0[2]).^(n),C_right, lw=2, label=L"Numerical\ solution\ liquid")
-            p2 = scatter!([Ray_Fs[1:100:end]],[Ray_Cs[1:100:end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue,label=L"Solid\ Rayleigh", 
-                          xlabel = L"Fraction", ylabel = L"Concentration", grid=:on,legendfontsize = 4,
-                          title = L"Concentration\ profile\ solid")
-            p2 = scatter!([Ray_Fs[end]],[Ray_Cs[end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue, label="",xlim=(x_left[1]-0.0001*Ri[2], Ri[1]+0.0001*Ri[2]))
-            p3 = plot((phi_solid.^n)', Cl_p', lw=2, label=L"Mass\ fraction\ solid")
-            p3 = scatter!([Ray_Fs[1:100:end]],[Ray_Cs[1:100:end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue,label=L"Solid\ Rayleigh",
-                          xlabel = L"Fraction", ylabel = L"Concentration", grid=:on,legendfontsize = 4,
-                          title = "")
-            p3 = scatter!([Ray_Fs[end]],[Ray_Cs[end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue, label="")
-            p = plot(p1,p2,p3,suptitle = L"Diffusion\ couple\ (flux)\ -\ Rayleigh\ fractionation")
-            display(p)
+            display(p1)
         end
     end
     maxC = maximum([maximum(C_left),maximum(C_right)])
@@ -146,9 +125,9 @@ function main(plot_sim,verbose)
     return x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, KD0, n, maxC
 end
 #Call main function-------------------------------------------------------------
-run_and_plot = false
+run_and_plot = true
 if run_and_plot
-    plot_sim = false
+    plot_sim = true
     plot_end = true
     verbose  = false
     x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, KD0, n, maxC = main(plot_sim,verbose)

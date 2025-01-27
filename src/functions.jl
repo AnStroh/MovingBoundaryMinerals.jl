@@ -444,7 +444,6 @@ function find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
     dtD   = minimum([dx1,dx2]) ^2 * inv(maximum([D_l,D_r]))      #Diffusion time
     dtV1  = dtV * dt_drop
     dtV2  = dtV * CFL * 5.0
-    @show dtV dtD dtV2
     dt    = minimum([dtV1,dtV2])
     if V_ip == 0.0
         dt   = dtD * CFL
@@ -948,7 +947,7 @@ Set the inner boundary conditions at the interface using fluxes.
 function set_inner_bc_flux!(L_g,R_g,KD,D_l,D_r,x_left,x_right,V_ip,rho,nr)
     #Reduce the condition Number---------------------------------------
     ScF = maximum(diag(L_g))
-    #ScF      = sum(diag_L_g) / length(diag(L_g))
+    #ScF      = sum(diag(L_g)g) / length(diag(L_g))
     #ScF = 1.0
     #ScF = mean(diag(L_g))
     #inner BC1---------------------------------------------------------------
@@ -987,7 +986,7 @@ Set the inner boundary conditions at the interface using mass balance (MB).
 """
 function set_inner_bc_mb!(L_g,R_g,dVolC,Mtot,KD,nr)
     #Reduce the condition number-------------------------------------------
-    #ScF      = sum(diag_L_g) / length(diag(L_g))
+    #ScF      = sum(diag(L_g)) / length(diag(L_g))
     ScF = 1.0
     #Inner BC1 (MB)--------------------------------------------------------
     fill!(L_g[nr[1],:],0.0)

@@ -136,8 +136,9 @@ Uses the Stefan boundary conditions to set the inner boundary conditions of the 
 """
 function set_inner_bc_stefan!(L_g,R_g,C_left,C_right,nr)
     #Reduce the condition number-------------------------------------------
-    #ScF      = sum(diag_L_g) / length(diag(L_g))
-    ScF = 1.0
+    ScF = Float64(maximum(abs.(C_left)))
+    #ScF      = sum(diag(L_g)) / length(diag(L_g))
+    #ScF = 1.0
     #Apply Dirichlet BC at interface---------------------------------------
     #inner BC1---------------------------------------------------------------
     fill!(L_g[nr[1],:],0.0)

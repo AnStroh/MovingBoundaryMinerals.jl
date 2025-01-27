@@ -1,5 +1,5 @@
 using Test
-include("../examples/B4.jl")
+include("../examples/C1.jl")
 #Testing-----------------------------------------------------------------------
 @testset "Diffusion couple (flux) - Rayleigh fractionation" begin
     plot_sim = false

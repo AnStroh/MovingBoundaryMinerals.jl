@@ -15,7 +15,7 @@ function main(plot_sim,verbose)
                                     #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     D0      = [2.75*1e-6    3.9*1e-7;]#Pre-exponential factor in [m^2/s]
     rho     = [1.0      1.0;]       #Normalized densities in [g/mol]
-    Ri      = [0.0002    0.1;]      #Initial radii [interface    total length] in [m]
+    Ri      = [0.002    0.1;]      #Initial radii [interface    total length] in [m]
     Cl_i    = 0.6                   #Initial concentration left side in [mol]
     Cr_i    = 0.3                   #Initial concentration right side in [mol]
     V_ip    = 3.17e-14              #Interface velocity in [m/s]
@@ -33,10 +33,10 @@ function main(plot_sim,verbose)
     T_ar    = LinRange(1273.15,923.15,1000) #Temperature arrray in [K] to calculate temperature history; T changes with respect to time; 
                                             #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
-    CFL    = 0.5                    #CFL condition
-    res    = [100 150;]               #Number of grid points
+    CFL    = 0.3                    #CFL condition
+    res    = [200 300;]               #Number of grid points
     resmin = copy(res)              #Minimum number of grid points
-    MRefin = 2.0                     #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
+    MRefin = 20.0                     #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     BCout  = [0 0]                  #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
                                     #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Check, if t_ar is valid (increasing in time)----------------------------------------
@@ -125,7 +125,7 @@ function main(plot_sim,verbose)
     return x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0, maxC
 end
 #Call main function-------------------------------------------------------------
-run_and_plot = false
+run_and_plot = true
 if run_and_plot
     plot_sim = false
     plot_end = true

@@ -7,9 +7,8 @@
 using Diff_Coupled
 using Plots, LinearAlgebra, Revise, LaTeXStrings
 #Main function-------------------------------------------------
-function main()
+function main(plot_sim,verbose)
     #------------------------------------------------------------------
-    verbose =  false
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
     #Phyics-------------------------------------------------------
     #Di      = [1.0    1.0]
@@ -53,9 +52,9 @@ function main()
                                             #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
     CFL    = 0.3                    #CFL condition
-    res    = [100 150;]             #Number of grid points
+    res    = [50 75;]             #Number of grid points
     resmin = copy(res)              #Minimum number of grid points
-    MRefin = 5.0                    #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
+    MRefin = 50.0                    #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     BCout  = [0 0]                  #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
                                     #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Check, if t_ar is valid (increasing in time)----------------------------------------
@@ -109,7 +108,7 @@ function main()
         error("Initial temperature must be equal to the first value in the temperature array.")
     end
     #Time loop----------------------------------------------------
-    for iit = 1:1000000
+    for iit = 1:10000
     #while t < t_tot
         #Calculate dt-------------------------------------------------
         println("it: $it")
@@ -167,10 +166,16 @@ function main()
     return x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0, maxC
 end
 #Call main function-------------------------------------------------------------
-x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0, maxC = main()
-#Plotting------------------------------------------------------
-plot(x_left,C_left, lw=2, label=L"Left\ side")
-plot!(x_right,C_right, lw=2, label=L"Right\ side")
-plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ -\ growth\ (flux)", lw=1.5,
-      grid=:on, label=L"Initial\ condition")
-#plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68, lw=2,label=L"Interface", linestyle=:dashdot)
+run_and_plot = false
+if run_and_plot
+    plot_sim = false
+    plot_end = true
+    verbose  = false
+    x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0, maxC = main(plot_sim,verbose)
+    #Plotting------------------------------------------------------
+    plot(x_left,C_left, lw=2, label=L"Left\ side")
+    plot!(x_right,C_right, lw=2, label=L"Right\ side")
+    plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ -\ growth\ (flux)", lw=1.5,
+          grid=:on, label=L"Initial\ condition")
+    #plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68, lw=2,label=L"Interface", linestyle=:dashdot)
+end

@@ -7,11 +7,7 @@
 using Diff_Coupled
 using Plots, LinearAlgebra, LaTeXStrings
 #Main function-------------------------------------------------
-function main()
-    #------------------------------------------------------------------
-    verbose  = false
-    plot_sim = true
-    global plot_end = true
+function main(plot_sim,verbose)
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
     #Phyics-------------------------------------------------------
     #Di = [-1.0 -1.0]
@@ -129,12 +125,18 @@ function main()
     return x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0, maxC
 end
 #Call main function-------------------------------------------------------------
-x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0, maxC = main()
-if plot_end
-    #Plotting------------------------------------------------------
-    plot(x_left,C_left, lw=2, label=L"Left\ side")
-    plot!(x_right,C_right, lw=2, label=L"Right\ side")
-    plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ -\ growth\ (MB)", lw=1.5,
-          grid=:on, label=L"Initial\ condition")
-    plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68, lw=2,label=L"Interface", linestyle=:dashdot)
+run_and_plot = false
+if run_and_plot
+    plot_sim = false
+    plot_end = true
+    verbose  = false
+    x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0, maxC = main(plot_sim,verbose)
+    if plot_end
+        #Plotting------------------------------------------------------
+        plot(x_left,C_left, lw=2, label=L"Left\ side")
+        plot!(x_right,C_right, lw=2, label=L"Right\ side")
+        plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ -\ growth\ (MB)", lw=1.5,
+              grid=:on, label=L"Initial\ condition")
+        plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68, lw=2,label=L"Interface", linestyle=:dashdot)
+    end
 end

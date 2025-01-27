@@ -7,12 +7,7 @@
 using Diff_Coupled, Diff_Coupled.Benchmarks
 using Plots, LinearAlgebra, Revise, LaTeXStrings
 #Main function-------------------------------------------------
-function main()
-    #------------------------------------------------------------------
-    verbose  = false
-    plot_sim = true
-    global plot_end = true
-    adapt_dt = 1
+function main(adapt_dt,plot_sim,verbose)
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
     #Phyics-------------------------------------------------------
     Di      = [-1.0    -1.0]        #Initial diffusion coefficient in [m^2/s]; 
@@ -107,7 +102,7 @@ function main()
     #Time loop----------------------------------------------------
     while t < t_tot
         #Calculate dt-------------------------------------------------
-        if adapt_dt == 1
+        if adapt_dt
             dt1 = dx1 .^ 2 .* inv.(D0[1] * exp(-Ea1 * inv(R) * inv(T0))) .* inv(3.0)
             dt2 = dx2 .^ 2 .* inv.(D0[2] * exp(-Ea1 * inv(R) * inv(T0))) .* inv(3.0)
             dt  = minimum([dt1 dt2]) * 1000.0
@@ -179,25 +174,32 @@ function main()
     return x_left, x_right, x0, C_left, C_right, C0, Sols_left, Sols_right,Checks, CheckBC, T_pl, (t_pl ./ Myr2Sec)
 end
 #Call main function-------------------------------------------------------------
-x_left, x_right, x0, C_left, C_right, C0, Sols_left, Sols_right,Checks, CheckBC, T_pl, t_pl = main()
-Can1 = first.(Sols_left)
-Can2 = first.(Sols_right)
-if plot_end
-    #Plotting------------------------------------------------------
-    p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
-    p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
-    p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration",
-               title = L"Concentration\ profile", lw=1.5, grid=:on, label=L"Initial\ condition",
-               legendfontsize = 4)
-    p2 = plot(t_pl,T_pl,color=:black,xlabel = L"Time\ [Myr]", ylabel = L"Temperature\ [K]",
-              title = L"t-T\ path", lw=2, grid=:on, label="")
-    p3 = plot(T_pl,last.(Sols_left), lw=2, label=L"Left\ side\ num.\ solution")
-    p3 = plot!(T_pl,last.(Sols_right), lw=2, label=L"Right\ side\ num.\ solution",
-              xlabel = L"Temperature\ [K]", ylabel = L"Concentration", 
-              title = L"Boundary\ concentrations", grid=:on)
-    p3 = scatter!(T_pl,Can1[:,1], marker=:circle, markersize=2.0, label=L"Left\ side\ ana.\ solution",
-                  markerstrokecolor=:midnightblue, markercolor=:midnightblue)
-    p3 = scatter!(T_pl,Can2[:,1], marker=:circle, markersize=2.0, label=L"Right\ side\ ana.\ solution",
-                  markerstrokecolor=:crimson, markercolor=:crimson,legendfontsize = 4, legend =:right)
-    plot(p2,p1,p3,suptitle = L"Diffusion\ couple\ (Lasaga)")
+run_and_plot = false
+if run_and_plot
+    adapt_dt = true
+    plot_sim = true
+    plot_end = true
+    verbose  = false
+    x_left, x_right, x0, C_left, C_right, C0, Sols_left, Sols_right,Checks, CheckBC, T_pl, t_pl = main(adapt_dt,plot_sim,verbose)
+    Can1 = first.(Sols_left)
+    Can2 = first.(Sols_right)
+    if plot_end
+        #Plotting------------------------------------------------------
+        p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
+        p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
+        p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration",
+                   title = L"Concentration\ profile", lw=1.5, grid=:on, label=L"Initial\ condition",
+                   legendfontsize = 4)
+        p2 = plot(t_pl,T_pl,color=:black,xlabel = L"Time\ [Myr]", ylabel = L"Temperature\ [K]",
+                  title = L"t-T\ path", lw=2, grid=:on, label="")
+        p3 = plot(T_pl,last.(Sols_left), lw=2, label=L"Left\ side\ num.\ solution")
+        p3 = plot!(T_pl,last.(Sols_right), lw=2, label=L"Right\ side\ num.\ solution",
+                  xlabel = L"Temperature\ [K]", ylabel = L"Concentration", 
+                  title = L"Boundary\ concentrations", grid=:on)
+        p3 = scatter!(T_pl,Can1[:,1], marker=:circle, markersize=2.0, label=L"Left\ side\ ana.\ solution",
+                      markerstrokecolor=:midnightblue, markercolor=:midnightblue)
+        p3 = scatter!(T_pl,Can2[:,1], marker=:circle, markersize=2.0, label=L"Right\ side\ ana.\ solution",
+                      markerstrokecolor=:crimson, markercolor=:crimson,legendfontsize = 4, legend =:right)
+        plot(p2,p1,p3,suptitle = L"Diffusion\ couple\ (Lasaga)")
+    end
 end

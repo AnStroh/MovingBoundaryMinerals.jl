@@ -7,11 +7,8 @@
 using Diff_Coupled, Diff_Coupled.Benchmarks
 using Plots, LinearAlgebra, Revise, LaTeXStrings
 #Main function-------------------------------------------------
-function main()
+function main(plot_sim,verbose)
     #------------------------------------------------------------------
-    verbose  = false
-    plot_sim = true
-    global plot_end = true
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
     #Phyics-------------------------------------------------------
     Di      = [2.65*1e-18   2.65*1e-18;]#Initial diffusion coefficient in [m^2/s]; 
@@ -36,10 +33,10 @@ function main()
     T_ar    = LinRange(1273.15,1273.15,1000) #Temperature arrray in [K] to calculate temperature history; T changes with respect to time; 
                                             #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
-    CFL    = 0.5                    #CFL condition
-    res    = [100 150;]             #Number of grid points
+    CFL    = 0.3                    #CFL condition
+    res    = [50 75;]             #Number of grid points
     resmin = copy(res)              #Minimum number of grid points
-    MRefin = 2.0                    #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
+    MRefin = 15.0                    #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     BCout  = [0 1]                  #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
                                     #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Check, if t_ar is valid (increasing in time)----------------------------------------
@@ -113,7 +110,7 @@ function main()
             Massnow = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
             push!(Mass, Massnow)  #Stores the mass of the system
         end
-        if plot_end    
+        if plot_sim    
             #Plotting------------------------------------------------------
             p = plot(x_left,C_left, lw=2, label=L"Left\ side")
             p = plot!(x_right,C_right, lw=2, label=L"Right\ side")
@@ -128,15 +125,21 @@ function main()
     return x_left, x_right, x0, C_left, C_right, C0, t, Di, D0, T_ar[1], T, Ea1, R
 end
 #Call main function-------------------------------------------------------------
-x_left, x_right, x0, C_left, C_right, C0, t, D, D0, T0, T, Ea, R = main()
-nterms  = 1000           #Number of terms within the analytical solution (degree of the polynomial)
-Can,xan = crank_time_transformation3(C0,x0,T0,T,Ea,R,D0[1],t,nterms)
-if plot_end    
-    #Plotting------------------------------------------------------
-    plot(x_left,C_left, lw=2, label=L"Left\ side")
-    plot!(x_right,C_right, lw=2, label=L"Right\ side")
-    plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ (flux)\ -\ time\ transformation", lw=1.5,
-          grid=:on, label=L"Initial\ condition")
-    scatter!([xan],[Can], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
-             markerstrokecolor=:crimson, markercolor=:crimson)
-end         
+run_and_plot = false
+if run_and_plot
+    plot_sim = false
+    plot_end = true
+    verbose  = false
+    x_left, x_right, x0, C_left, C_right, C0, t, D, D0, T0, T, Ea, R = main(plot_sim,verbose)
+    nterms  = 1000           #Number of terms within the analytical solution (degree of the polynomial)
+    Can,xan = crank_time_transformation3(C0,x0,T0,T,Ea,R,D0[1],t,nterms)
+    if plot_end    
+        #Plotting------------------------------------------------------
+        plot(x_left,C_left, lw=2, label=L"Left\ side")
+        plot!(x_right,C_right, lw=2, label=L"Right\ side")
+        plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ (flux)\ -\ time\ transformation", lw=1.5,
+              grid=:on, label=L"Initial\ condition")
+        #scatter!([xan],[Can], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
+        #         markerstrokecolor=:crimson, markercolor=:crimson)
+    end        
+end 

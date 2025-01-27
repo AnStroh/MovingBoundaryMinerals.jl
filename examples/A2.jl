@@ -7,11 +7,7 @@
 using Diff_Coupled, Diff_Coupled.Benchmarks
 using Plots, LinearAlgebra, LaTeXStrings
 # Main function -------------------------------------------------------
-function main()
-    #------------------------------------------------------------------
-    verbose  = false
-    plot_sim = true
-    global plot_end = true
+function main(plot_sim)
     # Physics ---------------------------------------------------------
     Di      = 2.65*1e-18        #Diffusion coefficient in [m^2/s]
                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0]
@@ -26,7 +22,7 @@ function main()
     t_tot   = 1e-3 * Myr2Sec    #Total time [s]
     n       = 3                 #Geometry; 1: planar, 2: cylindric, 3: spherical
     # Numerics --------------------------------------------------------
-    res   = 100                 #Number of grid points
+    res   = 500                 #Number of grid points
     CFL   = 0.5                 #CFL number for time step calculation
     # Domain ----------------------------------------------------------
     dx    = L * inv(res - 1)    #Grid spacing
@@ -97,16 +93,21 @@ function main()
     return x, C, x0, C0, D, t, t_tot 
 end
 #Run main function------------------------------------------------------
-x, C, x0, C0, Di, t, t_tot = main()
-nterms  = 1000           #Number of terms within the analytical solution (degree of the polynomial)
-xan,Can = calc_sinus_sphere(x0,C0,Di,t_tot,nterms)
-if plot_end
-    # Plotting -------------------------------------------------------------
-    plot(x,C, lw=2, label=L"Current\ concentration")
-    plot!(x0,C0, label=L"Initial\ concentration",color=:black,linestyle=:dash,xlabel = L"Distance", 
-          ylabel = L"Concentration", title = L"Simple\ diffusion\ sphere\ (1D)", lw=1.5, grid=:on)   
-    scatter!([xan],[Can], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
-                markerstrokecolor=:crimson, markercolor=:crimson)
+run_and_plot = false
+if run_and_plot
+    plot_sim = true
+    plot_end = true
+    x, C, x0, C0, Di, t, t_tot = main(plot_sim)
+    nterms  = 1000           #Number of terms within the analytical solution (degree of the polynomial)
+    xan,Can = calc_sinus_sphere(x0,C0,Di,t_tot,nterms)
+    if plot_end
+        # Plotting -------------------------------------------------------------
+        plot(x,C, lw=2, label=L"Current\ concentration")
+        plot!(x0,C0, label=L"Initial\ concentration",color=:black,linestyle=:dash,xlabel = L"Distance", 
+              ylabel = L"Concentration", title = L"Simple\ diffusion\ sphere", lw=1.5, grid=:on)   
+        scatter!([xan],[Can], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
+                    markerstrokecolor=:crimson, markercolor=:crimson)
+    end
 end
 
 

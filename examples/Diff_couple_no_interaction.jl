@@ -7,11 +7,7 @@
 using Diff_Coupled
 using Plots, LinearAlgebra, Revise, LaTeXStrings
 #Main function-------------------------------------------------
-function main()
-    #------------------------------------------------------------------
-    verbose  = false
-    plot_sim = true
-    global plot_end = true
+function main(plot_sim,verbose)
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
     #Phyics-------------------------------------------------------
     #Di = [-1.0 -1.0]
@@ -38,7 +34,7 @@ function main()
                                             #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
     CFL    = 0.5                    #CFL condition
-    res    = [100 100;]             #Number of grid points
+    res    = [500 500;]             #Number of grid points
     resmin = copy(res)              #Minimum number of grid points
     MRefin = 1.0                    #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     Dirichlet = 1                   #Dirchlet BC at the interface
@@ -144,19 +140,25 @@ function main()
     return x_left, x_right, x0, C_left, C_right, C0, Cini_l, Cini_r, nmodes_l, nmodes_r,Amp_l, Amp_r, Di, Ri, t
 end
 #Call main function-------------------------------------------------------------
-x_left, x_right, x0, C_left, C_right, C0, Cini_l, Cini_r, nmodes_l, nmodes_r,Amp_l, Amp_r, Di, Ri, t = main()
-xan_l = copy(x_left)
-xan_r = copy(x_right)
-Can_l = sinusoid_profile(Cini_l,nmodes_l,Ri[1],Di[1],t,Amp_l,xan_l)
-Can_r = sinusoid_profile(Cini_r,nmodes_r,Ri[2]-Ri[1],Di[2],t,Amp_r,x_right)
-if plot_end  
-    #Plotting------------------------------------------------------
-    plot(x_left,C_left, lw=2, label=L"Left\ side")
-    plot!(x_right,C_right, lw=2, label=L"Right\ side")
-    plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ (no\ interaction)", lw=1.5,
-          grid=:on, label=L"Initial condition")
-    scatter!([xan_l],[Can_l], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
-             markerstrokecolor=:crimson, markercolor=:crimson)
-    scatter!([xan_r],[Can_r], marker=:circle, markersize=2.0, label="",
-             markerstrokecolor=:crimson, markercolor=:crimson)
+run_and_plot = false
+if run_and_plot
+    plot_sim = false
+    plot_end = true
+    verbose  = false
+    x_left, x_right, x0, C_left, C_right, C0, Cini_l, Cini_r, nmodes_l, nmodes_r,Amp_l, Amp_r, Di, Ri, t = main(plot_sim,verbose)
+    xan_l = copy(x_left)
+    xan_r = copy(x_right)
+    Can_l = sinusoid_profile(Cini_l,nmodes_l,Ri[1],Di[1],t,Amp_l,xan_l)
+    Can_r = sinusoid_profile(Cini_r,nmodes_r,Ri[2]-Ri[1],Di[2],t,Amp_r,x_right)
+    if plot_end  
+        #Plotting------------------------------------------------------
+        plot(x_left,C_left, lw=2, label=L"Left\ side")
+        plot!(x_right,C_right, lw=2, label=L"Right\ side")
+        plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ (no\ interaction)", lw=1.5,
+              grid=:on, label=L"Initial condition")
+        scatter!([xan_l],[Can_l], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
+                 markerstrokecolor=:crimson, markercolor=:crimson)
+        scatter!([xan_r],[Can_r], marker=:circle, markersize=2.0, label="",
+                 markerstrokecolor=:crimson, markercolor=:crimson)
+    end
 end

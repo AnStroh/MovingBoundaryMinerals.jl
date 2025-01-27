@@ -7,18 +7,14 @@
 using Diff_Coupled, Diff_Coupled.Benchmarks
 using Plots, LinearAlgebra, Revise, LaTeXStrings
 #Main function-------------------------------------------------
-function main()
-    #------------------------------------------------------------------
-    verbose  = false
-    plot_sim = true
-    global plot_end = true
+function main(plot_sim,verbose)
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
     #Phyics-------------------------------------------------------
     Di      = [2.65*1e-18   2.65*1e-18;]#Initial diffusion coefficient in [m^2/s]; 
                                     #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     D0      = [2.75*1e-6    2.75*1e-6;]#Pre-exponential factor in [m^2/s]
     rho     = [1.0      1.0;]       #Normalized densities in [g/mol]
-    Ri      = [0.0005    0.001;]   #Initial radii [interface    total length] in [m]
+    Ri      = [0.0005    0.001;]    #Initial radii [interface    total length] in [m]
     Cl_i    = 0.0                   #Initial concentration left side in [mol]
     Cr_i    = 1.0                   #Initial concentration right side in [mol]
     V_ip    = 0.0                   #Interface velocity in [m/s]
@@ -26,7 +22,7 @@ function main()
     Ea1     = 292879.6767           #Activation energy for the left side in [J/mol]
     Ea2     = 292879.6767           #Activation energy for the right side in [J/mol]
     Myr2Sec = 60*60*24*365.25*1e6   #Conversion factor from Myr to s
-    t_tot   = 1e-3 * Myr2Sec       #Total time [s]
+    t_tot   = 1e-3 * Myr2Sec        #Total time [s]
     n       = 3                     #Geometry; 1: planar, 2: cylindric, 3: spherical
     #History dependent parameters-----------------------------------
     KD_ar   = LinRange(1.0,1.0,1000)        #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
@@ -36,10 +32,10 @@ function main()
     T_ar    = LinRange(1273.15,1273.15,1000) #Temperature arrray in [K] to calculate temperature history; T changes with respect to time; 
                                             #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
-    CFL    = 0.5                    #CFL condition
-    res    = [100 150;]             #Number of grid points
+    CFL    = 0.3                    #CFL condition
+    res    = [50 75;]               #Number of grid points
     resmin = copy(res)              #Minimum number of grid points
-    MRefin = 2.0                    #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
+    MRefin = 15.0                   #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     BCout  = [0 1]                  #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
                                     #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Check, if t_ar is valid (increasing in time)----------------------------------------
@@ -127,16 +123,22 @@ function main()
     calc_mass_err(Mass,Mass0)
     return x_left, x_right, x0, C_left, C_right, C0, t, Di
 end
-#Call main function------------------------------------------------------------
-x_left, x_right, x0, C_left, C_right, C0, t, D = main()
-nterms  = 1000           #Number of terms within the analytical solution (degree of the polynomial)
-xan,Can = calc_sinus_sphere(x0,C0,D[1],t,nterms)
-if plot_end
-    #Plotting------------------------------------------------------
-    plot(x_left,C_left, lw=2, label=L"Left\ side")
-    plot!(x_right,C_right, lw=2, label=L"Right\ side")
-    plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ (flux)", lw=1.5,
-          grid=:on, label=L"Initial\ condition")
-    scatter!([xan],[Can], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
-             markerstrokecolor=:crimson, markercolor=:crimson)
+#Call main function------------------------------------------------------------ 
+run_and_plot = false
+if run_and_plot
+    plot_sim = false
+    plot_end = true
+    verbose  = false
+    x_left, x_right, x0, C_left, C_right, C0, t, D = main(plot_sim,verbose)
+    nterms  = 1000           #Number of terms within the analytical solution (degree of the polynomial)
+    xan,Can = calc_sinus_sphere(x0,C0,D[1],t,nterms)
+    if plot_end
+        #Plotting------------------------------------------------------
+        plot(x_left,C_left, lw=2, label=L"Left\ side")
+        plot!(x_right,C_right, lw=2, label=L"Right\ side")
+        plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ (flux)", lw=1.5,
+              grid=:on, label=L"Initial\ condition")
+        scatter!([xan],[Can], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
+                 markerstrokecolor=:crimson, markercolor=:crimson)
+    end
 end

@@ -4,8 +4,8 @@ by A.Stroh and E. Moulas
 doi:
 Version: 1.0
 =#
-using SparseArrays, LinearAlgebra, BenchmarkTools, Revise
-export advect_interface_regrid!, blkdiag, calculate_dt, calc_mass_vol, calc_mass_vol_simple_diff, calc_volume, create_grid!, find_dt, fill_matrix!, linear_interpolation_1D, linspace_interface, preallocations, regrid!, set_inner_bc_mb!, set_inner_bc_flux!,set_inner_bc_Lasaga!, set_outer_bc!, trapezoidal_integration, update_time!, update_t_dependent_param!, update_t_dependent_param_simple!, construct_matrix_fem, solve_soe,calc_mass_err, make_dx_right, newton_solver, define_new_grid, sinusoid_profile
+using SparseArrays, LinearAlgebra, BenchmarkTools, Revise, Dates, Plots
+export advect_interface_regrid!, blkdiag, calculate_dt, calc_mass_vol, calc_mass_vol_simple_diff, calc_volume, create_grid!, find_dt, fill_matrix!, linear_interpolation_1D, linspace_interface, preallocations, regrid!, set_inner_bc_mb!, set_inner_bc_flux!,set_inner_bc_Lasaga!, set_outer_bc!, trapezoidal_integration, update_time!, update_t_dependent_param!, update_t_dependent_param_simple!, construct_matrix_fem, solve_soe,calc_mass_err, make_dx_right, newton_solver, define_new_grid, sinusoid_profile,save_figure
 #Functions----------------------------------------------------
 """
     advect_interface_regrid!(Ri, V_ip, dt, x_left, x_right, C_left, C_right, nr)
@@ -375,25 +375,25 @@ function define_new_grid(Ri,nr,Rfact,verbose)
         dx_left  = diff(x_left)
         dx_right = diff(x_right)
     elseif Rfact > 1.0      #Refine both
-        dx_left = collect(LinRange(1.0, 1.0 * inv(Rfact), nr[1]-1))
-        x_left = [0; cumsum(dx_left)] * Ri[1] * inv(sum(dx_left))
+        dx_left = collect(LinRange(1.0, 1.0 * inv(Rfact), nr[1]-1))     #spacing 
+        x_left = [0; cumsum(dx_left)] * Ri[1] * inv(sum(dx_left))       #appling to left size ratio cumsum(dx_left)/sum(dx_left) is the spacing
         dx_left = diff(x_left)
         #Set Non-linear Problem
         S = Ri[2] - Ri[1]
         d = dx_left[end]
-        R = newton_solver(S, d, nr[2], 1e-8, 100,verbose)
+        R = newton_solver(S, d, nr[2]-1, 1e-8, 200,verbose)
         dx_right = make_dx_right(R, d, nr[2]-1)
         x_right = [Ri[1]; Ri[1] .+ cumsum(dx_right)]
         dx_right = diff(x_right)
     else    #Refine only right grid
         Rfact   = abs(Rfact)
         x_left  = collect(LinRange(0.0, Ri[1], nr[1]))
-        x_right = collect(LinRange(Ri[1], Ri[2], nr[2]))
+        #x_right = collect(LinRange(Ri[1], Ri[2], nr[2]))
         dx_left = diff(x_left)
         #Set Non-linear Problem
         S = Ri[2] - Ri[1]
         d = dx_left[end]
-        R = newton_solver(S, d, nr[2]-1, 1e-8, 100,verbose)
+        R = newton_solver(S, d, nr[2]-1, 1e-8, 200,verbose)
         dx_right = make_dx_right(R, d, nr[2]-1)
         x_right  = [Ri[1]; Ri[1] .+ cumsum(dx_right)]
         dx_right = diff(x_right)
@@ -699,7 +699,7 @@ function newton_solver(S, d, n, tol, max_iter,verbose)
     x   = 1.1                                                       #Do not change this value (initial guess)
     Res = 1e23                                                      #Some large number
     for i in 1:max_iter
-        Fx  = (1 - x^n) * inv(1 - x) - (S *inv(d))                         #Function to solve
+        Fx  = (1 - x^n) * inv(1 - x) - (S *inv(d))                         #Function to solve Eq.21 in the paper
         _dFx = inv(fma(-n * x^(n - 1), (1 - x), (1 - x^n)) *inv((1 - x)^2))    #Derivative
         Res = abs(Fx)                                              #Residual
         if Res < tol
@@ -919,6 +919,24 @@ function regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, nr, nmin
         dx2 = x_right[2] - x_right[1]
     end
     return x_left, x_right, C_left, C_right, dx1, dx2, nr
+end
+
+"""
+    save_figure(save_path::String, save_file::Bool)
+
+Save the current figure to a file if `save_file` is `true`. The file will be saved in the directory specified by `save_path` with a filename `save_name` that includes the current date and time.
+
+# Arguments
+- `save_path::String`: The directory path where the figure will be saved.
+- `save_file::Bool`: A flag indicating whether to save the figure or not.
+"""
+
+function save_figure(save_name::String = "My_example",save_path::String = "Diff-coupled-growth",save_file::Bool = false)
+    if save_file
+        current_time = Dates.format(now(), "dd_mm_yy_HHMMSS")
+        savefig(joinpath(save_path,"$(save_name)_$(current_time).pdf"))
+        savefig(joinpath(save_path,"$(save_name)_$(current_time).png"))
+    end
 end
 
 """

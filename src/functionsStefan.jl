@@ -5,7 +5,7 @@ doi:
 Version: 1.0
 =#
 using BenchmarkTools, Revise, GLMakie, FileIO
-export calculate_density, coeff_trans_line, composition, digitise_plot, ndgrid, set_inner_bc_stefan!,values_between_known_indices!
+export calculate_density, coeff_trans_line, composition, ndgrid, set_inner_bc_stefan!,values_between_known_indices!
 #Functions---------------------------------------------------
 
 """

@@ -93,20 +93,24 @@ function main(plot_sim)
     return x, C, x0, C0, D, t, t_tot 
 end
 #Run main function------------------------------------------------------
-run_and_plot = false
+run_and_plot = true
 if run_and_plot
-    plot_sim = true
-    plot_end = true
+    plot_sim  = false
+    plot_end  = true
+    save_file = false
     x, C, x0, C0, Di, t, t_tot = main(plot_sim)
     nterms  = 1000           #Number of terms within the analytical solution (degree of the polynomial)
     xan,Can = calc_sinus_sphere(x0,C0,Di,t_tot,nterms)
     if plot_end
         # Plotting -------------------------------------------------------------
         plot(x,C, lw=2, label=L"Current\ concentration")
-        plot!(x0,C0, label=L"Initial\ concentration",color=:black,linestyle=:dash,xlabel = L"Distance", 
-              ylabel = L"Concentration", title = L"Simple\ diffusion\ sphere", lw=1.5, grid=:on)   
-        scatter!([xan],[Can], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
-                    markerstrokecolor=:crimson, markercolor=:crimson)
+        plot!(x0,C0, label=L"Initial\ concentration",color=:black,linestyle=:dash,xlabel = L"Distance\ [m]", 
+              ylabel = L"Concentration", title = L"Simple\ diffusion\ -\ sphere", lw=1.5, grid=:on)   
+        scatter!([xan[1:5:end]],[Can[1:5:end]], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
+                    markerstrokecolor=:crimson, markercolor=:crimson,dpi = 300)
+        save_path = "figures"
+        save_name = "A2"
+        save_figure(save_name,save_path,save_file)
     end
 end
 

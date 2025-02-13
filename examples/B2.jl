@@ -23,7 +23,7 @@ function main(adapt_dt,plot_sim,verbose)
     Ea2     = 86.2 * 4184.0         #Activation energy for the right side in [J/mol]
     dH0     = 5 * 4184.0            #Standard enthalpy of reaction in [J/mol]
     Myr2Sec = 60*60*24*365.25*1e6   #Conversion factor from Myr to s
-    t_tot   = 2.0 * Myr2Sec         #Total time [s]
+    t_tot   = 1e-5 * Myr2Sec         #Total time [s]
     T0      = 1200.15               #Initial maximal temperature in [K]
     s       = 50.0 * inv(Myr2Sec)   #Cooling rate in [K/s]
     n       = 1                     #Geometry; 1: planar, 2: cylindric, 3: spherical
@@ -33,10 +33,10 @@ function main(adapt_dt,plot_sim,verbose)
     T_ar    = T0 .* inv.( 1.0 .+ (s .* t_ar .* inv(T0)))#Temperature arrray in [K] to calculate temperature history; T changes with respect to time; 
                                             #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
-    CFL    = 0.3                    #CFL condition
-    res    = [100 150;]             #Number of grid points
+    CFL    = 0.15                    #CFL condition
+    res    = [50 75;]             #Number of grid points
     resmin = copy(res)              #Minimum number of grid points
-    MRefin = 2.0                    #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
+    MRefin = 50.0                    #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     BCout  = [0 0]                  #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
                                     #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Check, if t_ar is valid (increasing in time)----------------------------------------
@@ -100,12 +100,13 @@ function main(adapt_dt,plot_sim,verbose)
         error("Initial temperature must be equal to the first value in the temperature array.")
     end
     #Time loop----------------------------------------------------
+    #for i in 1:1000
     while t < t_tot
         #Calculate dt-------------------------------------------------
         if adapt_dt
             dt1 = dx1 .^ 2 .* inv.(D0[1] * exp(-Ea1 * inv(R) * inv(T0))) .* inv(3.0)
             dt2 = dx2 .^ 2 .* inv.(D0[2] * exp(-Ea1 * inv(R) * inv(T0))) .* inv(3.0)
-            dt  = minimum([dt1 dt2]) * 1000.0
+            dt  = minimum([dt1 dt2]) * 1e4
         else
             dt = find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
         end
@@ -138,58 +139,60 @@ function main(adapt_dt,plot_sim,verbose)
             Massnow = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
             push!(Mass, Massnow)  #Stores the mass of the system
         end
-        if mod(it,10000) == 0
-        #----------------------------------------------------------------------
-        Check1 = (C_left[end] * inv((1 - C_left[end]))) * inv((C_right[1] * inv((1 - C_right[1])))) - KD
-        Check2 = D_l * inv(D_r) * (C_left[end] - C_left[end-1]) - dx1 * inv(dx2) * (C_right[2] - C_right[1])
-        #----------------------------------------------------------------------
-        T_pl       = push!(T_pl,T)                                     #Temperature for plotting
-        t_pl       = push!(t_pl,t)                                     #Time for plotting
-        Sols_left  = push!(Sols_left,[BC_left_Las, BC_left])           #[Semi-analytical solution, numerical solution]
-        Sols_right = push!(Sols_right,[BC_right_Las, BC_right])        #[Semi-analytical solution, numerical solution]
-        Checks     = push!(Checks,[C_left[end-2:end], C_right[1:3]])   #For benchmarking
-        CheckBC    = push!(CheckBC,[Check1, Check2])                   #For benchmarking
-        println("t: ",t," s")
-        if plot_sim
-            #Plotting------------------------------------------------------
-            p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
-            p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
-            p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration",
-                       title = L"Concentration\ profile", lw=1.5, grid=:on, label=L"Initial\ condition",
-                       legendfontsize = 4)
-            p2 = plot(t_pl,T_pl,color=:black,xlabel = L"Time\ [Myr]", ylabel = L"Temperature\ [K]",
-                      title = L"t-T\ path", lw=2, grid=:on, label="")
-            p3 = plot(T_pl,last.(Sols_left), lw=2, label=L"Left\ side\ num.\ solution")
-            p3 = plot!(T_pl,last.(Sols_right), lw=2, label=L"Right\ side\ num.\ solution",
-                      xlabel = L"Temperature\ [K]", ylabel = L"Concentration", 
-                      title = L"Boundary\ concentrations", grid=:on)
-            p = plot(p2,p1,suptitle = L"Diffusion\ couple\ (Lasaga)")
-            display(p)
-        end
+        if mod(it,100) == 0
+            #----------------------------------------------------------------------
+            Check1 = (C_left[end] * inv((1 - C_left[end]))) * inv((C_right[1] * inv((1 - C_right[1])))) - KD
+            Check2 = D_l * inv(D_r) * (C_left[end] - C_left[end-1]) - dx1 * inv(dx2) * (C_right[2] - C_right[1])
+            #----------------------------------------------------------------------
+            T_pl       = push!(T_pl,T)                                     #Temperature for plotting
+            t_pl       = push!(t_pl,t)                                     #Time for plotting
+            Sols_left  = push!(Sols_left,[BC_left_Las, BC_left])           #[Semi-analytical solution, numerical solution]
+            Sols_right = push!(Sols_right,[BC_right_Las, BC_right])        #[Semi-analytical solution, numerical solution]
+            Checks     = push!(Checks,[C_left[end-2:end], C_right[1:3]])   #For benchmarking
+            CheckBC    = push!(CheckBC,[Check1, Check2])                   #For benchmarking
+            println("t: ",t/Myr2Sec," Myr")
+            if plot_sim
+                #Plotting------------------------------------------------------
+                p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
+                p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
+                p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration",
+                           title = L"Concentration\ profile", lw=1.5, grid=:on, label=L"Initial\ condition",
+                           legendfontsize = 4)
+                p2 = plot(t_pl/Myr2Sec,T_pl,color=:black,xlabel = L"Time\ [Myr]", ylabel = L"Temperature\ [K]",
+                          title = L"t-T\ path", lw=2, grid=:on, label="")
+                p3 = plot(T_pl,last.(Sols_left), lw=2, label=L"Left\ side\ num.\ solution")
+                p3 = plot!(T_pl,last.(Sols_right), lw=2, label=L"Right\ side\ num.\ solution",
+                          xlabel = L"Temperature\ [K]", ylabel = L"Concentration", 
+                          title = L"Boundary\ concentrations", grid=:on)
+                p = plot(p2,p1,suptitle = L"Diffusion\ couple\ (Lasaga)")
+                display(p)
+            end
         end
     end
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
     calc_mass_err(Mass,Mass0)
-    return x_left, x_right, x0, C_left, C_right, C0, Sols_left, Sols_right,Checks, CheckBC, T_pl, (t_pl ./ Myr2Sec)
+    return x_left, x_right, x0, C_left, C_right, C0, Sols_left, Sols_right,Checks, CheckBC, T_pl, (t_pl ./ Myr2Sec), Ri, maxC
 end
 #Call main function-------------------------------------------------------------
-run_and_plot = false
+run_and_plot = true
 if run_and_plot
-    adapt_dt = true
-    plot_sim = true
-    plot_end = true
-    verbose  = false
-    x_left, x_right, x0, C_left, C_right, C0, Sols_left, Sols_right,Checks, CheckBC, T_pl, t_pl = main(adapt_dt,plot_sim,verbose)
+    adapt_dt  = false
+    plot_sim  = false
+    plot_end  = true
+    verbose   = false
+    save_file = false
+    x_left, x_right, x0, C_left, C_right, C0, Sols_left, Sols_right,Checks, CheckBC, T_pl, t_pl, Ri, maxC = main(adapt_dt,plot_sim,verbose)
     Can1 = first.(Sols_left)
     Can2 = first.(Sols_right)
     if plot_end
         #Plotting------------------------------------------------------
         p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
         p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
-        p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration",
+        p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance\ [m]", ylabel = L"Concentration",
                    title = L"Concentration\ profile", lw=1.5, grid=:on, label=L"Initial\ condition",
                    legendfontsize = 4)
+        p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
         p2 = plot(t_pl,T_pl,color=:black,xlabel = L"Time\ [Myr]", ylabel = L"Temperature\ [K]",
                   title = L"t-T\ path", lw=2, grid=:on, label="")
         p3 = plot(T_pl,last.(Sols_left), lw=2, label=L"Left\ side\ num.\ solution")
@@ -200,6 +203,9 @@ if run_and_plot
                       markerstrokecolor=:midnightblue, markercolor=:midnightblue)
         p3 = scatter!(T_pl,Can2[:,1], marker=:circle, markersize=2.0, label=L"Right\ side\ ana.\ solution",
                       markerstrokecolor=:crimson, markercolor=:crimson,legendfontsize = 4, legend =:right)
-        plot(p2,p1,p3,suptitle = L"Diffusion\ couple\ (Lasaga)")
+        plot(p2,p1,p3,suptitle = L"Diffusion\ couple\ (Lasaga)", dpi = 300)
+        #save_path = "figures"
+        #save_name = "B2"
+        #save_figure(save_name,save_path,save_file)
     end
 end

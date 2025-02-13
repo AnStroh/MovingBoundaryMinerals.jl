@@ -127,18 +127,20 @@ end
 #Call main function-------------------------------------------------------------
 run_and_plot = true
 if run_and_plot
-    plot_sim = true
-    plot_end = true
-    verbose  = false
+    plot_sim  = true
+    plot_end  = true
+    verbose   = false
+    save_file = false
     x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, KD0, n, maxC = main(plot_sim,verbose)
     Ray_Fs, Ray_Fl, Ray_Cl, Ray_Cs, Cl_p, phi_solid = rayleigh_fractionation(x_left,C_left,Ri0,Ri,C0_r,KD0,n)
     if plot_end
         #Plotting------------------------------------------------------
         p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
         p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
-        p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", lw=1.5,
+        p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance\ [m]", ylabel = L"Concentration", lw=1.5,
                    grid=:on, label=L"Initial\ condition",legendfontsize = 4)
         p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC,title = L"Concentration\ profile", color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
+        p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
         p2 = plot((x_left/Ri0[2]).^(n),C_left, lw=2, label=L"Numerical\ solution\ solid")
         p2 = plot!((x_right/Ri0[2]).^(n),C_right, lw=2, label=L"Numerical\ solution\ liquid")
         p2 = scatter!([Ray_Fs[1:100:end]],[Ray_Cs[1:100:end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue,label=L"Solid\ Rayleigh", 
@@ -150,6 +152,9 @@ if run_and_plot
                       xlabel = L"Fraction", ylabel = L"Concentration", grid=:on,legendfontsize = 4,
                       title = "")
         p3 = scatter!([Ray_Fs[end]],[Ray_Cs[end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue, label="")
-        plot(p1,p2,p3,suptitle = L"Diffusion\ couple\ (flux)\ -\ Rayleigh\ fractionation")
+        plot(p1,p2,p3,suptitle = L"Diffusion\ couple\ (flux)\ -\ Rayleigh\ fractionation", dpi = 300)
+        save_path = "figures"
+        save_name = "B4"
+        save_figure(save_name,save_path,save_file)
     end
 end

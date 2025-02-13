@@ -121,24 +121,29 @@ function main(plot_sim,verbose)
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
     calc_mass_err(Mass,Mass0)
-    return x_left, x_right, x0, C_left, C_right, C0, t, Di
+    return x_left, x_right, x0, C_left, C_right, C0, t, Di, maxC, Ri
 end
 #Call main function------------------------------------------------------------ 
-run_and_plot = false
+run_and_plot = true
 if run_and_plot
-    plot_sim = false
-    plot_end = true
-    verbose  = false
-    x_left, x_right, x0, C_left, C_right, C0, t, D = main(plot_sim,verbose)
+    plot_sim  = false
+    plot_end  = true
+    verbose   = false
+    save_file = false
+    x_left, x_right, x0, C_left, C_right, C0, t, D, maxC, Ri = main(plot_sim,verbose)
     nterms  = 1000           #Number of terms within the analytical solution (degree of the polynomial)
     xan,Can = calc_sinus_sphere(x0,C0,D[1],t,nterms)
     if plot_end
         #Plotting------------------------------------------------------
         plot(x_left,C_left, lw=2, label=L"Left\ side")
         plot!(x_right,C_right, lw=2, label=L"Right\ side")
-        plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ (flux)", lw=1.5,
+        plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance\ [m]", ylabel = L"Concentration", title = L"Diffusion\ couple\ (flux)", lw=1.5,
               grid=:on, label=L"Initial\ condition")
-        scatter!([xan],[Can], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
-                 markerstrokecolor=:crimson, markercolor=:crimson)
+        plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
+        scatter!([xan[1:3:end]],[Can[1:3:end]], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
+                 markerstrokecolor=:crimson, markercolor=:crimson, dpi = 300)
+        save_path = "figures"
+        save_name = "B1"
+        save_figure(save_name,save_path,save_file)
     end
 end

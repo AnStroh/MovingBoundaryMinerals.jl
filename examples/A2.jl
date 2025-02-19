@@ -15,12 +15,12 @@ function main(plot_sim)
     L       = 0.001             #Length of the domain in [m]
     Cinf    = 1.0               #Concentration at infinity in [mol]
     Cstart  = 0.0               #Initial concentration in [mol]
-    rho     = 1.0               #Density in [kg/m^3]
+    rho     = 2700.0            #Density in [kg/m^3]
     R       = 8.314472          #Universal gas constant in [J/(mol*K)]
     Ea1     = 292880.0          #Activation energy for the left side in [J/mol]
     Myr2Sec = 60*60*24*365.25*1e6 #Conversion factor from Myr to s
     t_tot   = 1e-3 * Myr2Sec    #Total time [s]
-    n       = 3                 #Geometry; 1: planar, 2: cylindric, 3: spherical
+    n       = 3                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
     # Numerics --------------------------------------------------------
     res   = 500                 #Number of grid points
     CFL   = 0.5                 #CFL number for time step calculation
@@ -108,9 +108,9 @@ if run_and_plot
               ylabel = L"Concentration", title = L"Simple\ diffusion\ -\ sphere", lw=1.5, grid=:on)   
         scatter!([xan[1:5:end]],[Can[1:5:end]], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
                     markerstrokecolor=:crimson, markercolor=:crimson,dpi = 300)
-        save_path = "figures"
-        save_name = "A2"
-        save_figure(save_name,save_path,save_file)
+        #save_path = "figures"
+        #save_name = "A2"
+        #save_figure(save_name,save_path,save_file)
     end
 end
 

@@ -24,7 +24,7 @@ function main(plot_sim,verbose)
     Ea2     = 292879.6767           #Activation energy for the right side in [J/mol]
     Myr2Sec = 60*60*24*365.25*1e6   #Conversion factor from Myr to s
     t_tot   = 1e-3 * Myr2Sec       #Total time [s]
-    n       = 3                     #Geometry; 1: planar, 2: cylindric, 3: spherical
+    n       = 3                     #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters-----------------------------------
     KD_ar   = LinRange(1.0,1.0,1000)        #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
                                             #The last value must be equal to the partition coefficient at t = t_tot.

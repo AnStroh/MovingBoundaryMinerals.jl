@@ -13,7 +13,7 @@ function main(plot_sim,verbose)
     Di      = [2.65*1e-18   2.65*1e-18;]#Initial diffusion coefficient in [m^2/s]; 
                                     #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     D0      = [2.75*1e-6    2.75*1e-6;]#Pre-exponential factor in [m^2/s]
-    rho     = [1.0      1.0;]       #Normalized densities in [g/mol]
+    rho     = [1.0       1.0;]      #Normalized densities in [g/mol]
     Ri      = [0.0005    0.001;]    #Initial radii [interface    total length] in [m]
     Cl_i    = 0.0                   #Initial concentration left side in [mol]
     Cr_i    = 1.0                   #Initial concentration right side in [mol]
@@ -23,7 +23,7 @@ function main(plot_sim,verbose)
     Ea2     = 292879.6767           #Activation energy for the right side in [J/mol]
     Myr2Sec = 60*60*24*365.25*1e6   #Conversion factor from Myr to s
     t_tot   = 1e-3 * Myr2Sec        #Total time [s]
-    n       = 3                     #Geometry; 1: planar, 2: cylindric, 3: spherical
+    n       = 3                     #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters-----------------------------------
     KD_ar   = LinRange(1.0,1.0,1000)        #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
                                             #The last value must be equal to the partition coefficient at t = t_tot.
@@ -142,8 +142,8 @@ if run_and_plot
         plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
         scatter!([xan[1:3:end]],[Can[1:3:end]], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
                  markerstrokecolor=:crimson, markercolor=:crimson, dpi = 300)
-        save_path = "figures"
-        save_name = "B1"
-        save_figure(save_name,save_path,save_file)
+        #save_path = "figures"
+        #save_name = "B1"
+        #save_figure(save_name,save_path,save_file)
     end
 end

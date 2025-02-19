@@ -9,33 +9,33 @@ using Plots, LinearAlgebra, LaTeXStrings
 # Main function -------------------------------------------------------
 function main(plot_sim)
     # Physics ---------------------------------------------------------
-    Di      = 2.65*1e-18        #Diffusion coefficient in [m^2/s]
-                                #If you want to calculate D with the Arrhenius equation, set Di = [-1.0]
-    D0      = 2.75*1e-6         #Pre-exponential factor in [m^2/s]
-    L       = 0.005             #Length of the domain in [m]
-    rho     = 1.0               #Density in [kg/m^3]
-    R       = 8.314472          #Universal gas constant in [J/(mol*K)]
-    Ea1     = 292880.0          #Activation energy for the left side in [J/mol]
-    Myr2Sec = 60*60*24*365.25*1e6 #Conversion factor from Myr to s
-    t_tot   = 1e-3 * Myr2Sec    #Total time [s]
-    n       = 1                 #Geometry; 1: planar, 2: cylindric, 3: spherical
+    Di      = 2.65*1e-18            #Diffusion coefficient in [m^2/s]
+                                    #If you want to calculate D with the Arrhenius equation, set Di = [-1.0]
+    D0      = 2.75*1e-6             #Pre-exponential factor in [m^2/s]
+    L       = 0.005                 #Length of the domain in [m]
+    rho     = 2700.0                #Density in [kg/m^3]
+    R       = 8.314472              #Universal gas constant in [J/(mol*K)]
+    Ea1     = 292880.0              #Activation energy for the left side in [J/mol]
+    Myr2Sec = 60*60*24*365.25*1e6   #Conversion factor from Myr to s
+    t_tot   = 1e-3 * Myr2Sec        #Total time [s]
+    n       = 1                     #Geometry; 1: planar, 2: cylindrical, 3: spherical
     # Numerics --------------------------------------------------------
-    res   = 500                 #Number of grid points
-    CFL   = 0.99                #CFL number for time step calculation
+    res   = 500                     #Number of grid points
+    CFL   = 0.99                    #CFL number for time step calculation
     # Domain ----------------------------------------------------------
-    dx    = L*inv(res-1)        #Grid spacing
-    x     = [0:dx:L;]           #Grid points
-    BCout = [1, 1]              #Boundary condition; 0: Neumann, 1: Dirichlet 
+    dx    = L*inv(res-1)            #Grid spacing
+    x     = [0:dx:L;]               #Grid points
+    BCout = [1, 1]                  #Boundary condition; 0: Neumann, 1: Dirichlet 
     #Create initial profile--------------------------------------------
-    Cini   = zeros(length(res))  #Initial background concentration
+    Cini   = zeros(length(res))     #Initial background concentration
     nmodes = [1; 2; 5; 7; 12] .* 1.0    #modes of the sinusoids
     Amp    = [12; 0.5; 3; -2; 1] .* 1.0 #Initial amplitudes of the sinusoids
     C      = sinusoid_profile(Cini,nmodes,L,Di,0.0,Amp,x)
     # Initial condition -----------------------------------------------
-    t     = 0.0                 #Initial time in [s]
-    it    = 0                   #Time iterations
-    C0    = copy(C)             #Store initial concentration 
-    x0    = copy(x)             #Store initial grid points
+    t     = 0.0                     #Initial time in [s]
+    it    = 0                       #Time iterations
+    C0    = copy(C)                 #Store initial concentration 
+    x0    = copy(x)                 #Store initial grid points
     #History dependent parameters--------------------------------------
     T_ar    = LinRange(1273.15,1273.15,1000) #Temperature arrray in [K] to calculate temperature history; T changes with respect to time; 
                                             #The last value must be equal to the temperature at t = t_tot.
@@ -109,9 +109,9 @@ if run_and_plot
               ylabel = L"Concentration", title = L"Simple\ diffusion\ -\ planar", lw=1.5, grid=:on)   
         scatter!([xan[1:5:end]],[Can[1:5:end]], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
                     markerstrokecolor=:crimson, markercolor=:crimson,dpi = 300)
-        save_path = "figures"
-        save_name = "A1"
-        save_figure(save_name,save_path,save_file)
-        gui()
+        #save_path = "figures"
+        #save_name = "A1"
+        #save_figure(save_name,save_path,save_file)
+        #gui()
     end
 end

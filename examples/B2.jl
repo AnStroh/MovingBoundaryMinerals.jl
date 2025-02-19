@@ -14,7 +14,7 @@ function main(adapt_dt,plot_sim,verbose)
                                     #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     D0      = [2.75*1e-6    3.9*1e-7;]#Pre-exponential factor in [m^2/s]
     rho     = [1.0      1.0;]       #Normalized densities in [g/mol]
-    Ri      = [0.0002    0.0004;]   #Initial radii [interface    total length] in [m]
+    Ri      = [0.0001    0.0002;]   #Initial radii [interface    total length] in [m]
     Cl_i    = 0.6                   #Initial concentration left side in [mol fraction]
     Cr_i    = 0.3                   #Initial concentration right side in [mol fraction]
     V_ip    = 0.0                   #Interface velocity in [m/s]
@@ -23,22 +23,22 @@ function main(adapt_dt,plot_sim,verbose)
     Ea2     = 86.2 * 4184.0         #Activation energy for the right side in [J/mol]
     dH0     = 5 * 4184.0            #Standard enthalpy of reaction in [J/mol]
     Myr2Sec = 60*60*24*365.25*1e6   #Conversion factor from Myr to s
-    t_tot   = 1e-5 * Myr2Sec         #Total time [s]
-    T0      = 1200.15               #Initial maximal temperature in [K]
-    s       = 50.0 * inv(Myr2Sec)   #Cooling rate in [K/s]
-    n       = 1                     #Geometry; 1: planar, 2: cylindric, 3: spherical
+    t_tot   = 1e-6*Myr2Sec          #Total time [s]
+    T0      = 1200.00               #Initial maximal temperature in [K]
+    s       = 10.0 * inv(Myr2Sec)   #Cooling rate in [K/s]
+    n       = 1                     #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters-----------------------------------
     t_ar    = LinRange(0.0,t_tot,10000)     #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
                                             #The user is prompted to specify suitable time intervals in relation to the respective destination.               
     T_ar    = T0 .* inv.( 1.0 .+ (s .* t_ar .* inv(T0)))#Temperature arrray in [K] to calculate temperature history; T changes with respect to time; 
                                             #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
-    CFL    = 0.15                    #CFL condition
-    res    = [50 75;]             #Number of grid points
-    resmin = copy(res)              #Minimum number of grid points
+    CFL    = 0.10                    #CFL condition
+    res    = [50 50;]                #Number of grid points
+    resmin = copy(res)               #Minimum number of grid points
     MRefin = 50.0                    #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
-    BCout  = [0 0]                  #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
-                                    #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
+    BCout  = [0 0]                   #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
+                                     #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Check, if t_ar is valid (increasing in time)----------------------------------------
     dt_diff = zeros(length(t_ar)-1)
     dt_diff = t_ar[2:end] .- t_ar[1:end-1]

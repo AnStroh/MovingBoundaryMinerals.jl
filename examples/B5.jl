@@ -24,7 +24,7 @@ function main(plot_sim,verbose)
     Ea2     = 360660.4018           #Activation energy for the right side in [J/mol]
     Myr2Sec = 60*60*24*365.25*1e6   #Conversion factor from Myr to s
     t_tot   = 1e-4 * Myr2Sec        #Total time [s]
-    n       = 3                     #Geometry; 1: planar, 2: cylindric, 3: spherical
+    n       = 3                     #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters-----------------------------------
     KD_ar   = LinRange(100,50,1000)        #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
                                             #The last value must be equal to the partition coefficient at t = t_tot.
@@ -34,9 +34,9 @@ function main(plot_sim,verbose)
                                             #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
     CFL    = 0.3                    #CFL condition
-    res    = [100 150;]             #Number of grid points
+    res    = [200 300;]             #Number of grid points
     resmin = copy(res)              #Minimum number of grid points
-    MRefin = 15.0                    #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
+    MRefin = 50.0                    #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     BCout  = [0 0]                  #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
     #Check, if t_ar is valid (increasing in time)----------------------------------------
     dt_diff = zeros(length(t_ar)-1)

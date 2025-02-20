@@ -183,7 +183,7 @@ Calculate the mass error between the final mass `Mass[end]` and the initial mass
 """
 function calc_mass_err(Mass,Mass0)
     ErrM = (Mass[end] - Mass0) * inv(Mass0)
-    println("The total mass error is $(ErrM[end]*100)%.")
+    println("The total mass difference is $(ErrM[end]*100)% (relevant for closed systems).")
 end
 
 """
@@ -387,7 +387,7 @@ function define_new_grid(Ri,nr,Rfact,verbose)
         dx_right = diff(x_right)
     else    #Refine only right grid
         Rfact   = abs(Rfact)
-        x_left  = collect(LinRange(0.0, Ri[1], nr[1]))
+        x_left  = collect(LinRange(0.0, Ri[1], nr[1]-1))
         #x_right = collect(LinRange(Ri[1], Ri[2], nr[2]))
         dx_left = diff(x_left)
         #Set Non-linear Problem
@@ -964,10 +964,13 @@ Set the inner boundary conditions at the interface using fluxes.
 """
 function set_inner_bc_flux!(L_g,R_g,KD,D_l,D_r,x_left,x_right,V_ip,rho,nr)
     #Reduce the condition Number---------------------------------------
-    ScF = maximum(diag(L_g))
+    #ScF = maximum(diag(L_g))
     #ScF      = sum(diag(L_g)g) / length(diag(L_g))
     #ScF = 1.0
     #ScF = mean(diag(L_g))
+
+    # Frobenius norm of L_g
+    ScF = norm(L_g, 2)    
     #inner BC1---------------------------------------------------------------
     fill!(L_g[nr[1],:],0.0)
     L_g[nr[1],nr[1]]     = 1.0 * ScF
@@ -1085,6 +1088,21 @@ function set_inner_bc_Lasaga!(Cl_i,beta,t, KD,D_r,D_l,D0,C_left,C_right,dx1,dx2,
             D_r ^ 2 * dx1 ^ 2 * rho[2] ^ 2) ^ (1*inv(2)) + D_r * dx1 * rho[2] + C_left[end-1] * D_l * dx2 * rho[1] + 
             C_right[2] * D_r * dx1 * rho[2] + D_l * KD * dx2 * rho[1] - C_left[end-1] * D_l * KD * dx2 * rho[1] - 
             C_right[2] * D_r * KD * dx1 * rho[2]) * ((2 * (D_r * dx1 * rho[2] - D_r * KD * dx1 * rho[2])))
+    
+    
+    #sol1 = ((D_l^2 * KD^2 * C_left[end-1]^2 * dx2^2 - 2 * D_l^2 * KD^2 * C_left[end-1] * dx2^2 + D_l^2 * KD^2 * dx2^2 - 2 * D_l^2 * KD * C_left[end-1]^2 * dx2^2 + 2 * D_l^2 * KD * C_left[end-1] * dx2^2 + D_l^2 * C_left[end-1]^2 * dx2^2 + 2 * D_l * D_r * KD^2 * C_left[end-1] * C_right[2] * dx1 * dx2 - 2 * D_l * D_r * KD^2 * C_right[2] * dx1 * dx2 - 4 * D_l * D_r * KD * C_left[end-1] * C_right[2] * dx1 * dx2 + 2 * D_l * D_r * KD * C_left[end-1] * dx1 * dx2 + 2 * D_l * D_r * KD * C_right[2] * dx1 * dx2 + 2 * D_l * D_r * KD * dx1 * dx2 + 2 * D_l * D_r * C_left[end-1] * C_right[2] * dx1 * dx2 - 2 * D_l * D_r * C_left[end-1] * dx1 * dx2 + D_r^2 * KD^2 * C_right[2]^2 * dx1^2 - 2 * D_r^2 * KD * C_right[2]^2 * dx1^2 + 2 * D_r^2 * KD * C_right[2] * dx1^2 + D_r^2 * C_right[2]^2 * dx1^2 - 2 * D_r^2 * C_right[2] * dx1^2 + D_r^2 * dx1^2)^(1/2) + D_r * dx1 + D_l * KD * dx2 + D_l * C_left[end-1] * dx2 + D_r * C_right[2] * dx1 - D_l * KD * C_left[end-1] * dx2 - D_r * KD * C_right[2] * dx1) / (2 * (D_r * dx1 - D_r * KD * dx1))
+    #sol2 = (D_r * dx1 - (D_l^2 * KD^2 * C_left[end-1]^2 * dx2^2 - 2 * D_l^2 * KD^2 * C_left[end-1] * dx2^2 + D_l^2 * KD^2 * dx2^2 - 2 * D_l^2 * KD * C_left[end-1]^2 * dx2^2 + 2 * D_l^2 * KD * C_left[end-1] * dx2^2 + D_l^2 * C_left[end-1]^2 * dx2^2 + 2 * D_l * D_r * KD^2 * C_left[end-1] * C_right[2] * dx1 * dx2 - 2 * D_l * D_r * KD^2 * C_right[2] * dx1 * dx2 - 4 * D_l * D_r * KD * C_left[end-1] * C_right[2] * dx1 * dx2 + 2 * D_l * D_r * KD * C_left[end-1] * dx1 * dx2 + 2 * D_l * D_r * KD * C_right[2] * dx1 * dx2 + 2 * D_l * D_r * KD * dx1 * dx2 + 2 * D_l * D_r * C_left[end-1] * C_right[2] * dx1 * dx2 - 2 * D_l * D_r * C_left[end-1] * dx1 * dx2 + D_r^2 * KD^2 * C_right[2]^2 * dx1^2 - 2 * D_r^2 * KD * C_right[2]^2 * dx1^2 + 2 * D_r^2 * KD * C_right[2] * dx1^2 + D_r^2 * C_right[2]^2 * dx1^2 - 2 * D_r^2 * C_right[2] * dx1^2 + D_r^2 * dx1^2)^(1/2) + D_l * KD * dx2 + D_l * C_left[end-1] * dx2 + D_r * C_right[2] * dx1 - D_l * KD * C_left[end-1] * dx2 - D_r * KD * C_right[2] * dx1) / (2 * (D_r * dx1 - D_r * KD * dx1))
+
+
+    #dx1      = 2.000000000000005e-04
+    #dx2      = 2.039194842976370e-04
+    #KD       = 3.499800028367019
+    #D_l      = 4.907351237132524e-19
+    #D_r      = 7.802167280557328e-23
+
+    #sol1 = ((D_l^2*KD^2*C_left[end-1]^2*dx2[1]^2 - 2*D_l^2*KD^2*C_left[end-1]*dx2[1]^2 + D_l^2*KD^2*dx2[1]^2 - 2*D_l^2*KD*C_left[end-1]^2*dx2[1]^2 + 2*D_l^2*KD*C_left[end-1]*dx2[1]^2 + D_l^2*C_left[end-1]^2*dx2[1]^2 + 2*D_l*D_r*KD^2*C_left[end-1]*C_right[2]*dx1[end]*dx2[1] - 2*D_l*D_r*KD^2*C_right[2]*dx1[end]*dx2[1] - 4*D_l*D_r*KD*C_left[end-1]*C_right[2]*dx1[end]*dx2[1] + 2*D_l*D_r*KD*C_left[end-1]*dx1[end]*dx2[1] + 2*D_l*D_r*KD*C_right[2]*dx1[end]*dx2[1] + 2*D_l*D_r*KD*dx1[end]*dx2[1] + 2*D_l*D_r*C_left[end-1]*C_right[2]*dx1[end]*dx2[1] - 2*D_l*D_r*C_left[end-1]*dx1[end]*dx2[1] + D_r^2*KD^2*C_right[2]^2*dx1[end]^2 - 2*D_r^2*KD*C_right[2]^2*dx1[end]^2 + 2*D_r^2*KD*C_right[2]*dx1[end]^2 + D_r^2*C_right[2]^2*dx1[end]^2 - 2*D_r^2*C_right[2]*dx1[end]^2 + D_r^2*dx1[end]^2)^(1/2) + D_r*dx1[end] + D_l*KD*dx2[1] + D_l*C_left[end-1]*dx2[1] + D_r*C_right[2]*dx1[end] - D_l*KD*C_left[end-1]*dx2[1] - D_r*KD*C_right[2]*dx1[end])/(2*(D_r*dx1[end] - D_r*KD*dx1[end]))
+    
+    #sol2 = (D_r*dx1[end] - (D_l^2*KD^2*C_left[end-1]^2*dx2[1]^2 - 2*D_l^2*KD^2*C_left[end-1]*dx2[1]^2 + D_l^2*KD^2*dx2[1]^2 - 2*D_l^2*KD*C_left[end-1]^2*dx2[1]^2 + 2*D_l^2*KD*C_left[end-1]*dx2[1]^2 + D_l^2*C_left[end-1]^2*dx2[1]^2 + 2*D_l*D_r*KD^2*C_left[end-1]*C_right[2]*dx1[end]*dx2[1] - 2*D_l*D_r*KD^2*C_right[2]*dx1[end]*dx2[1] - 4*D_l*D_r*KD*C_left[end-1]*C_right[2]*dx1[end]*dx2[1] + 2*D_l*D_r*KD*C_left[end-1]*dx1[end]*dx2[1] + 2*D_l*D_r*KD*C_right[2]*dx1[end]*dx2[1] + 2*D_l*D_r*KD*dx1[end]*dx2[1] + 2*D_l*D_r*C_left[end-1]*C_right[2]*dx1[end]*dx2[1] - 2*D_l*D_r*C_left[end-1]*dx1[end]*dx2[1] + D_r^2*KD^2*C_right[2]^2*dx1[end]^2 - 2*D_r^2*KD*C_right[2]^2*dx1[end]^2 + 2*D_r^2*KD*C_right[2]*dx1[end]^2 + D_r^2*C_right[2]^2*dx1[end]^2 - 2*D_r^2*C_right[2]*dx1[end]^2 + D_r^2*dx1[end]^2)^(1/2) + D_l*KD*dx2[1] + D_l*C_left[end-1]*dx2[1] + D_r*C_right[2]*dx1[end] - D_l*KD*C_left[end-1]*dx2[1] - D_r*KD*C_right[2]*dx1[end])/(2*(D_r*dx1[end] - D_r*KD*dx1[end]))
     if sol2>1 || sol2<0
         BC_right  = copy(sol1)
     else
@@ -1092,7 +1110,7 @@ function set_inner_bc_Lasaga!(Cl_i,beta,t, KD,D_r,D_l,D0,C_left,C_right,dx1,dx2,
     end
     BC_left  = C_left[end-1] - D_r * dx1 *inv(D_l * dx2) * (BC_right - C_right[2])
     #Reduce the condition Number---------------------------------------
-    ScF      = sum(diag(L_g)) * inv(length(diag(L_g)))
+    ScF = 1.0
     #inner BC1---------------------------------------------------------------
     fill!(L_g[nr[1],:],0.0)
     L_g[nr[1],nr[1]]     = 1.0 * ScF

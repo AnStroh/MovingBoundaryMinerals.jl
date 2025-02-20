@@ -19,12 +19,12 @@ function main()
     L       = 0.001             #Length of the domain in [m]
     Cinf    = 0.0               #Concentration at infinity in [mol]
     Cstart  = 4.0               #Initial concentration in [mol]
-    rho     = 1.0               #Density in [kg/m^3]
+    rho     = 2700.0            #Density in [kg/m^3]
     R       = 8.314472          #Universal gas constant in [J/(mol*K)]
     Ea1     = 292880.0          #Activation energy for the left side in [J/mol]
     Myr2Sec = 60*60*24*365.25*1e6 #Conversion factor from Myr to s
     t_tot   = 1e-4 * Myr2Sec    #Total time [s]
-    n       = 1                 #Geometry; 1: planar, 2: cylindric, 3: spherical
+    n       = 1                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
     # Numerics --------------------------------------------------------
     nx     = 100                #Number of grid points
     CFL    = 0.99               #CFL number for time step calculation

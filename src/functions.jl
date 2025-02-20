@@ -970,7 +970,7 @@ function set_inner_bc_flux!(L_g,R_g,KD,D_l,D_r,x_left,x_right,V_ip,rho,nr)
     #ScF = mean(diag(L_g))
 
     # Frobenius norm of L_g
-    ScF = norm(L_g, 2)    
+    ScF = norm(L_g, Inf)    
     #inner BC1---------------------------------------------------------------
     fill!(L_g[nr[1],:],0.0)
     L_g[nr[1],nr[1]]     = 1.0 * ScF

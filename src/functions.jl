@@ -5,7 +5,7 @@ doi:
 Version: 1.0
 =#
 using SparseArrays, LinearAlgebra, BenchmarkTools, Revise, Dates, Plots
-export advect_interface_regrid!, blkdiag, calculate_dt, calc_mass_vol, calc_mass_vol_simple_diff, calc_volume, create_grid!, find_dt, fill_matrix!, linear_interpolation_1D, linspace_interface, preallocations, regrid!, set_inner_bc_mb!, set_inner_bc_flux!,set_inner_bc_Lasaga!, set_outer_bc!, trapezoidal_integration, update_time!, update_t_dependent_param!, update_t_dependent_param_simple!, construct_matrix_fem, solve_soe,calc_mass_err, make_dx_right, newton_solver, define_new_grid, sinusoid_profile,save_figure
+export advect_interface_regrid!, blkdiag, calculate_dt, calc_mass_vol, calc_mass_vol_simple_diff, calc_volume, create_grid!, find_dt, fill_matrix!, linear_interpolation_1D, linspace_interface, preallocations, regrid!, set_inner_bc_mb!, set_inner_bc_flux!,set_inner_bc_Lasaga!, set_outer_bc!, trapezoidal_integration, update_time!, update_t_dependent_param!, update_t_dependent_param_simple!, construct_matrix_fem, solve_soe,calc_mass_err, make_dx_right, newton_solver, define_new_grid, sinusoid_profile,save_figure,scaling,rescale
 #Functions----------------------------------------------------
 """
     advect_interface_regrid!(Ri, V_ip, dt, x_left, x_right, C_left, C_right, nr)
@@ -921,6 +921,44 @@ function regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, nr, nmin
     return x_left, x_right, C_left, C_right, dx1, dx2, nr
 end
 
+function rescale(Ri0, Ri_input, Di_input, D0_input, V_input, rho_input, t_tot_input, t_ar_input, Lsc, Dsc, msc, Vsc, rhosc, tsc)
+    #rescaling of numbers
+    #dependent numbers
+    V_ip  = V_input     * Vsc
+    t_tot = t_tot_input * tsc
+    t_ar  = t_ar_input  * tsc
+    D0    = D0_input   .* Dsc
+    Di    = Di_input   .* Dsc
+    Ri    = Ri_input   .* Lsc 
+    Ri0   = Ri0        .* Lsc
+    rho   = rho_input  .* rhosc
+    return Ri0, Ri, Di, D0, V_ip, rho, t_tot, t_ar
+end
+
+function scaling(Ri_input, Di_input, D0_input, V_input, t_tot_input, t_ar_input)
+    #non-dimensionalization of input parameters
+    #independent scales
+    Lsc = 1e-3                              #[m]
+    if Di_input == [-1 -1]
+        Dsc = 1e-15
+        #Dsc = (D0_input[1]+D0_input[2]) * inv(2.0)  #[m^2/s] 
+    else
+        #Dsc = maximum(Di_input)
+        Dsc = (Di_input[1]+Di_input[2]) * inv(2.0)  #[m^2/s] 
+    end                                       
+    #dependent scales
+    tsc   = Lsc^2 * inv(Dsc)
+    Vsc   = Dsc   * inv(Lsc)
+    #independent numbers
+    V_ip  = V_input     * inv(Vsc)
+    t_tot = t_tot_input * inv(tsc)
+    t_ar  = t_ar_input  * inv(tsc)
+    D0    = D0_input   .* inv(Dsc)
+    Di    = Di_input   .* inv(Dsc)
+    Ri    = Ri_input   .*inv(Lsc) 
+    return V_ip, t_tot, t_ar, Di, D0, Ri, Lsc, Dsc, Vsc, tsc
+end
+
 """
     save_figure(save_path::String, save_file::Bool)
 
@@ -966,11 +1004,11 @@ function set_inner_bc_flux!(L_g,R_g,KD,D_l,D_r,x_left,x_right,V_ip,rho,nr)
     #Reduce the condition Number---------------------------------------
     #ScF = maximum(diag(L_g))
     #ScF      = sum(diag(L_g)g) / length(diag(L_g))
-    #ScF = 1.0
+    ScF = 1.0
     #ScF = mean(diag(L_g))
 
     # Frobenius norm of L_g
-    ScF = norm(L_g, Inf)    
+    #ScF = norm(L_g, Inf)    
     #inner BC1---------------------------------------------------------------
     fill!(L_g[nr[1],:],0.0)
     L_g[nr[1],nr[1]]     = 1.0 * ScF

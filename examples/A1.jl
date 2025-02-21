@@ -106,6 +106,5 @@ if run_and_plot
         #save_path = "figures"
         #save_name = "A1"
         #save_figure(save_name,save_path,save_file)
-        #gui()
     end
 end

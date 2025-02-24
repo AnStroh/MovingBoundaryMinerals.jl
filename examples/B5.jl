@@ -7,19 +7,19 @@ function main(plot_sim,verbose)
     Di      = [-1.0   -1.0;]                                    #Initial diffusion coefficient in [m^2/s] 
                                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     D0      = [2.75*1e-6    3.9*1e-7;]                          #Pre-exponential factor in [m^2/s]
-    rho     = [1.0      1.0;]                                   #Normalized densities in [kg/mol]
-    Ri      = [1e-1    3.33;]                                   #Initial radii [interface    total length] in [m]
+    rho     = [1.0         1.0;]                                #Normalized densities in [kg/mol]
+    Ri      = [3e-4       1e-3;]                                #Initial radii [interface    total length] in [m]
     Cl_i    = 0.5                                               #Initial concentration left side in [mol]
-    Cr_i    = Cl_i/1e-2                                          #Initial concentration right side in [mol]
-    V_ip    = 3.17e-11                                          #Interface velocity in [m/s]
+    Cr_i    = Cl_i/1e-1                                         #Initial concentration right side in [mol]
+    V_ip    = 0.0                                             #Interface velocity in [m/s]
     R       = 8.314472                                          #Universal gas constant in [J/(mol*K)]
     Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]
     Ea2     = 360660.4018                                       #Activation energy for the right side in [J/mol]
     Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s
-    t_tot   = 9.0*1e-4 * Myr2Sec                                #Total time [s]
+    t_tot   = 2e6;#9.0*1e-4 * Myr2Sec                                #Total time [s]
     n       = 3                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
-    KD_ar   = LinRange(Cl_i/Cr_i,1e-1,1000)                             #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
+    KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i*0.5,1000)            #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
                                                                 #The last value must be equal to the partition coefficient at t = t_tot.
     t_ar    = LinRange(0.0,t_tot,1000)                          #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
                                                                 #The user is prompted to specify suitable time intervals in relation to the respective destination.               
@@ -32,7 +32,7 @@ function main(plot_sim,verbose)
     MRefin = 50.0                                               #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     BCout  = [0 0]                                              #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
     #Non-dimensionslization---------------------------------------
-    V_ip, t_tot, t_ar, Di, D0, Ri, Lsc, Dsc, Vsc, tsc = scaling(Ri, Di, D0, V_ip, t_tot, t_ar)
+    #V_ip, t_tot, t_ar, Di, D0, Ri, Lsc, Dsc, Vsc, tsc = scaling(Ri, Di, D0, V_ip, t_tot, t_ar)
     #Check, if t_ar is valid (increasing in time)-----------------
     dt_diff = zeros(length(t_ar)-1)
     dt_diff = t_ar[2:end] .- t_ar[1:end-1]
@@ -114,7 +114,7 @@ function main(plot_sim,verbose)
     end
     #Rescaling---------------------------------------------------
     println("Rescaling...")
-    Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar = rescale(Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar, Lsc, Dsc, Vsc, tsc)    
+    #Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar = rescale(Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar, Lsc, Dsc, Vsc, tsc)    
     #Post-process------------------------------------------------
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])

@@ -3,20 +3,20 @@ using Plots, LinearAlgebra, Revise, LaTeXStrings
 #Main function----------------------------------------------------
 function main(plot_sim,verbose)
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
-    #Phyics-------------------------------------------------------
-    Di      = [2.65*1e-18   2.65e-13;]                          #Initial diffusion coefficient in [m^2/s] 
-                                                                #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
-    D0      = [2.75*1e-6   0.275;]                              #Pre-exponential factor in [m^2/s]
-    rho     = [1.0      1.0;]                                   #Normalized densities in [kg/mol]
-    Ri      = [1e-1    0.5;]                                    #Initial radii [interface    total length] in [m]
-    Cl_i    = 0.1                                               #Initial concentration left side in [mol]
-    Cr_i    = Cl_i/1e-2                                         #Initial concentration right side in [mol]
-    V_ip    = 3.17e-11                                          #Interface velocity in [m/s]
-    R       = 8.314472                                          #Universal gas constant in [J/(mol*K)]
-    Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]
-    Ea2     = 360660.4018                                       #Activation energy for the right side in [J/mol]
-    Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s
-    t_tot   = 1.0*1e-4 * Myr2Sec                                #Total time [s]
+    #Physics-------------------------------------------------------
+    Di      = [1e-5   1e1;]                                     #Initial diffusion coefficient in [m^2/s]           -> in [L*V]
+    #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
+    D0      = [9999   99999;]                                   #Pre-exponential factor in [m^2/s]                  -> NOT USED
+    rho     = [1.0      1.0;]                                   #Normalized densities in [kg/mol]                   -> NOT USED
+    Ri      = [1e-2      10;]                                   #Initial radii [interface    total length] in [m]   -> in [L]
+    Cl_i    = 0.1                                               #Initial concentration left side in [mol]           -> in [C]
+    Cr_i    = Cl_i/1e-3                                         #Initial concentration right side in [mol]          -> -//-
+    V_ip    = 1.0                                               #Interface velocity in [m/s]                        -> in [V]
+    R       = 8.314472                                          #Universal gas constant in [J/(mol*K)]              -> NOT USED
+    Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]     -> NOT USED
+    Ea2     = 360660.4018                                       #Activation energy for the right side in [J/mol]    -> NOT USED
+    Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s                    -> NOT USED
+    t_tot   = 0.2                                              #Total time [s]                                     -> in [L]/[V]
     n       = 1                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical   
     #History dependent parameters---------------------------------
     KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i,1000)                          #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
@@ -27,9 +27,9 @@ function main(plot_sim,verbose)
                                                                 #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
     CFL    = 0.99                                               #CFL condition
-    res    = [80 120;]                                          #Number of grid points
+    res    = [90 140;]                                          #Number of grid points
     resmin = copy(res)                                          #Minimum number of grid points
-    MRefin = 50.0                                               #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
+    MRefin = 10.0                                               #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     BCout  = [0 0]                                              #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
                                                                 #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Non-dimensionslization---------------------------------------
@@ -82,7 +82,8 @@ function main(plot_sim,verbose)
     #for i in 1:1
     while t < t_tot
         #Calculate dt---------------------------------------------
-        dt = find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
+        #dt = find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
+        dt  = minimum([dx1,dx2])/V_ip*CFL
         #Update time----------------------------------------------
         t, dt, it = update_time!(t,dt,it,t_tot)
         #Update time-dependent parameters-------------------------
@@ -115,7 +116,6 @@ function main(plot_sim,verbose)
             p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC,title = L"Concentration\ profile", color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
             display(p1)
         end
-        println("Time: ",t*tsc/Myr2Sec," Myrs")
     end
     #Rescaling---------------------------------------------------
     Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar = rescale(Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar, Lsc, Dsc, Vsc, tsc)    
@@ -136,14 +136,18 @@ if run_and_plot
     xan, Can = smith(x_right,C_right,Ri,Di,t_tot,KD0,V_ip,n)
     if plot_end
         #Plotting------------------------------------------------------
-        plot(x_left,C_left, lw=2, label=L"Left\ side")
-        plot!(x_right,C_right, lw=2, label=L"Right\ side")
-        plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance\ [m]", ylabel = L"Concentration", title = L"Diffusion\ couple\ (flux) \- \Smith \(1995)", lw=1.5,
+        p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
+        p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
+        p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance\ [m]", ylabel = L"Concentration", title = L"Diffusion\ couple\ (flux) \- \Smith \(1995)", lw=1.5,
               grid=:on, label=L"Initial\ condition")
-        plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
-        scatter!([xan[1:2:end].+Ri[1]],[Can[1:2:end]], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
+        p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
+        p1 = scatter!([xan[1:2:end].+Ri[1]],[Can[1:2:end]], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
                  markerstrokecolor=:crimson, markercolor=:crimson, dpi = 300)
-        scatter!([xan[end].+Ri[1]],[Can[end]], marker=:circle, markersize=2.0,markerstrokecolor=:crimson, markercolor=:crimson, label="")
+        p1 = scatter!([xan[end].+Ri[1]],[Can[end]], marker=:circle, markersize=2.0,markerstrokecolor=:crimson, markercolor=:crimson, label="")
+        p2 = plot(x_right,C_right, lw=2, label=L"Right\ side")
+        p2 = scatter!([xan[1:2:end].+Ri[1]],[Can[1:2:end]], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
+                 markerstrokecolor=:crimson, markercolor=:crimson, dpi = 300, ylims = (100,125)) 
+        plot(p1,p2)
         #save_path = "figures"
         #save_name = "B6"
         #save_figure(save_name,save_path,save_file)

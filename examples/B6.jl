@@ -19,7 +19,7 @@ function main(plot_sim,verbose)
     t_tot   = 1.0*1e-4 * Myr2Sec                                #Total time [s]
     n       = 1                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical   
     #History dependent parameters---------------------------------
-    KD_ar   = LinRange(1e-2,1e-2,1000)                          #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
+    KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i,1000)                          #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
                                                                 #The last value must be equal to the partition coefficient at t = t_tot.
     t_ar    = LinRange(0.0,t_tot,1000)                          #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
                                                                 #The user is prompted to specify suitable time intervals in relation to the respective destination.               
@@ -138,7 +138,7 @@ if run_and_plot
         #Plotting------------------------------------------------------
         plot(x_left,C_left, lw=2, label=L"Left\ side")
         plot!(x_right,C_right, lw=2, label=L"Right\ side")
-        plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance\ [m]", ylabel = L"Concentration", title = L"Diffusion\ couple\ (flux)", lw=1.5,
+        plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance\ [m]", ylabel = L"Concentration", title = L"Diffusion\ couple\ (flux) \- \Smith \(1995)", lw=1.5,
               grid=:on, label=L"Initial\ condition")
         plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
         scatter!([xan[1:2:end].+Ri[1]],[Can[1:2:end]], marker=:circle, markersize=2.0, label=L"Analytical\ solution",

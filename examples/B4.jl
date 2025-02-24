@@ -15,7 +15,7 @@ function main(plot_sim,verbose)
     R       = 8.314472                                          #Universal gas constant in [J/(mol*K)]              -> NOT USED
     Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]     -> NOT USED
     Ea2     = 360660.4018                                       #Activation energy for the right side in [J/mol]    -> NOT USED
-    Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s                     NOT USED
+    Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s                    -> NOT USED
     t_tot   = 0.35                                              #Total time [s]                                     -> in [L]/[V]
     n       = 3                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
@@ -139,7 +139,7 @@ if run_and_plot
         p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
         p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
         p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance\ [m]", ylabel = L"Concentration", lw=1.5,
-                   grid=:on, label=L"Initial\ condition",legendfontsize = 4)
+                   grid=:on, label=L"Initial\ condition",legendfontsize = 6)
         p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC,title = L"Concentration\ profile", color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
         p2 = plot((x_left/Ri0[2]).^(n),C_left, lw=2, label=L"Numerical\ solution\ solid")
         p2 = plot!((x_right/Ri0[2]).^(n),C_right, lw=2, label=L"Numerical\ solution\ liquid")

@@ -121,7 +121,9 @@ module Benchmarks
     function smith(x_right,C_right,Ri,Di,t_tot,KD,V_ip,n)
         #Smith (1955): analytical solution for the concentration of a liquid in growth medium against an advancing planar crystal interface
         if n == 1
+            println("dffg")
             xan  = x_right .- Ri[1]
+            @show xan
             Dan  = Di[2]
             tan  = t_tot
             Kan  = KD

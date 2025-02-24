@@ -19,7 +19,7 @@ function main(plot_sim,verbose)
     t_tot   = 9.0*1e-4 * Myr2Sec                                #Total time [s]
     n       = 3                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
-    KD_ar   = LinRange(1e-2,1e-1,1000)                             #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
+    KD_ar   = LinRange(Cl_i/Cr_i,1e-1,1000)                             #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
                                                                 #The last value must be equal to the partition coefficient at t = t_tot.
     t_ar    = LinRange(0.0,t_tot,1000)                          #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
                                                                 #The user is prompted to specify suitable time intervals in relation to the respective destination.               

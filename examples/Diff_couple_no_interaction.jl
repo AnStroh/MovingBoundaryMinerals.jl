@@ -152,6 +152,6 @@ if run_and_plot
         scatter!([xan_l],[Can_l], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
                  markerstrokecolor=:crimson, markercolor=:crimson)
         scatter!([xan_r],[Can_r], marker=:circle, markersize=2.0, label="",
-                 markerstrokecolor=:crimson, markercolor=:crimson)
+                 markerstrokecolor=:crimson, markercolor=:crimson,dpi = 300)
     end
 end

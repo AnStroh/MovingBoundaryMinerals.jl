@@ -8,7 +8,7 @@ function main(plot_sim,verbose)
                                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     D0      = [2.75*1e-6    3.9*1e-7;]                          #Pre-exponential factor in [m^2/s]
     rho     = [1.0      1.0;]                                   #Normalized densities in [kg/mol]
-    Ri      = [0.0025    0.1;]                                   #Initial radii [interface    total length] in [m]
+    Ri      = [0.002    0.1;]                                   #Initial radii [interface    total length] in [m]
     Cl_i    = 0.6                                               #Initial concentration left side in [mol]
     Cr_i    = 0.3                                               #Initial concentration right side in [mol]
     V_ip    = 3.17e-14                                          #Interface velocity in [m/s]
@@ -133,6 +133,6 @@ if run_and_plot
         plot!(x_right,C_right, lw=2, label=L"Right\ side")
         plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ -\ growth\ (flux)", lw=1.5,
               grid=:on, label=L"Initial\ condition")
-        plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68, lw=2,label=L"Interface", linestyle=:dashdot)
+        plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68, lw=2,label=L"Interface", linestyle=:dashdot, dpi = 300)
     end
 end

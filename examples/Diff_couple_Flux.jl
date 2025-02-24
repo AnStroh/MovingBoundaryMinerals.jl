@@ -113,7 +113,7 @@ function main(plot_sim,verbose)
     return x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0
 end
 #Call main function-----------------------------------------------
-run_and_plot = false
+run_and_plot = true
 if run_and_plot
     plot_sim = false
     plot_end = true
@@ -124,6 +124,6 @@ if run_and_plot
         plot(x_left,C_left, lw=2, label=L"Left\ side")
         plot!(x_right,C_right, lw=2, label=L"Right\ side")
         plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ (flux)", lw=1.5,
-              grid=:on, label=L"Initial\ condition")
+              grid=:on, label=L"Initial\ condition", dpi = 300)
     end
 end

@@ -39,6 +39,8 @@ function main(plot_sim,verbose)
     MRefin = 15.0                                                                           #Refinement factor
     BCout  = [0 0]                                                                          #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
                                                                                             #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
+    #Non-dimensionslization---------------------------------------
+    V_ip, t_tot, t_ar, Di, D0, Ri, Lsc, Dsc, Vsc, tsc = scaling(Ri, Di, D0, V_ip, t_tot, t_ar)
     #Create data set--------------------------------------------------------
     #Create arrays X(T) using linear least squares
     coeff_up, coeff_do = coeff_trans_line(eq_values)                                        #Extract coefficients
@@ -210,6 +212,9 @@ function main(plot_sim,verbose)
             display(p)
         end
     end
+    #Rescaling---------------------------------------------------
+    Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar = rescale(Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar, Lsc, Dsc, Vsc, tsc)    
+    #Post-process------------------------------------------------
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
     ErrM = (Mass[end] - Mass0) / Mass0

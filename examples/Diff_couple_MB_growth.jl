@@ -134,7 +134,7 @@ if run_and_plot
         plot(x_left,C_left, lw=2, label=L"Left\ side")
         plot!(x_right,C_right, lw=2, label=L"Right\ side")
         plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ -\ growth\ (MB)", lw=1.5,
-              grid=:on, label=L"Initial\ condition")
+              grid=:on, label=L"Initial\ condition", dpi = 300)
         plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68, lw=2,label=L"Interface", linestyle=:dashdot)
     end
 end

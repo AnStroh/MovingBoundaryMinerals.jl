@@ -4,27 +4,26 @@ using Plots, LinearAlgebra, Revise, LaTeXStrings
 function main(plot_sim,verbose)
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
     #Phyics-------------------------------------------------------
-    Di      = [-1.0    -1.0]
-    #Di      = [2.65*1e-18   1.0e4;]                            #Initial diffusion coefficient in [m^2/s] 
+    Di      = [-1.0   -1.0;]                                    #Initial diffusion coefficient in [m^2/s] 
                                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
-    D0      = [2.75*1e-6   1.0e4;]                              #Pre-exponential factor in [m^2/s]
+    D0      = [2.75*1e-6    3.9*1e-7;]                          #Pre-exponential factor in [m^2/s]
     rho     = [1.0      1.0;]                                   #Normalized densities in [kg/mol]
-    Ri      = [1e-4    0.1;]                                    #Initial radii [interface    total length] in [m]
-    Cl_i    = 0.6                                               #Initial concentration left side in [mol]
-    Cr_i    = 0.3                                               #Initial concentration right side in [mol]
+    Ri      = [1e-1    3.33;]                                   #Initial radii [interface    total length] in [m]
+    Cl_i    = 0.5                                               #Initial concentration left side in [mol]
+    Cr_i    = Cl_i/1e-2                                          #Initial concentration right side in [mol]
     V_ip    = 3.17e-11                                          #Interface velocity in [m/s]
     R       = 8.314472                                          #Universal gas constant in [J/(mol*K)]
     Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]
     Ea2     = 360660.4018                                       #Activation energy for the right side in [J/mol]
     Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s
-    t_tot   = 1e-4 * Myr2Sec                                    #Total time [s]
+    t_tot   = 9.0*1e-4 * Myr2Sec                                #Total time [s]
     n       = 3                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
-    KD_ar   = LinRange(100,50,1000)                             #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
+    KD_ar   = LinRange(1e-2,1e-1,1000)                             #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
                                                                 #The last value must be equal to the partition coefficient at t = t_tot.
     t_ar    = LinRange(0.0,t_tot,1000)                          #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
                                                                 #The user is prompted to specify suitable time intervals in relation to the respective destination.               
-    T_ar    = LinRange(1273.15,973.15,1000)                     #Temperature arrray in [K] to calculate temperature history; T changes with respect to time; 
+    T_ar    = LinRange(1273.15,1173.15,1000)                     #Temperature arrray in [K] to calculate temperature history; T changes with respect to time; 
                                                                 #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
     CFL    = 0.3                                                #CFL condition
@@ -104,54 +103,41 @@ function main(plot_sim,verbose)
             push!(Mass, Massnow)                                #Stores the mass of the system
         end
         if plot_sim
-            #Plotting---------------------------------------------
             maxC = maximum([maximum(C_left),maximum(C_right)])
-            p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
-            p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
-            p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", lw=1.5,
-                       grid=:on, label=L"Initial\ condition",legendfontsize = 4,title = L"Diffusion\ couple\ (flux)\ -\ Rayleigh\ fractionation")
-            p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC,title = L"Concentration\ profile", color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
-            display(p1)
+            #Plotting---------------------------------------------
+            plot(x_left,C_left, lw=2, label=L"Left\ side")
+            plot!(x_right,C_right, lw=2, label=L"Right\ side")
+            plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance\ [m]", ylabel = L"Concentration", title = L"Diffusion\ couple\ (flux)\ -\ time\ transformation", lw=1.5,
+                  grid=:on, label=L"Initial\ condition")
+            plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
         end
     end
     #Rescaling---------------------------------------------------
+    println("Rescaling...")
     Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar = rescale(Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar, Lsc, Dsc, Vsc, tsc)    
     #Post-process------------------------------------------------
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
     calc_mass_err(Mass,Mass0)
-    return x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, KD0, n, maxC
-end
+    return x_left, x_right, x0, Ri, C_left, C_right, C0, maxC
+end        
 #Call main function-----------------------------------------------
 run_and_plot = true
 if run_and_plot
     plot_sim  = true
     plot_end  = true
     verbose   = false
-    save_file = true 
-    x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, KD0, n, maxC = main(plot_sim,verbose)
-    Ray_Fs, Ray_Fl, Ray_Cl, Ray_Cs, Cl_p, phi_solid = rayleigh_fractionation(x_left,C_left,Ri0,Ri,C0_r,KD0,n)
-    if plot_end
+    save_file = false 
+    x_left, x_right, x0, Ri, C_left, C_right, C0, maxC = main(plot_sim,verbose)
+        if plot_end
         #Plotting-------------------------------------------------
-        p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
-        p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
-        p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance\ [m]", ylabel = L"Concentration", lw=1.5,
-                   grid=:on, label=L"Initial\ condition",legendfontsize = 4)
-        p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC,title = L"Concentration\ profile", color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
-        p2 = plot((x_left/Ri0[2]).^(n),C_left, lw=2, label=L"Numerical\ solution\ solid")
-        p2 = plot!((x_right/Ri0[2]).^(n),C_right, lw=2, label=L"Numerical\ solution\ liquid")
-        p2 = scatter!([Ray_Fs[1:100:end]],[Ray_Cs[1:100:end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue,label=L"Solid\ Rayleigh", 
-                      xlabel = L"Fraction", ylabel = L"Concentration", grid=:on,legendfontsize = 4,
-                      title = L"Concentration\ profile\ solid")
-        p2 = scatter!([Ray_Fs[end]],[Ray_Cs[end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue, label="",xlim=(x_left[1]-0.0001*Ri[2], Ri[1]+0.0001*Ri[2]))
-        p3 = plot((phi_solid.^n)', Cl_p', lw=2, label=L"Mass\ fraction\ solid")
-        p3 = scatter!([Ray_Fs[1:100:end]],[Ray_Cs[1:100:end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue,label=L"Solid\ Rayleigh",
-                      xlabel = L"Fraction", ylabel = L"Concentration", grid=:on,legendfontsize = 4,
-                      title = "")
-        p3 = scatter!([Ray_Fs[end]],[Ray_Cs[end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue, label="")
-        plot(p1,p2,p3,suptitle = L"Diffusion\ couple\ (flux)\ -\ Rayleigh\ fractionation", dpi = 300)
-        save_path = "figures"
-        save_name = "B5"
-        save_figure(save_name,save_path,save_file)
+        plot(x_left,C_left, lw=2, label=L"Left\ side")
+        plot!(x_right,C_right, lw=2, label=L"Right\ side")
+        plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance\ [m]", ylabel = L"Concentration", title = L"Diffusion\ couple\ (flux)\ -\ time\ transformation", lw=1.5,
+              grid=:on, label=L"Initial\ condition", dpi = 300)
+        plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
+        #save_path = "figures"
+        #save_name = "B5"
+        #save_figure(save_name,save_path,save_file)
     end
 end

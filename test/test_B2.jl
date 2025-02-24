@@ -1,7 +1,7 @@
 using Test
 include("../examples/B2.jl")
 #Testing-----------------------------------------------------------------------
-@testset "Diffusion couple (Lasaga)" begin
+@testset "Diffusion couple (flux) - Lasaga (1983)" begin
     adapt_dt = true
     plot_sim = false
     verbose  = false

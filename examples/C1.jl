@@ -4,36 +4,36 @@ using Plots, LinearAlgebra, LaTeXStrings
 function main(plot_sim,verbose)
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
     #Phyics-------------------------------------------------------
-    #Di = [-1.0 -1.0]
-    Di      = [2.65*1e-18   1.0e4;]                             #Initial diffusion coefficient in [m^2/s] 
+    Di      = [2.65*1e-18   0.0265;]                            #Initial diffusion coefficient in [m^2/s] 
                                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
-    D0      = [2.75*1e-6    1.0e4;]                             #Pre-exponential factor in [m^2/s]
+    D0      = [2.75*1e-6    2.75;]                              #Pre-exponential factor in [m^2/s]
     rho     = [1.0      1.0;]                                   #Normalized densities in [kg/mol]
-    Ri      = [1e-4    0.1;]                                    #Initial radii [interface    total length] in [m]
-    Cl_i    = 0.6                                               #Initial concentration left side in [mol]
-    Cr_i    = 0.3                                               #Initial concentration right side in [mol]
+    Ri      = [1e-1    3.33;]                                   #Initial radii [interface    total length] in [m]
+    Cl_i    = 0.5                                               #Initial concentration left side in [mol]
+    Cr_i    = Cl_i/100                                          #Initial concentration right side in [mol]
     V_ip    = 3.17e-11                                          #Interface velocity in [m/s]
     R       = 8.314472                                          #Universal gas constant in [J/(mol*K)]
     Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]
     Ea2     = 360660.4018                                       #Activation energy for the right side in [J/mol]
-    dH0     = 20919.9769                                        #Standard enthalpy of reaction in [J/mol]
     Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s
-    t_tot   = 1e-4 * Myr2Sec                                    #Total time [s]
+    t_tot   = 9.0*1e-4 * Myr2Sec                                #Total time [s]
     n       = 3                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
     KD_ar   = LinRange(100,100,1000)                            #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
                                                                 #The last value must be equal to the partition coefficient at t = t_tot.
     t_ar    = LinRange(0.0,t_tot,1000)                          #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
                                                                 #The user is prompted to specify suitable time intervals in relation to the respective destination.               
-    T_ar    = LinRange(1273.15,1223.15,1000)                    #Temperature arrray in [K] to calculate temperature history; T changes with respect to time; 
+    T_ar    = LinRange(1273.15,1273.15,1000)                    #Temperature arrray in [K] to calculate temperature history; T changes with respect to time; 
                                                                 #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
-    CFL    = 0.3                                                #CFL condition
-    res    = [100 150;]                                         #Number of grid points
+    CFL    = 0.99                                               #CFL condition
+    res    = [80 120;]                                          #Number of grid points
     resmin = copy(res)                                          #Minimum number of grid points
-    MRefin = 15.0                                               #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
+    MRefin = 50.0                                               #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     BCout  = [0 0]                                              #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
                                                                 #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
+    #Non-dimensionslization---------------------------------------
+    V_ip, t_tot, t_ar, Di, D0, Ri, Lsc, Dsc, Vsc, tsc = scaling(Ri, Di, D0, V_ip, t_tot, t_ar)
     #Check, if t_ar is valid (increasing in time)-----------------
     dt_diff = zeros(length(t_ar)-1)
     dt_diff = t_ar[2:end] .- t_ar[1:end-1]
@@ -115,10 +115,13 @@ function main(plot_sim,verbose)
             display(p1)
         end
     end
+    #Rescaling---------------------------------------------------
+    Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar = rescale(Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar, Lsc, Dsc, Vsc, tsc)    
+    #Post-process------------------------------------------------
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
     calc_mass_err(Mass,Mass0)
-    return x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, KD0, n, maxC
+    return x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, n, maxC
 end
 #Call main function-----------------------------------------------
 run_and_plot = true
@@ -127,7 +130,7 @@ if run_and_plot
     plot_end  = true
     verbose   = false
     save_file = true
-    x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, KD0, n, maxC = main(plot_sim,verbose)
+    x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, n, maxC = main(plot_sim,verbose)
     Ray_Fs, Ray_Fl, Ray_Cl, Ray_Cs, Cl_p, phi_solid = rayleigh_fractionation(x_left,C_left,Ri0,Ri,C0_r,KD0,n)
     if plot_end 
         #Plotting-------------------------------------------------

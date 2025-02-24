@@ -8,7 +8,7 @@ function main(plot_sim,verbose)
                                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     D0      = [2.75*1e-6    3.9*1e-7;]                          #Pre-exponential factor in [m^2/s]
     rho     = [1.0      1.0;]                                   #Normalized densities in [kg/mol]
-    Ri      = [0.002    0.1;]                                   #Initial radii [interface    total length] in [m]
+    Ri      = [0.0025    0.1;]                                   #Initial radii [interface    total length] in [m]
     Cl_i    = 0.6                                               #Initial concentration left side in [mol]
     Cr_i    = 0.3                                               #Initial concentration right side in [mol]
     V_ip    = 3.17e-14                                          #Interface velocity in [m/s]
@@ -32,6 +32,8 @@ function main(plot_sim,verbose)
     MRefin = 20.0                                               #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     BCout  = [0 0]                                              #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
                                                                 #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
+    #Non-dimensionslization---------------------------------------
+    V_ip, t_tot, t_ar, Di, D0, Ri, Lsc, Dsc, Vsc, tsc = scaling(Ri, Di, D0, V_ip, t_tot, t_ar)
     #Check, if t_ar is valid (increasing in time)-----------------
     dt_diff = zeros(length(t_ar)-1)
     dt_diff = t_ar[2:end] .- t_ar[1:end-1]
@@ -106,10 +108,13 @@ function main(plot_sim,verbose)
             p = plot!(x_right,C_right, lw=2, label=L"Right\ side")
             p = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ -\ growth\ (flux)", lw=1.5,
                     grid=:on, label=L"Initial\ condition")
-            #plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68, lw=2,label=L"Interface", linestyle=:dashdot)
+            plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68, lw=2,label=L"Interface", linestyle=:dashdot)
             display(p)
         end
     end
+    #Rescaling---------------------------------------------------
+    Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar = rescale(Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar, Lsc, Dsc, Vsc, tsc)    
+    #Post-process------------------------------------------------
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
     calc_mass_err(Mass,Mass0)
@@ -128,6 +133,6 @@ if run_and_plot
         plot!(x_right,C_right, lw=2, label=L"Right\ side")
         plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ -\ growth\ (flux)", lw=1.5,
               grid=:on, label=L"Initial\ condition")
-        #plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68, lw=2,label=L"Interface", linestyle=:dashdot)
+        plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68, lw=2,label=L"Interface", linestyle=:dashdot)
     end
 end

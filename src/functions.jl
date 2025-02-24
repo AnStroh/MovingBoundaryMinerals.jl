@@ -921,18 +921,20 @@ function regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, nr, nmin
     return x_left, x_right, C_left, C_right, dx1, dx2, nr
 end
 
-function rescale(Ri0, Ri_input, Di_input, D0_input, V_input, rho_input, t_tot_input, t_ar_input, Lsc, Dsc, msc, Vsc, rhosc, tsc)
+function rescale(Ri0, Ri_input, x_left_input, x_right_input, x0_input, Di_input, D0_input, V_input, t_tot_input, t_ar_input, Lsc, Dsc, Vsc, tsc)
     #rescaling of numbers
     #dependent numbers
-    V_ip  = V_input     * Vsc
-    t_tot = t_tot_input * tsc
-    t_ar  = t_ar_input  * tsc
-    D0    = D0_input   .* Dsc
-    Di    = Di_input   .* Dsc
-    Ri    = Ri_input   .* Lsc 
-    Ri0   = Ri0        .* Lsc
-    rho   = rho_input  .* rhosc
-    return Ri0, Ri, Di, D0, V_ip, rho, t_tot, t_ar
+    V_ip    = V_input        * Vsc
+    t_tot   = t_tot_input    * tsc
+    t_ar    = t_ar_input     * tsc
+    D0      = D0_input      .* Dsc
+    Di      = Di_input      .* Dsc
+    Ri      = Ri_input      .* Lsc 
+    Ri0     = Ri0           .* Lsc
+    x_left  = x_left_input  .* Lsc
+    x_right = x_right_input .* Lsc
+    x0      = x0_input      .* Lsc
+    return Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar
 end
 
 function scaling(Ri_input, Di_input, D0_input, V_input, t_tot_input, t_ar_input)
@@ -955,7 +957,7 @@ function scaling(Ri_input, Di_input, D0_input, V_input, t_tot_input, t_ar_input)
     t_ar  = t_ar_input  * inv(tsc)
     D0    = D0_input   .* inv(Dsc)
     Di    = Di_input   .* inv(Dsc)
-    Ri    = Ri_input   .*inv(Lsc) 
+    Ri    = Ri_input   .* inv(Lsc) 
     return V_ip, t_tot, t_ar, Di, D0, Ri, Lsc, Dsc, Vsc, tsc
 end
 
@@ -1002,13 +1004,7 @@ Set the inner boundary conditions at the interface using fluxes.
 """
 function set_inner_bc_flux!(L_g,R_g,KD,D_l,D_r,x_left,x_right,V_ip,rho,nr)
     #Reduce the condition Number---------------------------------------
-    #ScF = maximum(diag(L_g))
-    #ScF      = sum(diag(L_g)g) / length(diag(L_g))
     ScF = 1.0
-    #ScF = mean(diag(L_g))
-
-    # Frobenius norm of L_g
-    #ScF = norm(L_g, Inf)    
     #inner BC1---------------------------------------------------------------
     fill!(L_g[nr[1],:],0.0)
     L_g[nr[1],nr[1]]     = 1.0 * ScF
@@ -1126,21 +1122,6 @@ function set_inner_bc_Lasaga!(Cl_i,beta,t, KD,D_r,D_l,D0,C_left,C_right,dx1,dx2,
             D_r ^ 2 * dx1 ^ 2 * rho[2] ^ 2) ^ (1*inv(2)) + D_r * dx1 * rho[2] + C_left[end-1] * D_l * dx2 * rho[1] + 
             C_right[2] * D_r * dx1 * rho[2] + D_l * KD * dx2 * rho[1] - C_left[end-1] * D_l * KD * dx2 * rho[1] - 
             C_right[2] * D_r * KD * dx1 * rho[2]) * ((2 * (D_r * dx1 * rho[2] - D_r * KD * dx1 * rho[2])))
-    
-    
-    #sol1 = ((D_l^2 * KD^2 * C_left[end-1]^2 * dx2^2 - 2 * D_l^2 * KD^2 * C_left[end-1] * dx2^2 + D_l^2 * KD^2 * dx2^2 - 2 * D_l^2 * KD * C_left[end-1]^2 * dx2^2 + 2 * D_l^2 * KD * C_left[end-1] * dx2^2 + D_l^2 * C_left[end-1]^2 * dx2^2 + 2 * D_l * D_r * KD^2 * C_left[end-1] * C_right[2] * dx1 * dx2 - 2 * D_l * D_r * KD^2 * C_right[2] * dx1 * dx2 - 4 * D_l * D_r * KD * C_left[end-1] * C_right[2] * dx1 * dx2 + 2 * D_l * D_r * KD * C_left[end-1] * dx1 * dx2 + 2 * D_l * D_r * KD * C_right[2] * dx1 * dx2 + 2 * D_l * D_r * KD * dx1 * dx2 + 2 * D_l * D_r * C_left[end-1] * C_right[2] * dx1 * dx2 - 2 * D_l * D_r * C_left[end-1] * dx1 * dx2 + D_r^2 * KD^2 * C_right[2]^2 * dx1^2 - 2 * D_r^2 * KD * C_right[2]^2 * dx1^2 + 2 * D_r^2 * KD * C_right[2] * dx1^2 + D_r^2 * C_right[2]^2 * dx1^2 - 2 * D_r^2 * C_right[2] * dx1^2 + D_r^2 * dx1^2)^(1/2) + D_r * dx1 + D_l * KD * dx2 + D_l * C_left[end-1] * dx2 + D_r * C_right[2] * dx1 - D_l * KD * C_left[end-1] * dx2 - D_r * KD * C_right[2] * dx1) / (2 * (D_r * dx1 - D_r * KD * dx1))
-    #sol2 = (D_r * dx1 - (D_l^2 * KD^2 * C_left[end-1]^2 * dx2^2 - 2 * D_l^2 * KD^2 * C_left[end-1] * dx2^2 + D_l^2 * KD^2 * dx2^2 - 2 * D_l^2 * KD * C_left[end-1]^2 * dx2^2 + 2 * D_l^2 * KD * C_left[end-1] * dx2^2 + D_l^2 * C_left[end-1]^2 * dx2^2 + 2 * D_l * D_r * KD^2 * C_left[end-1] * C_right[2] * dx1 * dx2 - 2 * D_l * D_r * KD^2 * C_right[2] * dx1 * dx2 - 4 * D_l * D_r * KD * C_left[end-1] * C_right[2] * dx1 * dx2 + 2 * D_l * D_r * KD * C_left[end-1] * dx1 * dx2 + 2 * D_l * D_r * KD * C_right[2] * dx1 * dx2 + 2 * D_l * D_r * KD * dx1 * dx2 + 2 * D_l * D_r * C_left[end-1] * C_right[2] * dx1 * dx2 - 2 * D_l * D_r * C_left[end-1] * dx1 * dx2 + D_r^2 * KD^2 * C_right[2]^2 * dx1^2 - 2 * D_r^2 * KD * C_right[2]^2 * dx1^2 + 2 * D_r^2 * KD * C_right[2] * dx1^2 + D_r^2 * C_right[2]^2 * dx1^2 - 2 * D_r^2 * C_right[2] * dx1^2 + D_r^2 * dx1^2)^(1/2) + D_l * KD * dx2 + D_l * C_left[end-1] * dx2 + D_r * C_right[2] * dx1 - D_l * KD * C_left[end-1] * dx2 - D_r * KD * C_right[2] * dx1) / (2 * (D_r * dx1 - D_r * KD * dx1))
-
-
-    #dx1      = 2.000000000000005e-04
-    #dx2      = 2.039194842976370e-04
-    #KD       = 3.499800028367019
-    #D_l      = 4.907351237132524e-19
-    #D_r      = 7.802167280557328e-23
-
-    #sol1 = ((D_l^2*KD^2*C_left[end-1]^2*dx2[1]^2 - 2*D_l^2*KD^2*C_left[end-1]*dx2[1]^2 + D_l^2*KD^2*dx2[1]^2 - 2*D_l^2*KD*C_left[end-1]^2*dx2[1]^2 + 2*D_l^2*KD*C_left[end-1]*dx2[1]^2 + D_l^2*C_left[end-1]^2*dx2[1]^2 + 2*D_l*D_r*KD^2*C_left[end-1]*C_right[2]*dx1[end]*dx2[1] - 2*D_l*D_r*KD^2*C_right[2]*dx1[end]*dx2[1] - 4*D_l*D_r*KD*C_left[end-1]*C_right[2]*dx1[end]*dx2[1] + 2*D_l*D_r*KD*C_left[end-1]*dx1[end]*dx2[1] + 2*D_l*D_r*KD*C_right[2]*dx1[end]*dx2[1] + 2*D_l*D_r*KD*dx1[end]*dx2[1] + 2*D_l*D_r*C_left[end-1]*C_right[2]*dx1[end]*dx2[1] - 2*D_l*D_r*C_left[end-1]*dx1[end]*dx2[1] + D_r^2*KD^2*C_right[2]^2*dx1[end]^2 - 2*D_r^2*KD*C_right[2]^2*dx1[end]^2 + 2*D_r^2*KD*C_right[2]*dx1[end]^2 + D_r^2*C_right[2]^2*dx1[end]^2 - 2*D_r^2*C_right[2]*dx1[end]^2 + D_r^2*dx1[end]^2)^(1/2) + D_r*dx1[end] + D_l*KD*dx2[1] + D_l*C_left[end-1]*dx2[1] + D_r*C_right[2]*dx1[end] - D_l*KD*C_left[end-1]*dx2[1] - D_r*KD*C_right[2]*dx1[end])/(2*(D_r*dx1[end] - D_r*KD*dx1[end]))
-    
-    #sol2 = (D_r*dx1[end] - (D_l^2*KD^2*C_left[end-1]^2*dx2[1]^2 - 2*D_l^2*KD^2*C_left[end-1]*dx2[1]^2 + D_l^2*KD^2*dx2[1]^2 - 2*D_l^2*KD*C_left[end-1]^2*dx2[1]^2 + 2*D_l^2*KD*C_left[end-1]*dx2[1]^2 + D_l^2*C_left[end-1]^2*dx2[1]^2 + 2*D_l*D_r*KD^2*C_left[end-1]*C_right[2]*dx1[end]*dx2[1] - 2*D_l*D_r*KD^2*C_right[2]*dx1[end]*dx2[1] - 4*D_l*D_r*KD*C_left[end-1]*C_right[2]*dx1[end]*dx2[1] + 2*D_l*D_r*KD*C_left[end-1]*dx1[end]*dx2[1] + 2*D_l*D_r*KD*C_right[2]*dx1[end]*dx2[1] + 2*D_l*D_r*KD*dx1[end]*dx2[1] + 2*D_l*D_r*C_left[end-1]*C_right[2]*dx1[end]*dx2[1] - 2*D_l*D_r*C_left[end-1]*dx1[end]*dx2[1] + D_r^2*KD^2*C_right[2]^2*dx1[end]^2 - 2*D_r^2*KD*C_right[2]^2*dx1[end]^2 + 2*D_r^2*KD*C_right[2]*dx1[end]^2 + D_r^2*C_right[2]^2*dx1[end]^2 - 2*D_r^2*C_right[2]*dx1[end]^2 + D_r^2*dx1[end]^2)^(1/2) + D_l*KD*dx2[1] + D_l*C_left[end-1]*dx2[1] + D_r*C_right[2]*dx1[end] - D_l*KD*C_left[end-1]*dx2[1] - D_r*KD*C_right[2]*dx1[end])/(2*(D_r*dx1[end] - D_r*KD*dx1[end]))
     if sol2>1 || sol2<0
         BC_right  = copy(sol1)
     else
@@ -1241,6 +1222,9 @@ Solves a system of equations.
 """
 function solve_soe(L_g,R_g,res)
     #Solve the system of equations
+    #prob = LinearProblem(L_g, R_g)          # Define the linear system
+    #sol = solve(prob)                   # Solve the system
+    #CN = sol.u                           # Extract the solution
     CN      = L_g \ R_g 
     C_left  = CN[1:res[1]]
     C_right = CN[res[1]+1:end]

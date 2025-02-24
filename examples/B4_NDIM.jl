@@ -3,31 +3,31 @@ using Plots, LinearAlgebra, Revise, LaTeXStrings
 #Main function----------------------------------------------------
 function main(plot_sim,verbose)
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
-    #Phyics-------------------------------------------------------
-    Di      = [2.65*1e-18   0.0265;]                            #Initial diffusion coefficient in [m^2/s] 
+    #Physics-------------------------------------------------------
+    Di      = [1e-4   1e4;]                                     #Initial diffusion coefficient in [m^2/s]           -> in [L*V]
                                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
-    D0      = [2.75*1e-6    2.75;]                              #Pre-exponential factor in [m^2/s]
-    rho     = [1.0      1.0;]                                   #Normalized densities in [kg/mol]
-    Ri      = [1e-1    3.33;]                                   #Initial radii [interface    total length] in [m]
-    Cl_i    = 0.5                                               #Initial concentration left side in [mol]
-    Cr_i    = Cl_i/100                                          #Initial concentration right side in [mol]
-    V_ip    = 3.17e-11                                          #Interface velocity in [m/s]
-    R       = 8.314472                                          #Universal gas constant in [J/(mol*K)]
-    Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]
-    Ea2     = 360660.4018                                       #Activation energy for the right side in [J/mol]
-    Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s
-    t_tot   = 9.0*1e-4 * Myr2Sec                                #Total time [s]
+    D0      = [9999   99999;]                                   #Pre-exponential factor in [m^2/s]                  -> NOT USED
+    rho     = [1.0      1.0;]                                   #Normalized densities in [kg/mol]                   -> NOT USED
+    Ri      = [1e-2       1;]                                   #Initial radii [interface    total length] in [m]   -> in [L]
+    Cl_i    = 0.5                                               #Initial concentration left side in [mol]           -> in [C]
+    Cr_i    = Cl_i/100                                          #Initial concentration right side in [mol]          -> -//-
+    V_ip    = 1.0                                               #Interface velocity in [m/s]                        -> in [V]
+    R       = 8.314472                                          #Universal gas constant in [J/(mol*K)]              -> NOT USED
+    Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]     -> NOT USED
+    Ea2     = 360660.4018                                       #Activation energy for the right side in [J/mol]    -> NOT USED
+    Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s                     NOT USED
+    t_tot   = 0.35                                              #Total time [s]                                     -> in [L]/[V]
     n       = 3                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
-    KD_ar   = LinRange(100,100,1000)                            #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
+    KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i,1000)                #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
                                                                 #The last value must be equal to the partition coefficient at t = t_tot.
     t_ar    = LinRange(0.0,t_tot,1000)                          #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
                                                                 #The user is prompted to specify suitable time intervals in relation to the respective destination.               
     T_ar    = LinRange(1273.15,1273.15,1000)                    #Temperature arrray in [K] to calculate temperature history; T changes with respect to time; 
                                                                 #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
-    CFL    = 0.99                                                #CFL condition
-    res    = [80 120;]                                         #Number of grid points
+    CFL    = 0.4                                                #CFL condition
+    res    = [80 120;]                                          #Number of grid points
     resmin = copy(res)                                          #Minimum number of grid points
     MRefin = 50.0                                               #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     BCout  = [0 0]                                              #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
@@ -82,7 +82,8 @@ function main(plot_sim,verbose)
     #for i in 1:1
     while t < t_tot
         #Calculate dt---------------------------------------------
-        dt = find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
+        #dt = find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
+        dt  = minimum([dx1,dx2])/V_ip*CFL
         #Update time----------------------------------------------
         t, dt, it = update_time!(t,dt,it,t_tot)
         #Update time-dependent parameters-------------------------

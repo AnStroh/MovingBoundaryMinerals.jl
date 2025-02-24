@@ -4,38 +4,20 @@ using Plots, LinearAlgebra, Revise, LaTeXStrings
 function main(plot_sim,verbose)
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
     #Phyics-------------------------------------------------------
-    #Di      = [2.65*1e-18   1.0e4;]                             #Initial diffusion coefficient in [m^2/s] 
-    #                                                            #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
-    #D0      = [2.75*1e-6   1.0e4;]                              #Pre-exponential factor in [m^2/s]
-    #rho     = [1.0      1.0;]                                   #Normalized densities in [kg/mol]
-    #Ri      = [1e-1    0.5;]                                    #Initial radii [interface    total length] in [m]
-    #Cl_i    = 50.0* 0.1                                         #Initial concentration left side in [mol]
-    #Cr_i    = 0.1                                               #Initial concentration right side in [mol]
-    #V_ip    = 3.17e-11                                          #Interface velocity in [m/s]
-    #R       = 8.314472                                          #Universal gas constant in [J/(mol*K)]
-    #Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]
-    #Ea2     = 360660.4018                                       #Activation energy for the right side in [J/mol]
-    #Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s
-    #t_tot   = 0.1 * Myr2Sec                                     #Total time [s]
-    #n       = 3                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
-    
-    Di      = [1e-3  1.0e3;]                                    #Initial diffusion coefficient in [m^2/s] 
+    Di      = [2.65*1e-18   0.0265;]                            #Initial diffusion coefficient in [m^2/s] 
                                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
-    D0      = [2.75*1e-6   1.0e4;]                              #Pre-exponential factor in [m^2/s]
+    D0      = [2.75*1e-6    2.75;]                              #Pre-exponential factor in [m^2/s]
     rho     = [1.0      1.0;]                                   #Normalized densities in [kg/mol]
-    Ri      = [3e-2    5.0;]                                    #Initial radii [interface    total length] in [m]
-    Cl_i    = 5.0                                               #Initial concentration left side in [mol]
-    Cr_i    = Cl_i/100                                              #Initial concentration right side in [mol]
-    V_ip    = 1.0                                               #Interface velocity in [m/s]
+    Ri      = [1e-1    3.33;]                                   #Initial radii [interface    total length] in [m]
+    Cl_i    = 0.5                                               #Initial concentration left side in [mol]
+    Cr_i    = Cl_i/100                                          #Initial concentration right side in [mol]
+    V_ip    = 3.17e-11                                          #Interface velocity in [m/s]
     R       = 8.314472                                          #Universal gas constant in [J/(mol*K)]
     Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]
     Ea2     = 360660.4018                                       #Activation energy for the right side in [J/mol]
     Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s
-    t_tot   = 3.5                                               #Total time [s]
-    n       = 3
-
-    
-    
+    t_tot   = 9.0*1e-4 * Myr2Sec                                #Total time [s]
+    n       = 3                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
     KD_ar   = LinRange(100,100,1000)                            #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
                                                                 #The last value must be equal to the partition coefficient at t = t_tot.
@@ -51,7 +33,8 @@ function main(plot_sim,verbose)
     BCout  = [0 0]                                              #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
                                                                 #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Non-dimensionslization---------------------------------------
-    V_ip, t_tot, t_ar, Di, D0, Ri, Lsc, Dsc, Vsc, tsc = scaling(Ri, Di, D0, V_ip, t_tot, t_ar)#Check, if t_ar is valid (increasing in time)-----------------
+    V_ip, t_tot, t_ar, Di, D0, Ri, Lsc, Dsc, Vsc, tsc = scaling(Ri, Di, D0, V_ip, t_tot, t_ar)
+    #Check, if t_ar is valid (increasing in time)-----------------
     dt_diff = zeros(length(t_ar)-1)
     dt_diff = t_ar[2:end] .- t_ar[1:end-1]
     if any(dt_diff .<= 0.0) || any(t_ar .< 0.0) || any(t_ar .> t_tot)
@@ -134,7 +117,7 @@ function main(plot_sim,verbose)
         end
     end
     #Rescaling---------------------------------------------------
-    #Ri0, Ri, Di, D0, V_ip, rho, t_tot, t_ar = rescale(Ri0, Ri, Di, D0, V_ip, rho, t_tot, t_ar, Lsc, Dsc, msc, Vsc, rhosc, tsc)
+    Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar = rescale(Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar, Lsc, Dsc, Vsc, tsc)    
     #Post-process------------------------------------------------
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
@@ -144,7 +127,7 @@ end
 #Call main function-----------------------------------------------
 run_and_plot = true
 if run_and_plot
-    plot_sim  = true
+    plot_sim  = false
     plot_end  = true
     verbose   = false
     save_file = false

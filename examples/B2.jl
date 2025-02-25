@@ -176,7 +176,7 @@ if run_and_plot
     plot_sim  = false
     plot_end  = true
     verbose   = false
-    save_file = true
+    save_file = false
     x_left, x_right, x0, C_left, C_right, C0, Sols_left, Sols_right,Checks, CheckBC, T_pl, t_pl, Ri, maxC, minC = main(adapt_dt,plot_sim,verbose)
     Can1 = first.(Sols_left)
     Can2 = first.(Sols_right)
@@ -198,9 +198,9 @@ if run_and_plot
                       markerstrokecolor=:midnightblue, markercolor=:midnightblue)
         p3 = scatter!(T_pl,Can2[:,1], marker=:circle, markersize=2.0, label=L"Right\ side\ semi-ana.\ solution",
                       markerstrokecolor=:crimson, markercolor=:crimson,legendfontsize = 6, legend =:right)
-        plot(p2,p1,p3,suptitle = L"Diffusion\ couple\ (flux) \- \Lasaga \(1983)", dpi = 300)
-        save_path = "figures"
-        save_name = "B2"
-        save_figure(save_name,save_path,save_file)
+        plot(p2,p1,p3,suptitle = L"Diffusion\ couple\ (flux)\ -\ Lasaga\ {(1983)}", dpi = 300)
+        #save_path = "figures"
+        #save_name = "B2"
+        #save_figure(save_name,save_path,save_file)
     end
 end

@@ -138,16 +138,18 @@ if run_and_plot
         #Plotting------------------------------------------------------
         p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
         p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
-        p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance\ [m]", ylabel = L"Concentration", title = L"Diffusion\ couple\ (flux) \- \Smith \(1995)", lw=1.5,
-              grid=:on, label=L"Initial\ condition")
+        p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance\ [m]", ylabel = L"Concentration", title = L"Concentration\ profile", lw=1.5,
+              grid=:on, label=L"Initial\ condition",legendfontsize = 6)
         p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
         p1 = scatter!([xan[1:2:end].+Ri[1]],[Can[1:2:end]], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
                  markerstrokecolor=:crimson, markercolor=:crimson, dpi = 300)
         p1 = scatter!([xan[end].+Ri[1]],[Can[end]], marker=:circle, markersize=2.0,markerstrokecolor=:crimson, markercolor=:crimson, label="")
-        p2 = plot(x_right,C_right, lw=2, label=L"Right\ side")
-        p2 = scatter!([xan[1:2:end].+Ri[1]],[Can[1:2:end]], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
-                 markerstrokecolor=:crimson, markercolor=:crimson, dpi = 300, ylims = (100,125)) 
-        plot(p1,p2)
+        p2 = plot(x_right,C_right, lw=2, label=L"Liquid",legendfontsize = 6, color = palette(:auto)[2])
+        p2 = scatter!([xan[1:5:end].+Ri[1]],[Can[1:5:end]], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
+                 markerstrokecolor=:crimson, markercolor=:crimson, dpi = 300, ylims = (99,118),
+                 xlabel = L"Distance\ [m]", ylabel = L"Concentration", title=L"Detailed\ view") 
+        p2 = scatter!([xan[end].+Ri[1]],[Can[end]], marker=:circle, markersize=2.0,markerstrokecolor=:crimson, markercolor=:crimson, label="")
+        plot(p1,p2,suptitle = L"Diffusion\ couple\ (flux)\ -\ Smith\ {(1955)}")
         #save_path = "figures"
         #save_name = "B6"
         #save_figure(save_name,save_path,save_file)

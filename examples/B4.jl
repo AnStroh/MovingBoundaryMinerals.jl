@@ -141,16 +141,16 @@ if run_and_plot
         p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance\ [m]", ylabel = L"Concentration", lw=1.5,
                    grid=:on, label=L"Initial\ condition",legendfontsize = 6)
         p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC,title = L"Concentration\ profile", color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
-        p2 = plot((x_left/Ri0[2]).^(n),C_left, lw=2, label=L"Numerical\ solution\ solid")
-        p2 = plot!((x_right/Ri0[2]).^(n),C_right, lw=2, label=L"Numerical\ solution\ liquid")
+        p2 = plot((x_left/Ri0[2]).^(n),C_left, lw=2, label=L"Solid")
+        p2 = plot!((x_right/Ri0[2]).^(n),C_right, lw=2, label=L"Liquid")
         p2 = scatter!([Ray_Fs[1:100:end]],[Ray_Cs[1:100:end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue,label=L"Solid\ Rayleigh", 
                       xlabel = L"Fraction", ylabel = L"Concentration", grid=:on,legendfontsize = 6,
-                      title = L"Concentration\ profile\ solid")
+                      title = L"Fractions")
         p2 = scatter!([Ray_Fs[end]],[Ray_Cs[end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue, label="",xlim=(x_left[1]-0.0001*Ri[2], Ri[1]+0.0001*Ri[2]))
         p3 = plot((phi_solid.^n)', Cl_p', lw=2, label=L"Mass\ fraction\ solid")
         p3 = scatter!([Ray_Fs[1:100:end]],[Ray_Cs[1:100:end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue,label=L"Solid\ Rayleigh",
                       xlabel = L"Fraction", ylabel = L"Concentration", grid=:on,legendfontsize = 6,
-                      title = "")
+                      title = L"Concentration\ profile\ solid")
         p3 = scatter!([Ray_Fs[end]],[Ray_Cs[end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue, label="")
         plot(p1,p2,p3,suptitle = L"Diffusion\ couple\ (flux)\ -\ Rayleigh\ fractionation", dpi = 300)
         #save_path = "figures"

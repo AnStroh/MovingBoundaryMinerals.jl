@@ -1,30 +1,45 @@
 using Diff_Coupled
-using Plots, LinearAlgebra, Revise, LaTeXStrings
+using Plots, LinearAlgebra, Revise, LaTeXStrings, GeoParams
 #Main function----------------------------------------------------
 function main(plot_sim,verbose)
+    CharUnits = GEO_units(;length=1e-4m, temperature = 1273.15K)
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
     #Phyics-------------------------------------------------------
-    Di      = [-1.0    -1.0;]                                   #Initial diffusion coefficient in [m^2/s] 
+    Di_dim      = [-1.0    -1.0;]                               #Initial diffusion coefficient in [m^2/s] 
                                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
-    D0      = [2.75*1e-6    3.9*1e-7;]                          #Pre-exponential factor in [m^2/s]
-    rho     = [1.0      1.0;]                                   #Normalized densities in [kg/m³]
-    Ri      = [0.0002    0.0005;]                               #Initial radii [interface    total length] in [m]
-    Cl_i    = 0.6                                               #Initial concentration left side in [mol]
-    Cr_i    = 0.3                                               #Initial concentration right side in [mol]
-    V_ip    = 0.0                                               #Interface velocity in [m/s]
-    R       = 8.314472                                          #Universal gas constant in [J/(mol*K)]
-    Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]
-    Ea2     = 360660.4018                                       #Activation energy for the right side in [J/mol]
-    Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s
-    t_tot   = 1e-3 * Myr2Sec                                    #Total time [s]
-    n       = 3                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
+    D0_dim      = [2.75*1e-4    3.9*1e-6;]                      #Pre-exponential factor in [m^2/s]
+    rho_dim     = [1.0      1.0;]                               #Normalized densities in [kg/m³]
+    Ri_dim      = [0.05    0.1;]                           #Initial radii [interface    total length] in [m]
+    Cl_i_dim    = 0.6                                           #Initial concentration left side in [mol]
+    Cr_i_dim    = Cl_i_dim/100                                           #Initial concentration right side in [mol]
+    V_ip_dim    = 0.0                                           #Interface velocity in [m/s]
+    R_dim       = 8.314472                                      #Universal gas constant in [J/(mol*K)]
+    Ea1_dim     = 292879.6767                                   #Activation energy for the left side in [J/mol]
+    Ea2_dim     = 300660.4018                                   #Activation energy for the right side in [J/mol]
+    Myr2Sec     = 60*60*24*365.25*1e6                           #Conversion factor from Myr to s
+    t_tot_dim   = 1e-3 * Myr2Sec                                #Total time [s]
+    n           = 3                                             #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
-    KD_ar   = LinRange(1.0,0.7,1000)                            #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
+    KD_ar   = LinRange(Cl_i_dim/Cr_i_dim,Cl_i_dim/Cr_i_dim*0.5,1000) #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
                                                                 #The last value must be equal to the partition coefficient at t = t_tot.
-    t_ar    = LinRange(0.0,t_tot,1000)                          #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
+    t_ar    = LinRange(0.0,t_tot_dim,1000)                      #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
                                                                 #The user is prompted to specify suitable time intervals in relation to the respective destination.               
     T_ar    = LinRange(1273.15,973.15,1000)                     #Temperature arrray in [K] to calculate temperature history; T changes with respect to time; 
                                                                 #The last value must be equal to the temperature at t = t_tot.
+    #Phyics nondimensionalized -----------------------------------
+    Di      = nondimensionalize(Di_dim.*(m^2/s), CharUnits)     
+    D0      = nondimensionalize(D0_dim.*m^2/s, CharUnits)     
+    rho     = nondimensionalize(rho_dim.*kg/m^3, CharUnits)                                  
+    Ri      = nondimensionalize(Ri_dim.*m, CharUnits)                                  
+    Cl_i    = nondimensionalize(Cl_i_dim*mol,CharUnits)                                               
+    Cr_i    = nondimensionalize(Cr_i_dim*mol,CharUnits)                                               
+    V_ip    = nondimensionalize(V_ip_dim*m/s, CharUnits)                                          
+    R       = nondimensionalize(R_dim * J/(mol*K), CharUnits)                                         
+    Ea1     = nondimensionalize(Ea1_dim*J/mol, CharUnits)                                       
+    Ea2     = nondimensionalize(Ea2_dim*J/mol, CharUnits)                                       
+    t_tot   = nondimensionalize(t_tot_dim*s, CharUnits)                               
+    t_ar    = LinRange(nondimensionalize(0.0*s,CharUnits),t_tot,1000)                        
+    T_ar    = LinRange(nondimensionalize(1273.15*K, CharUnits),nondimensionalize(923.15K,CharUnits),1000)
     #Numerics-----------------------------------------------------
     CFL    = 0.5                                                #CFL condition
     res    = [100 150;]                                         #Number of grid points
@@ -43,8 +58,6 @@ function main(plot_sim,verbose)
         error("Please change the size of the system. Increase Ri[2].")
     elseif res[1] > res[2]
         error("Please change the resolution of the system. res[2] >= res[1].")
-    elseif V_ip != 0.0
-        error("Please change V_ip to 0.0. This code cannot handle moving interface.")
     end
     x_left, x_right, dx1, dx2, x0 = create_grid!(Ri,res,MRefin,verbose)
     #Preprocess and initial condition-----------------------------
@@ -80,6 +93,7 @@ function main(plot_sim,verbose)
     while t < t_tot
         #Calculate dt---------------------------------------------
         dt = find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
+        @show dt
         #Update time----------------------------------------------
         t, dt, it = update_time!(t,dt,it,t_tot)
         #Update time-dependent parameters-------------------------
@@ -106,7 +120,19 @@ function main(plot_sim,verbose)
                       grid=:on, label=L"Initial\ condition")
             diaplay(p)
         end
+        println("Time: ", t/Myr2Sec, " Myr")
     end
+    #Rescaling---------------------------------------------------
+    x_left = dimensionalize(x_left, m, CharUnits)
+    x_right = dimensionalize(x_right, m, CharUnits)
+    dx1 = dimensionalize(dx1, m, CharUnits)
+    dx2 = dimensionalize(dx2, m, CharUnits)
+    x0 = dimensionalize(x0, m, CharUnits)
+    Ri = dimensionalize(Ri, m, CharUnits)
+    C_left = dimensionalize(C_left, mol, CharUnits)
+    C_right = dimensionalize(C_right, mol, CharUnits)
+    C0 = dimensionalize(C0, mol, CharUnits)
+    #Post-process------------------------------------------------
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
     calc_mass_err(Mass,Mass0)

@@ -8,10 +8,10 @@ function main(adapt_dt,plot_sim,verbose)
                                                                             #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     D0      = [2.75*1e-6    3.9*1e-7;]                                      #Pre-exponential factor in [m^2/s]
     rho     = [1.0      1.0;]                                               #Normalized densities in [kg/m³]
-    Ri      = [0.0001    0.0002;]                                           #Initial radii [interface    total length] in [m]
+    Ri      = [0.0001    0.02;]                                           #Initial radii [interface    total length] in [m]
     Cl_i    = 0.6                                                           #Initial concentration left side in [mol fraction]
     Cr_i    = 0.3                                                           #Initial concentration right side in [mol fraction]
-    V_ip    = 0.0                                                           #Interface velocity in [m/s]
+    V_ip    = 1.0e-18                                                           #Interface velocity in [m/s]
     R       = 8.3144626182                                                  #Universal gas constant in [J/(mol*K)]
     Ea1     = 70 * 4184.0                                                   #Activation energy for the left side in [J/mol]
     Ea2     = 86.2 * 4184.0                                                 #Activation energy for the right side in [J/mol]
@@ -28,9 +28,9 @@ function main(adapt_dt,plot_sim,verbose)
                                                                             #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------  
     CFL    = 0.10                                                           #CFL condition
-    res    = [80 100;]                                                      #Number of grid points
+    res    = [100 200;]                                                      #Number of grid points
     resmin = copy(res)                                                      #Minimum number of grid points
-    MRefin = 50.0                                                           #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
+    MRefin = 10.0                                                           #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     BCout  = [0 0]                                                          #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
                                                                             #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Check, if t_ar is valid (increasing in time)-----------------
@@ -44,8 +44,6 @@ function main(adapt_dt,plot_sim,verbose)
         error("Please change the size of the system. Increase Ri[2].")
     elseif res[1] > res[2]
         error("Please change the resolution of the system. res[2] >= res[1].")
-    elseif V_ip != 0.0
-        error("Please change V_ip to 0.0. This code deals with a fixed interface.")
     end
     x_left, x_right, dx1, dx2, x0 = create_grid!(Ri,res,MRefin,verbose)
     #Preprocess and initial condition-----------------------------

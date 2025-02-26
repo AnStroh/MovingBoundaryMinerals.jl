@@ -2,36 +2,53 @@ using Diff_Coupled
 using Plots, LinearAlgebra, Revise, LaTeXStrings
 #Main function----------------------------------------------------
 function main(plot_sim,verbose)
+    CharUnits = GEO_units(;length=1e-2m, temperature = 1273.15K)
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
     #Phyics-------------------------------------------------------
-    Di      = [-1.0    -1.0;]                                   #Initial diffusion coefficient in [m^2/s] 
+    Di_dim      = [2.65*1e-18   6.23*1e-20;]                    #Initial diffusion coefficient in [m^2/s] 
                                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
-    D0      = [2.75*1e-6    3.9*1e-7;]                          #Pre-exponential factor in [m^2/s]
-    rho     = [1.0      1.0;]                                   #Normalized densities in [kg/m³]
-    Ri      = [0.0002    0.0005;]                               #Initial radii [interface    total length] in [m]
-    Cl_i    = 0.6                                               #Initial concentration left side in [mol]
-    Cr_i    = 0.3                                               #Initial concentration right side in [mol]
-    V_ip    = 0.0                                               #Interface velocity in [m/s]
-    R       = 8.314472                                          #Universal gas constant in [J/(mol*K)]
-    Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]
-    Ea2     = 360660.4018                                       #Activation energy for the right side in [J/mol]
-    Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s
-    t_tot   = 1e-3 * Myr2Sec                                    #Total time [s]
-    n       = 3                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
+    D0_dim      = [2.75*1e-6    3.9*1e-7;]                      #Pre-exponential factor in [m^2/s]
+    rho_dim     = [1.0      1.0;]                               #Normalized densities in [kg/m³]
+    Ri_dim      = [0.002    0.1;]                               #Initial radii [interface    total length] in [m]
+    Cl_i_dim    = 0.6                                           #Initial concentration left side in [mol]
+    Cr_i_dim    = 0.3                                           #Initial concentration right side in [mol]
+    V_ip_dim    = 3.17e-14                                      #Interface velocity in [m/s]
+    R_dim       = 8.314472                                      #Universal gas constant in [J/(mol*K)]
+    Ea1_dim     = 292879.6767                                   #Activation energy for the left side in [J/mol]
+    Ea2_dim     = 360660.4018                                   #Activation energy for the right side in [J/mol]
+    Myr2Sec     = 60*60*24*365.25*1e6                           #Conversion factor from Myr to s
+    t_tot_dim   = 1.0e-2 * Myr2Sec                              #Total time [s]
+    n           = 1                                             #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
-    KD_ar   = LinRange(1.0,0.7,1000)                            #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
+    KD_ar   = LinRange(0.9,0.9,1000)                            #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
                                                                 #The last value must be equal to the partition coefficient at t = t_tot.
-    t_ar    = LinRange(0.0,t_tot,1000)                          #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
+    t_ar    = LinRange(0.0,t_tot_dim,1000)                      #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
                                                                 #The user is prompted to specify suitable time intervals in relation to the respective destination.               
-    T_ar    = LinRange(1273.15,973.15,1000)                     #Temperature arrray in [K] to calculate temperature history; T changes with respect to time; 
+    T_ar    = LinRange(1273.15,923.15,1000)                     #Temperature arrray in [K] to calculate temperature history; T changes with respect to time; 
                                                                 #The last value must be equal to the temperature at t = t_tot.
+    #Phyics nondimensionalized -----------------------------------
+    Di      = nondimensionalize(Di_dim.*(m^2/s), CharUnits)     
+    D0      = nondimensionalize(D0_dim.*m^2/s, CharUnits)     
+    rho     = nondimensionalize(rho_dim.*kg/m^3, CharUnits)                                  
+    Ri      = nondimensionalize(Ri_dim.*m, CharUnits)                                  
+    Cl_i    = nondimensionalize(Cl_i_dim*mol,CharUnits)                                               
+    Cr_i    = nondimensionalize(Cr_i_dim*mol,CharUnits)                                               
+    V_ip    = nondimensionalize(V_ip_dim*m/s, CharUnits)                                          
+    R       = nondimensionalize(R_dim * J/(mol*K), CharUnits)                                         
+    Ea1     = nondimensionalize(Ea1_dim*J/mol, CharUnits)                                       
+    Ea2     = nondimensionalize(Ea2_dim*J/mol, CharUnits)                                       
+    t_tot   = (nondimensionalize(t_tot_dim*s, CharUnits))                               
+    t_ar    = LinRange(nondimensionalize(0.0s,CharUnits),t_tot,1000)                        
+    T_ar    = LinRange(nondimensionalize(1273.15K, CharUnits),nondimensionalize(923.15K,CharUnits),1000)
     #Numerics-----------------------------------------------------
-    CFL    = 0.5                                                #CFL condition
-    res    = [100 150;]                                         #Number of grid points
+    CFL    = 0.3                                                #CFL condition
+    res    = [200 300;]                                         #Number of grid points
     resmin = copy(res)                                          #Minimum number of grid points
-    MRefin = 2.0                                                #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
+    MRefin = 20.0                                               #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     BCout  = [0 0]                                              #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
                                                                 #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
+    #Non-dimensionslization---------------------------------------
+    #V_ip, t_tot, t_ar, Di, D0, Ri, Lsc, Dsc, Vsc, tsc = scaling(Ri, Di, D0, V_ip, t_tot, t_ar)
     #Check, if t_ar is valid (increasing in time)-----------------
     dt_diff = zeros(length(t_ar)-1)
     dt_diff = t_ar[2:end] .- t_ar[1:end-1]
@@ -43,8 +60,6 @@ function main(plot_sim,verbose)
         error("Please change the size of the system. Increase Ri[2].")
     elseif res[1] > res[2]
         error("Please change the resolution of the system. res[2] >= res[1].")
-    elseif V_ip != 0.0
-        error("Please change V_ip to 0.0. This code cannot handle moving interface.")
     end
     x_left, x_right, dx1, dx2, x0 = create_grid!(Ri,res,MRefin,verbose)
     #Preprocess and initial condition-----------------------------
@@ -84,6 +99,8 @@ function main(plot_sim,verbose)
         t, dt, it = update_time!(t,dt,it,t_tot)
         #Update time-dependent parameters-------------------------
         D_l, D_r, KD,T = update_t_dependent_param!(D0,Di,dt,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
+        #Advect interface & regrid--------------------------------
+        Fl_regrid, x_left, x_right, C_left, C_right, res, Ri = advect_interface_regrid!(Ri,V_ip,dt,x_left,x_right,C_left,C_right,res)
         #FEM SOLVER-----------------------------------------------
         #Construct global matrices--------------------------------
         L_g, R_g, Co_l, Co_r = construct_matrix_fem(x_left,x_right,C_left,C_right,D_l,D_r,dt,n,nels_l,nels_r,Mloc,Kloc,Lloc,res)
@@ -93,6 +110,8 @@ function main(plot_sim,verbose)
         L_g, R_g = set_outer_bc!(BCout,L_g,R_g,Co_l[1],Co_r[end],ScF)
         #Solve system---------------------------------------------
         C_left, C_right = solve_soe(L_g,R_g,res)
+        #Regrid---------------------------------------------------
+        x_left, x_right, C_left, C_right, dx1, dx2, res = regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, res, resmin, MRefin,verbose)
         #Post-Preprocessing---------------------------------------
         for iit in enumerate(1)       
             Massnow = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
@@ -102,15 +121,28 @@ function main(plot_sim,verbose)
             #Plotting---------------------------------------------
             p = plot(x_left,C_left, lw=2, label=L"Left\ side")
             p = plot!(x_right,C_right, lw=2, label=L"Right\ side")
-            p = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ (flux)", lw=1.5,
-                      grid=:on, label=L"Initial\ condition")
-            diaplay(p)
+            p = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ -\ growth\ (flux)", lw=1.5,
+                    grid=:on, label=L"Initial\ condition")
+            plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68, lw=2,label=L"Interface", linestyle=:dashdot)
+            display(p)
         end
     end
+    #Rescaling---------------------------------------------------
+    #Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar = rescale(Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar, Lsc, Dsc, Vsc, tsc)    
+    x_left  = dimensionalize(x_left, m, CharUnits)
+    x_right = dimensionalize(x_right, m, CharUnits)
+    dx1     = dimensionalize(dx1, m, CharUnits)
+    dx2     = dimensionalize(dx2, m, CharUnits)
+    x0      = dimensionalize(x0, m, CharUnits)
+    Ri      = dimensionalize(Ri, m, CharUnits)
+    C_left  = dimensionalize(C_left, mol, CharUnits)
+    C_right = dimensionalize(C_right, mol, CharUnits)
+    C0      = dimensionalize(C0, mol, CharUnits)
+    #Post-process------------------------------------------------
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
     calc_mass_err(Mass,Mass0)
-    return x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0
+    return x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0, maxC
 end
 #Call main function-----------------------------------------------
 run_and_plot = true
@@ -118,12 +150,13 @@ if run_and_plot
     plot_sim = false
     plot_end = true
     verbose  = false
-    x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0 = main(plot_sim,verbose)
-    if plot_end
+    x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0, maxC = main(plot_sim,verbose)
+    if plot_end    
         #Plotting-------------------------------------------------
         plot(x_left,C_left, lw=2, label=L"Left\ side")
         plot!(x_right,C_right, lw=2, label=L"Right\ side")
-        plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ (flux)", lw=1.5,
-              grid=:on, label=L"Initial\ condition", dpi = 300)
+        plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ -\ growth\ (flux)", lw=1.5,
+              grid=:on, label=L"Initial\ condition")
+        plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68, lw=2,label=L"Interface", linestyle=:dashdot, dpi = 300)
     end
 end

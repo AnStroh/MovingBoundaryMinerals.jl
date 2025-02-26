@@ -8,7 +8,7 @@ function main(plot_sim,verbose)
     Di      = [2.65*1e-18   2.65*1e-18;]        #Initial diffusion coefficient in [m^2/s]
                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     D0      = [2.75*1e-6    2.75*1e-6;]         #Pre-exponential factor in [m^2/s]
-    rho     = [1.0      1.0;]                   #Normalized densities in [kg/mol]
+    rho     = [1.0      1.0;]                   #Normalized densities in [kg/m³]
     Ri      = [0.0005    0.001;]                #Initial radii [interface    total length] in [m]
     Cl_i    = 0.0                               #Initial concentration left side in [mol]
     Cr_i    = 1.0                               #Initial concentration right side in [mol]

@@ -11,15 +11,15 @@ function main(plot_sim,verbose)
     Ri      = [0.0002    0.0005;]                               #Initial radii [interface    total length] in [m]
     Cl_i    = 0.6                                               #Initial concentration left side in [mol]
     Cr_i    = 0.3                                               #Initial concentration right side in [mol]
-    V_ip    = 0.0                                               #Interface velocity in [m/s]
+    V_ip    = 1e-9                                               #Interface velocity in [m/s]
     R       = 8.314472                                          #Universal gas constant in [J/(mol*K)]
     Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]
     Ea2     = 360660.4018                                       #Activation energy for the right side in [J/mol]
     Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s
-    t_tot   = 1e-3 * Myr2Sec                                    #Total time [s]
+    t_tot   = 1e-4 * Myr2Sec                                    #Total time [s]
     n       = 3                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
-    KD_ar   = LinRange(1.0,0.7,1000)                            #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
+    KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i*0.5,1000)                            #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
                                                                 #The last value must be equal to the partition coefficient at t = t_tot.
     t_ar    = LinRange(0.0,t_tot,1000)                          #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
                                                                 #The user is prompted to specify suitable time intervals in relation to the respective destination.               
@@ -43,8 +43,7 @@ function main(plot_sim,verbose)
         error("Please change the size of the system. Increase Ri[2].")
     elseif res[1] > res[2]
         error("Please change the resolution of the system. res[2] >= res[1].")
-    elseif V_ip != 0.0
-        error("Please change V_ip to 0.0. This code cannot handle moving interface.")
+
     end
     x_left, x_right, dx1, dx2, x0 = create_grid!(Ri,res,MRefin,verbose)
     #Preprocess and initial condition-----------------------------
@@ -106,6 +105,7 @@ function main(plot_sim,verbose)
                       grid=:on, label=L"Initial\ condition")
             diaplay(p)
         end
+        println("Time: ",t/Myr2Sec," Myrs")
     end
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])

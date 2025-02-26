@@ -33,7 +33,7 @@ Update the interface position and calculate new grids based on the advection vel
 """
 function advect_interface_regrid!(Ri,V_ip,dt,x_left,x_right,C_left,C_right,nr)
     Rio   = copy(Ri)
-    Ri[1] = Ri[1] + V_ip * dt                           #Update interface position
+    Ri[1] = Rio[1] + V_ip * dt                           #Update interface position
     if V_ip > 0                                     #Calculate new grid for positive velocity
         x_left      = [x_left; x_left[end]]
         C_left      = [C_left; C_left[end]]
@@ -438,14 +438,17 @@ If the advection velocity `V_ip` is zero, `dtD` is used instead.
 
 """
 function find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
-    dt_drop = 0.99
+    dt_drop = 0.02
     #Find the important dt-------------------------------------------------
     dtV   = minimum([dx1,dx2]) ^1 * inv(abs(V_ip))               #Advection time
     dtD   = minimum([dx1,dx2]) ^2 * inv(maximum([D_l,D_r]))      #Diffusion time
     dtV1  = dtV * dt_drop
     dtV2  = dtV * CFL * 5.0
     dt    = minimum([dtV1,dtV2])
+    @show dt dtD
     if V_ip == 0.0
+        dt   = dtD * CFL
+    elseif dt > dtD
         dt   = dtD * CFL
     end
     return dt
@@ -887,7 +890,7 @@ function regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, nr, nmin
     x_left  = copy(vec(x_left))
     x_right = copy(vec(x_right))
     if Fl_regrid == 1
-        if V_ip > 0            #Store new grid size for positive velocities
+        if V_ip > 0.0            #Store new grid size for positive velocities
             nr[1] = round(Ri[1] * inv(Ri[2] - Ri[1]) * nr[2])
             if nr[1] < nmin[1]
                 nr[1] = nmin[1]
@@ -895,7 +898,7 @@ function regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, nr, nmin
             if nr[2] < nmin[2]
                 nr[2] = nmin[2]
             end
-        elseif V_ip < 0        #Store new grid size for negative velocities
+        elseif V_ip < 0.0        #Store new grid size for negative velocities
             nr[2] = round(Ri[2] * inv(Ri[2] - Ri[1]) * nr[1])
             if nr[1] < nmin[1]
                 nr[1] = nmin[1]
@@ -1003,20 +1006,27 @@ Set the inner boundary conditions at the interface using fluxes.
 
 """
 function set_inner_bc_flux!(L_g,R_g,KD,D_l,D_r,x_left,x_right,V_ip,rho,nr)
+    @show KD, D_l, D_r, V_ip, rho, nr
     #Reduce the condition Number---------------------------------------
     ScF = 1.0
+    #ScF = mean(diag(L_g)) / length(diag(L_g))
+    #ScF = maximum(abs.(diag(L_g)))
+    #ScF =  norm(L_g,Inf)
+    #ScF = norm(L_g,Frobenius)
     #inner BC1---------------------------------------------------------------
-    fill!(L_g[nr[1],:],0.0)
+    L_g[nr[1],:] .= 0.0
     L_g[nr[1],nr[1]]     = 1.0 * ScF
     L_g[nr[1],nr[1]+1]   = - KD * ScF
     R_g[nr[1]]           = 0.0
+    @show L_g[nr[1],nr[1]] L_g[nr[1],nr[1]+1] R_g[nr[1]] 
     #inner BC2---------------------------------------------------------------
-    fill!(L_g[nr[1]+1,:],0.0)
+    L_g[nr[1]+1,:] .= 0.0
     L_g[nr[1]+1,nr[1]+1] = (-V_ip + rho[2] * D_r * inv(x_right[2] - x_right[1])) * ScF
     L_g[nr[1]+1,nr[1]+2] =       (- rho[2] * D_r * inv(x_right[2] - x_right[1])) * ScF
     L_g[nr[1]+1,nr[1]+0] = (+V_ip + rho[1] * D_l * inv(x_left[end] - x_left[end-1])) * ScF
     L_g[nr[1]+1,nr[1]-1] =       (- rho[1] * D_l * inv(x_left[end] - x_left[end-1])) * ScF
     R_g[nr[1]+1]         = 0.0
+    @show L_g[nr[1]+1,nr[1]+1] L_g[nr[1]+1,nr[1]+2] L_g[nr[1]+1,nr[1]+0] L_g[nr[1]+1,nr[1]-1] R_g[nr[1]+1]
     return L_g, R_g, ScF
 end
 
@@ -1044,11 +1054,11 @@ function set_inner_bc_mb!(L_g,R_g,dVolC,Mtot,KD,nr)
     #ScF      = sum(diag(L_g)) / length(diag(L_g))
     ScF = 1.0
     #Inner BC1 (MB)--------------------------------------------------------
-    fill!(L_g[nr[1],:],0.0)
+    L_g[nr[1],:] .= 0.0
     L_g[nr[1],:] = copy(dVolC)
     R_g[nr[1]]   = copy(Mtot)
     #Inner BC2 (KD)--------------------------------------------------------
-    fill!(L_g[nr[1]+1,:],0.0)                      
+    L_g[nr[1]+1,:] .= 0.0                      
     L_g[nr[1]+1,nr[1]+0] = - 1.0 * ScF                
     L_g[nr[1]+1,nr[1]+1] = + KD * ScF               
     R_g[nr[1]+1]         = 0.0
@@ -1131,11 +1141,11 @@ function set_inner_bc_Lasaga!(Cl_i,beta,t, KD,D_r,D_l,D0,C_left,C_right,dx1,dx2,
     #Reduce the condition Number---------------------------------------
     ScF = 1.0
     #inner BC1---------------------------------------------------------------
-    fill!(L_g[nr[1],:],0.0)
+    L_g[nr[1],:] .= 0.0
     L_g[nr[1],nr[1]]     = 1.0 * ScF
     R_g[nr[1]]           = BC_left * ScF
     #inner BC2---------------------------------------------------------------
-    fill!(L_g[nr[1]+1,:],0.0)
+    L_g[nr[1]+1,:] .= 0.0
     L_g[nr[1]+1,nr[1]+1] = 1.0 * ScF
     R_g[nr[1]+1]         = BC_right * ScF
     return L_g, R_g, ScF, BC_left, BC_right, BC_left_Las, BC_right_Las

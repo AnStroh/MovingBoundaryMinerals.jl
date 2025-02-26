@@ -57,9 +57,9 @@ function main(plot_sim,verbose)
     Twm       = copy(rho_phases[:,2])                                    
     Twm       = reshape(Twm,nd1,nd1)                                                        #Temperature in K
     rho_left  = copy(rho_phases[:,3])                                    
-    rho_left  = reshape(rho_left,nd1,nd1)                                                   #Density component A in kg/m³
+    rho_left  = reshape(rho_left,nd1,nd1)                                                   #Density component A in -
     rho_right = copy(rho_phases[:,4])                                    
-    rho_right = reshape(rho_right,nd1,nd1)                                                  #Density component B in kg/m³
+    rho_right = reshape(rho_right,nd1,nd1)                                                  #Density component B in -
     #Create other arrays----------------------------------------------------
     R_left    = C_leftlin .* inv.((1.0 .- C_leftlin))                                       #Concentration rate in phase A
     R_right   = C_rightlin .* inv.((1.0 .- C_rightlin))                                     #Concentration rate in phase B

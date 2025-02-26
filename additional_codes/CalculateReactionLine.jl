@@ -11,7 +11,7 @@ Calculates or assigns the coefficients for two transition lines in a phase diagr
     ##Units
     - `T` is in [K].
     - `X` is dimensionless (normalized).
-    - rho is in [kg/m³].
+    - rho is in [-].
     
     ##Equationphase_diag = "/home/annalena/Dropbox/Annalena_Vangelis_Diffusion_Couple/Julia_WORK_Annalena/examples/Examples_phase_diagram/Ol_Phase_diagram_without_framework.png"
         T_BC       = (1273.0, 1873.0)   #min max of T in the phase diagram

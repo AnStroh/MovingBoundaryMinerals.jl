@@ -7,7 +7,7 @@ function main(adapt_dt,plot_sim,verbose)
     Di      = [-1.0    -1.0]                                                #Initial diffusion coefficient in [m^2/s] 
                                                                             #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     D0      = [2.75*1e-6    3.9*1e-7;]                                      #Pre-exponential factor in [m^2/s]
-    rho     = [1.0      1.0;]                                               #Normalized densities in [kg/m³]
+    rho     = [1.0      1.0;]                                               #Normalized densities in [-]
     Ri      = [0.0001    0.0002;]                                           #Initial radii [interface    total length] in [m]
     Cl_i    = 0.6                                                           #Initial concentration left side in [mol fraction]
     Cr_i    = 0.3                                                           #Initial concentration right side in [mol fraction]
@@ -95,8 +95,8 @@ function main(adapt_dt,plot_sim,verbose)
         error("Initial temperature must be equal to the first value in the temperature array.")
     end
     #Time loop----------------------------------------------------
-    #for i in 1:1
-    while t < t_tot
+    for i in 1:1
+    #while t < t_tot
         #Calculate dt---------------------------------------------
         if adapt_dt
             dt1 = dx1 .^ 2 .* inv.(D0[1] * exp(-Ea1 * inv(R) * inv(T0))) .* inv(3.0)
@@ -117,6 +117,10 @@ function main(adapt_dt,plot_sim,verbose)
         #FEM SOLVER-----------------------------------------------
         #Construct global matrices--------------------------------
         L_g, R_g, Co_l, Co_r = construct_matrix_fem(x_left,x_right,C_left,C_right,D_l,D_r,dt,n,nels_l,nels_r,Mloc,Kloc,Lloc,res)
+        println("Construct matrix...")
+        if any(isless.((L_g),0.0)) println("L_g is less than zero") end
+        println("Eigenvectors", eigvecs(L_g))
+        println("Eigenvalues", eigvals(L_g))
         #Set inner boundary conditions----------------------------
         L_g, R_g, ScF, BC_left, BC_right, BC_left_Las, BC_right_Las = set_inner_bc_Lasaga!(Cl_i,beta,t, KD,D_r,D_l,D0,C_left,C_right,dx1,dx2,rho,L_g,R_g,res)
         #Set outer boundary conditions and scale matrices---------

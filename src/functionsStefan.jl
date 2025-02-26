@@ -141,11 +141,11 @@ function set_inner_bc_stefan!(L_g,R_g,C_left,C_right,nr)
     #ScF = 1.0
     #Apply Dirichlet BC at interface---------------------------------------
     #inner BC1---------------------------------------------------------------
-    fill!(L_g[nr[1],:],0.0)
+    L_g[nr[1],:] .= 0.0
     L_g[nr[1],nr[1]]     = 1.0 * ScF
     R_g[nr[1]]           = C_left[end] * ScF
     #Inner BC2 (KD)--------------------------------------------------------
-    fill!(L_g[nr[1]+1,:],0.0)                               
+    L_g[nr[1]+1,:] .= 0.0                               
     L_g[nr[1]+1,nr[1]+1] = 1.0 * ScF                
     R_g[nr[1]+1]         = C_right[1] * ScF
     return L_g, R_g, ScF

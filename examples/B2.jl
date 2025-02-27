@@ -95,8 +95,7 @@ function main(adapt_dt,plot_sim,verbose)
         error("Initial temperature must be equal to the first value in the temperature array.")
     end
     #Time loop----------------------------------------------------
-    for i in 1:1
-    #while t < t_tot
+    while t < t_tot
         #Calculate dt---------------------------------------------
         if adapt_dt
             dt1 = dx1 .^ 2 .* inv.(D0[1] * exp(-Ea1 * inv(R) * inv(T0))) .* inv(3.0)
@@ -104,7 +103,6 @@ function main(adapt_dt,plot_sim,verbose)
             dt  = minimum([dt1 dt2]) * 1e6
         else
             dt = find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
-            dt = dt * inv(1e4)
         end
         #Update time----------------------------------------------
         t, dt, it = update_time!(t,dt,it,t_tot)
@@ -131,7 +129,7 @@ function main(adapt_dt,plot_sim,verbose)
             Massnow = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
             push!(Mass, Massnow)                                            #Stores the mass of the system
         end
-        #if mod(it,1000) == 0
+        if mod(it,15000) == 0
             #-----------------------------------------------------
             Check1 = (C_left[end] * inv((1 - C_left[end]))) * inv((C_right[1] * inv((1 - C_right[1])))) - KD
             Check2 = D_l * inv(D_r) * (C_left[end] - C_left[end-1]) - dx1 * inv(dx2) * (C_right[2] - C_right[1])
@@ -158,7 +156,8 @@ function main(adapt_dt,plot_sim,verbose)
                 p = plot(p2,p1,suptitle = L"Diffusion\ couple\ (Lasaga)")
                 display(p)
             end
-        #end
+        end
+        println("Time: ", t/Myr2Sec, " Myr")
     end
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])

@@ -79,7 +79,6 @@ function main(plot_sim,verbose)
         error("Initial temperature must be equal to the first value in the temperature array.")
     end
     #Time loop----------------------------------------------------
-    #for i in 1:1
     while t < t_tot
         #Calculate dt---------------------------------------------
         #dt = find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)

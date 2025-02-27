@@ -104,6 +104,7 @@ function main(adapt_dt,plot_sim,verbose)
             dt  = minimum([dt1 dt2]) * 1e6
         else
             dt = find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
+            dt = dt * inv(1e4)
         end
         #Update time----------------------------------------------
         t, dt, it = update_time!(t,dt,it,t_tot)
@@ -117,20 +118,12 @@ function main(adapt_dt,plot_sim,verbose)
         #FEM SOLVER-----------------------------------------------
         #Construct global matrices--------------------------------
         L_g, R_g, Co_l, Co_r = construct_matrix_fem(x_left,x_right,C_left,C_right,D_l,D_r,dt,n,nels_l,nels_r,Mloc,Kloc,Lloc,res)
-        println("Construct matrix...")
-        if any(isless.((L_g),0.0)) println("L_g is less than zero") end
-        println("Eigenvectors", eigvecs(L_g))
-        println("Eigenvalues", eigvals(L_g))
         #Set inner boundary conditions----------------------------
         L_g, R_g, ScF, BC_left, BC_right, BC_left_Las, BC_right_Las = set_inner_bc_Lasaga!(Cl_i,beta,t, KD,D_r,D_l,D0,C_left,C_right,dx1,dx2,rho,L_g,R_g,res)
         #Set outer boundary conditions and scale matrices---------
         L_g, R_g = set_outer_bc!(BCout,L_g,R_g,Co_l[1],Co_r[end],ScF)
         #Solve system---------------------------------------------
         C_left, C_right = solve_soe(L_g,R_g,res)
-        if any(isnan,C_left) || any(isnan,C_right)
-            @show C_left C_right
-            error("NaN")
-        end
         #Regrid---------------------------------------------------
         x_left, x_right, C_left, C_right, dx1, dx2, res = regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, res, resmin, MRefin,verbose)
         #Post-Preprocessing---------------------------------------
@@ -138,7 +131,7 @@ function main(adapt_dt,plot_sim,verbose)
             Massnow = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
             push!(Mass, Massnow)                                            #Stores the mass of the system
         end
-        if mod(it,15000) == 0
+        #if mod(it,1000) == 0
             #-----------------------------------------------------
             Check1 = (C_left[end] * inv((1 - C_left[end]))) * inv((C_right[1] * inv((1 - C_right[1])))) - KD
             Check2 = D_l * inv(D_r) * (C_left[end] - C_left[end-1]) - dx1 * inv(dx2) * (C_right[2] - C_right[1])
@@ -149,7 +142,6 @@ function main(adapt_dt,plot_sim,verbose)
             Sols_right = push!(Sols_right,[BC_right_Las, BC_right])         #[Semi-analytical solution, numerical solution]
             Checks     = push!(Checks,[C_left[end-2:end], C_right[1:3]])    #For benchmarking
             CheckBC    = push!(CheckBC,[Check1, Check2])                    #For benchmarking
-            println("t: ",t/Myr2Sec," Myr")
             if plot_sim
                 #Plotting-----------------------------------------
                 p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
@@ -166,7 +158,7 @@ function main(adapt_dt,plot_sim,verbose)
                 p = plot(p2,p1,suptitle = L"Diffusion\ couple\ (Lasaga)")
                 display(p)
             end
-        end
+        #end
     end
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])

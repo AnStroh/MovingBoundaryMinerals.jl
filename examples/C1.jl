@@ -4,19 +4,19 @@ using Plots, LinearAlgebra, LaTeXStrings
 function main(plot_sim,verbose)
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
     #Phyics-------------------------------------------------------
-    Di      = [2.65*1e-4   0.9*1e2;]                           #Initial diffusion coefficient in [m^2/s] 
+    Di      = [1e-4   1e4;]                                     #Initial diffusion coefficient in [m^2/s]           -> in [L*V]
                                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
-    D0      = [9999    9999;]                                   #Pre-exponential factor in [m^2/s]
-    rho     = [1.0      1.0;]                                   #Normalized densities in [-]
-    Ri      = [1e-1    3.33;]                                   #Initial radii [interface    total length] in [m]
-    Cl_i    = 0.5                                               #Initial concentration left side in [mol]
-    Cr_i    = Cl_i/100                                          #Initial concentration right side in [mol]
-    V_ip    = 3.17e-8                                          #Interface velocity in [m/s]
-    R       = 8.314472                                          #Universal gas constant in [J/(mol*K)]
-    Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]
-    Ea2     = 300660.4018                                       #Activation energy for the right side in [J/mol]
-    Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s
-    t_tot   = 9.0*1e-4 * Myr2Sec                                #Total time [s]
+    D0      = [9999   99999;]                                   #Pre-exponential factor in [m^2/s]                  -> NOT USED
+    rho     = [1.0      1.0;]                                   #Normalized densities in [-]                   -> NOT USED
+    Ri      = [1e-2       1;]                                   #Initial radii [interface    total length] in [m]   -> in [L]
+    Cl_i    = 0.5                                               #Initial concentration left side in [mol]           -> in [C]
+    Cr_i    = Cl_i/100                                          #Initial concentration right side in [mol]          -> -//-
+    V_ip    = 1.0                                               #Interface velocity in [m/s]                        -> in [V]
+    R       = 8.314472                                          #Universal gas constant in [J/(mol*K)]              -> NOT USED
+    Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]     -> NOT USED
+    Ea2     = 360660.4018                                       #Activation energy for the right side in [J/mol]    -> NOT USED
+    Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s                    -> NOT USED
+    t_tot   = 0.35                                              #Total time [s]                                     -> in [L]/[V]
     n       = 3                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
     KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i,1000)                #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
@@ -26,14 +26,14 @@ function main(plot_sim,verbose)
     T_ar    = LinRange(1273.15,1273.15,1000)                    #Temperature arrray in [K] to calculate temperature history; T changes with respect to time; 
                                                                 #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
-    CFL    = 0.99                                               #CFL condition
+    CFL    = 0.4                                               #CFL condition
     res    = [80 120;]                                          #Number of grid points
     resmin = copy(res)                                          #Minimum number of grid points
     MRefin = 50.0                                               #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     BCout  = [0 0]                                              #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
                                                                 #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Non-dimensionslization---------------------------------------
-    #V_ip, t_tot, t_ar, Di, D0, Ri, Lsc, Dsc, Vsc, tsc = scaling(Ri, Di, D0, V_ip, t_tot, t_ar)
+    V_ip, t_tot, t_ar, Di, D0, Ri, Lsc, Dsc, Vsc, tsc = scaling(Ri, Di, D0, V_ip, t_tot, t_ar)
     #Check, if t_ar is valid (increasing in time)-----------------
     dt_diff = zeros(length(t_ar)-1)
     dt_diff = t_ar[2:end] .- t_ar[1:end-1]
@@ -67,7 +67,6 @@ function main(plot_sim,verbose)
     Co, Co_l, Co_r, dt, dx, Kloc, Lloc, L_g, Mass, Mloc, nels, nels_l, nels_r, R_g, x_1, x_2, y_interp = preallocations(x, C, C_left, C_right,res)
     #Calculate initial Ds, KD, T----------------------------------
     D_l, D_r, KD, T = update_t_dependent_param!(D0,Di,dt,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
-    
     #First check for correct setup--------------------------------
     if BCout[1] != 0 || BCout[2] != 0 
         error("The code is only valid for a closed system. Please set outer BC to Neumann conditions (0).")
@@ -79,21 +78,14 @@ function main(plot_sim,verbose)
         error("Initial temperature must be equal to the first value in the temperature array.")
     end
     #Time loop----------------------------------------------------
-    for i in 1:100
-    #while t < t_tot
+    while t < t_tot
         #Calculate dt---------------------------------------------
-        dt = find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
-        dt = dt
+        #dt = find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
+        dt  = minimum([dx1,dx2])/V_ip*CFL
         #Update time----------------------------------------------
         t, dt, it = update_time!(t,dt,it,t_tot)
         #Update time-dependent parameters-------------------------
         D_l, D_r, KD,T = update_t_dependent_param!(D0,Di,dt,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
-        if any(x -> x < 0, C_left)
-            println("C_left is negative")
-        end
-        if any(x -> x < 0, C_right)
-            println("C_right is negative")
-        end
         #Advect interface & regrid--------------------------------
         Fl_regrid, x_left, x_right, C_left, C_right, res, Ri = advect_interface_regrid!(Ri,V_ip,dt,x_left,x_right,C_left,C_right,res)    
         #Calculate current volume---------------------------------
@@ -105,7 +97,6 @@ function main(plot_sim,verbose)
         L_g, R_g, ScF = set_inner_bc_mb!(L_g,R_g,dVolC,Mass0,KD,res)
         #Set outer boundary conditions and scale matrices---------
         L_g, R_g = set_outer_bc!(BCout,L_g,R_g,Co_l[1],Co_r[end],ScF)
-        #@show L_g R_g
         #Solve system---------------------------------------------
         C_left, C_right = solve_soe(L_g,R_g,res)
         #Regrid---------------------------------------------------
@@ -121,14 +112,13 @@ function main(plot_sim,verbose)
             p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
             p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
             p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", lw=1.5,
-                       grid=:on, label=L"Initial\ condition",legendfontsize = 4,title = L"Diffusion\ couple\ (flux)\ -\ Rayleigh\ fractionation")
+                       grid=:on, label=L"Initial\ condition",legendfontsize = 4,title = L"Diffusion\ couple\ (MB)\ -\ Rayleigh\ fractionation")
             p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC,title = L"Concentration\ profile", color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
             display(p1)
         end
-        #println("Time: ",t/Myr2Sec," Myrs")
     end
     #Rescaling---------------------------------------------------
-    #Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar = rescale(Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar, Lsc, Dsc, Vsc, tsc)    
+    Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar = rescale(Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar, Lsc, Dsc, Vsc, tsc)    
     #Post-process------------------------------------------------
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
@@ -138,7 +128,7 @@ end
 #Call main function-----------------------------------------------
 run_and_plot = true
 if run_and_plot
-    plot_sim  = true
+    plot_sim  = false
     plot_end  = true
     verbose   = false
     save_file = false
@@ -151,20 +141,20 @@ if run_and_plot
         p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance\ [m]", ylabel = L"Concentration", lw=1.5,
                    grid=:on, label=L"Initial\ condition",legendfontsize = 6)
         p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC,title = L"Concentration\ profile", color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
-        p2 = plot((x_left/Ri0[2]).^(n),C_left, lw=2, label=L"Numerical\ solution\ solid")
-        p2 = plot!((x_right/Ri0[2]).^(n),C_right, lw=2, label=L"Numerical\ solution\ liquid")
+        p2 = plot((x_left/Ri0[2]).^(n),C_left, lw=2, label=L"Solid")
+        p2 = plot!((x_right/Ri0[2]).^(n),C_right, lw=2, label=L"Liquid")
         p2 = scatter!([Ray_Fs[1:100:end]],[Ray_Cs[1:100:end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue,label=L"Solid\ Rayleigh", 
                       xlabel = L"Fraction", ylabel = L"Concentration", grid=:on,legendfontsize = 6,
-                      title = L"Concentration\ profile\ solid")
+                      title = L"Fractions")
         p2 = scatter!([Ray_Fs[end]],[Ray_Cs[end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue, label="",xlim=(x_left[1]-0.0001*Ri[2], Ri[1]+0.0001*Ri[2]))
         p3 = plot((phi_solid.^n)', Cl_p', lw=2, label=L"Mass\ fraction\ solid")
         p3 = scatter!([Ray_Fs[1:100:end]],[Ray_Cs[1:100:end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue,label=L"Solid\ Rayleigh",
                       xlabel = L"Fraction", ylabel = L"Concentration", grid=:on,legendfontsize = 6,
-                      title = "")
+                      title = L"Concentration\ profile\ solid")
         p3 = scatter!([Ray_Fs[end]],[Ray_Cs[end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue, label="")
         plot(p1,p2,p3,suptitle = L"Diffusion\ couple\ (MB)\ -\ Rayleigh\ fractionation", dpi = 300)
-        save_path = "figures"
-        save_name = "C1"
-        save_figure(save_name,save_path,save_file)
+        #save_path = "figures"
+        #save_name = "C1"
+        #save_figure(save_name,save_path,save_file)
     end
 end

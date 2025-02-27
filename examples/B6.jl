@@ -5,7 +5,7 @@ function main(plot_sim,verbose)
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
     #Physics-------------------------------------------------------
     Di      = [1e-5   1e1;]                                     #Initial diffusion coefficient in [m^2/s]           -> in [L*V]
-    #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
+                                                                #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     D0      = [9999   99999;]                                   #Pre-exponential factor in [m^2/s]                  -> NOT USED
     rho     = [1.0      1.0;]                                   #Normalized densities in [-]                   -> NOT USED
     Ri      = [1e-2      10;]                                   #Initial radii [interface    total length] in [m]   -> in [L]

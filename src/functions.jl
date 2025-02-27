@@ -1,9 +1,3 @@
-#= Utilized functions in the framework of the Paper:
-
-by A.Stroh and E. Moulas
-doi:
-Version: 1.0
-=#
 using SparseArrays, LinearAlgebra, BenchmarkTools, Revise, Dates, Plots
 export advect_interface_regrid!, blkdiag, calculate_dt, calc_mass_vol, calc_mass_vol_simple_diff, calc_volume, create_grid!, find_dt, fill_matrix!, linear_interpolation_1D, linspace_interface, preallocations, regrid!, set_inner_bc_mb!, set_inner_bc_flux!,set_inner_bc_Lasaga!, set_outer_bc!, trapezoidal_integration, update_time!, update_t_dependent_param!, update_t_dependent_param_simple!, construct_matrix_fem, solve_soe,calc_mass_err, make_dx_right, newton_solver, define_new_grid, sinusoid_profile,save_figure,scaling,rescale
 #Functions----------------------------------------------------
@@ -269,7 +263,7 @@ function calc_volume(x1,x2,ndim)
     end
     dV1 = [dV; 0] * 0.5
     dV2 = [0; dV] * 0.5
-    dVC    = dV1 + dV2           #Total volume change
+    dVC = dV1 + dV2                      #Total volume change
     return V1, V2, dVC
 end
 
@@ -438,18 +432,17 @@ If the advection velocity `V_ip` is zero, `dtD` is used instead.
 
 """
 function find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
-    dt_drop = 0.02
+    dt_drop = 0.99
     #Find the important dt-------------------------------------------------
     dtV   = minimum([dx1,dx2]) ^1 * inv(abs(V_ip))               #Advection time
     dtD   = minimum([dx1,dx2]) ^2 * inv(maximum([D_l,D_r]))      #Diffusion time
     dtV1  = dtV * dt_drop
     dtV2  = dtV * CFL * 5.0
     dt    = minimum([dtV1,dtV2])
-    @show dt dtD
     if V_ip == 0.0
         dt   = dtD * CFL
     elseif dt > dtD
-        dt   = dtD * CFL
+        dt   = dtD * CFL *1e4
     end
     return dt
 end
@@ -1006,7 +999,6 @@ Set the inner boundary conditions at the interface using fluxes.
 
 """
 function set_inner_bc_flux!(L_g,R_g,KD,D_l,D_r,x_left,x_right,V_ip,rho,nr)
-    @show KD, D_l, D_r, V_ip, rho, nr
     #Reduce the condition Number---------------------------------------
     ScF = 1.0
     #ScF = mean(diag(L_g)) / length(diag(L_g))
@@ -1018,7 +1010,6 @@ function set_inner_bc_flux!(L_g,R_g,KD,D_l,D_r,x_left,x_right,V_ip,rho,nr)
     L_g[nr[1],nr[1]]     = 1.0 * ScF
     L_g[nr[1],nr[1]+1]   = - KD * ScF
     R_g[nr[1]]           = 0.0
-    @show L_g[nr[1],nr[1]] L_g[nr[1],nr[1]+1] R_g[nr[1]] 
     #inner BC2---------------------------------------------------------------
     L_g[nr[1]+1,:] .= 0.0
     L_g[nr[1]+1,nr[1]+1] = (-V_ip + rho[2] * D_r * inv(x_right[2] - x_right[1])) * ScF
@@ -1026,7 +1017,6 @@ function set_inner_bc_flux!(L_g,R_g,KD,D_l,D_r,x_left,x_right,V_ip,rho,nr)
     L_g[nr[1]+1,nr[1]+0] = (+V_ip + rho[1] * D_l * inv(x_left[end] - x_left[end-1])) * ScF
     L_g[nr[1]+1,nr[1]-1] =       (- rho[1] * D_l * inv(x_left[end] - x_left[end-1])) * ScF
     R_g[nr[1]+1]         = 0.0
-    @show L_g[nr[1]+1,nr[1]+1] L_g[nr[1]+1,nr[1]+2] L_g[nr[1]+1,nr[1]+0] L_g[nr[1]+1,nr[1]-1] R_g[nr[1]+1]
     return L_g, R_g, ScF
 end
 
@@ -1052,6 +1042,7 @@ Set the inner boundary conditions at the interface using mass balance (MB).
 function set_inner_bc_mb!(L_g,R_g,dVolC,Mtot,KD,nr)
     #Reduce the condition number-------------------------------------------
     #ScF      = sum(diag(L_g)) / length(diag(L_g))
+    #ScF      = maximum(abs.(diag(L_g)))
     ScF = 1.0
     #Inner BC1 (MB)--------------------------------------------------------
     L_g[nr[1],:] .= 0.0

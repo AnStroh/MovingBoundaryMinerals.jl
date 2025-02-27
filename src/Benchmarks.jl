@@ -1,9 +1,3 @@
-#= Utilized functions in the framework of the Paper:
-
-    by A.Stroh and E. Moulas
-    doi:
-    Version: 1.0
-=#
 module Benchmarks 
     
     using ..Diff_Coupled

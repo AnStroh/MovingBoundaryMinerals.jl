@@ -133,7 +133,7 @@ function main(plot_sim,verbose)
     return x_left, x_right, x0, C_left, C_right, C0, Cini_l, Cini_r, nmodes_l, nmodes_r,Amp_l, Amp_r, Di, Ri, t
 end
 #Call main function-----------------------------------------------
-run_and_plot = false
+run_and_plot = true
 if run_and_plot
     plot_sim = false
     plot_end = true

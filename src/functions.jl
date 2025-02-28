@@ -33,7 +33,11 @@ function advect_interface_regrid!(Ri,V_ip,dt,x_left,x_right,C_left,C_right,nr)
         C_left      = [C_left; C_left[end]]
         x_left[end] = Ri[1]
         dx1         = x_left[end] - x_left[end-1]
-        if Ri[1] > x_right[2] - x_right[1] + Rio[1]                     #Check if Ri moved to fast
+        #if Ri[1] > x_right[2] - x_right[1] + Rio[1]                     #Check if Ri moved to fast
+        #    @show x_right[1] x_right[2] Ri[1] 
+        #    error("Interface moved too fast. Ri is larger than x_right[2].")
+        #end
+        if Ri[1] > x_right[2]    #Check if Ri moved to fast
             @show x_right[1] x_right[2] Ri[1] 
             error("Interface moved too fast. Ri is larger than x_right[2].")
         end
@@ -46,7 +50,11 @@ function advect_interface_regrid!(Ri,V_ip,dt,x_left,x_right,C_left,C_right,nr)
         C_right     = [C_right[1]; C_right]
         x_right[1]  = Ri[1]
         dx2         = x_right[2] - x_right[1]
-        if Ri[1] < -(x_left[end] - x_left[end-1]) + Rio[1]                       #Check if Ri moved to fast
+        #if Ri[1] < -(x_left[end] - x_left[end-1]) + Rio[1]                       #Check if Ri moved to fast
+        #    @show x_left[end-1] x_left[end] Ri[1]
+        #    error("Interface moved too fast. Ri is smaller than x_left[end-1].")
+        #end
+        if Ri[1] < x_left[end-1]                        #Check if Ri moved to fast
             @show x_left[end-1] x_left[end] Ri[1]
             error("Interface moved too fast. Ri is smaller than x_left[end-1].")
         end
@@ -1012,11 +1020,15 @@ function set_inner_bc_flux!(L_g,R_g,KD,D_l,D_r,x_left,x_right,V_ip,rho,nr)
     R_g[nr[1]]           = 0.0
     #inner BC2---------------------------------------------------------------
     L_g[nr[1]+1,:] .= 0.0
-    L_g[nr[1]+1,nr[1]+1] = (-V_ip + rho[2] * D_r * inv(x_right[2] - x_right[1])) * ScF
-    L_g[nr[1]+1,nr[1]+2] =       (- rho[2] * D_r * inv(x_right[2] - x_right[1])) * ScF
+    L_g[nr[1]+1,nr[1]+1] = (-V_ip + rho[2] * D_r * inv(x_right[2]  - x_right[1])) * ScF
+    L_g[nr[1]+1,nr[1]+2] =       (- rho[2] * D_r * inv(x_right[2]  - x_right[1])) * ScF
     L_g[nr[1]+1,nr[1]+0] = (+V_ip + rho[1] * D_l * inv(x_left[end] - x_left[end-1])) * ScF
     L_g[nr[1]+1,nr[1]-1] =       (- rho[1] * D_l * inv(x_left[end] - x_left[end-1])) * ScF
     R_g[nr[1]+1]         = 0.0
+
+    @show L_g[nr[1]+0,nr[1]-1:nr[1]+1]
+    @show L_g[nr[1]+1,nr[1]-0:nr[1]+2]
+    #@show inv(x_right[2] - x_right[1]) inv(x_left[end] - x_left[end-1])
     return L_g, R_g, ScF
 end
 

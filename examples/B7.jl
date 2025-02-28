@@ -5,19 +5,19 @@ function main(plot_sim,verbose)
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
     #Physics-------------------------------------------------------
     #Di      = [-1.0   -1.0;]
-    Di      = [0.04   0.005]                                    #Initial diffusion coefficient in [m^2/s]           -> in [L*V]
+    Di      = [0.005   0.04]                                    #Initial diffusion coefficient in [m^2/s]           -> in [L*V]
                                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     D0      = [1e-4   5e-4;]                                    #Pre-exponential factor in [m^2/s]                  -> NOT USED
     rho     = [1.0      1.0;]                                   #Normalized densities in [-]                   -> NOT USED
-    Ri      = [2.0       10;]                                   #Initial radii [interface    total length] in [m]   -> in [L]
+    Ri      = [0.8       1.0;]                                   #Initial radii [interface    total length] in [m]   -> in [L]
     Cl_i    = 0.5                                               #Initial concentration left side in [mol]           -> in [C]
-    Cr_i    = Cl_i/10                                           #Initial concentration right side in [mol]          -> -//-
-    V_ip    = 1e-3                                              #Interface velocity in [m/s]                        -> in [V]
+    Cr_i    = Cl_i/0.01                                         #Initial concentration right side in [mol]          -> -//-
+    V_ip    = -0.009                                             #Interface velocity in [m/s]                        -> in [V]
     R       = 8.314472                                          #Universal gas constant in [J/(mol*K)]              -> NOT USED
     Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]     -> NOT USED
     Ea2     = 300660.4018                                       #Activation energy for the right side in [J/mol]    -> NOT USED
     Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s                    -> NOT USED
-    t_tot   = 1e3                                               #Total time [s]                                     -> in [L]/[V]
+    t_tot   = 1.0                                               #Total time [s]                                     -> in [L]/[V]
     n       = 3                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
     KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i*0.5,1000)            #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
@@ -28,7 +28,7 @@ function main(plot_sim,verbose)
                                                                 #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
     CFL    = 0.4                                                #CFL condition
-    res    = [80 120;]                                          #Number of grid points
+    res    = [120 120;]                                         #Number of grid points
     resmin = copy(res)                                          #Minimum number of grid points
     MRefin = 50.0                                               #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     BCout  = [0 0]                                              #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
@@ -48,6 +48,7 @@ function main(plot_sim,verbose)
         error("Please change the resolution of the system. res[2] >= res[1].")
     end
     x_left, x_right, dx1, dx2, x0 = create_grid!(Ri,res,MRefin,verbose)
+    println("size of x_left: ", size(x_left), " size of x_right: ", size(x_right))
     #Preprocess and initial condition-----------------------------
     L       = Ri[end]                                           #Length of the domain in [m]
     t       = 0.0                                               #Initial time in [s]
@@ -97,6 +98,9 @@ function main(plot_sim,verbose)
         #Set outer boundary conditions and scale matrices---------
         L_g, R_g = set_outer_bc!(BCout,L_g,R_g,Co_l[1],Co_r[end],ScF)
         #Solve system---------------------------------------------
+        @show L_g R_g
+        println("det(L_g): ", det(L_g))
+        println("i: ", i)
         C_left, C_right = solve_soe(L_g,R_g,res)
         #Regrid---------------------------------------------------
         x_left, x_right, C_left, C_right, dx1, dx2, res = regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, res, resmin, MRefin,verbose)
@@ -140,7 +144,7 @@ if run_and_plot
                    grid=:on, label=L"Initial\ condition",legendfontsize = 6, dpi = 300)
         p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC,title = L"Diffusion\ couple\ (flux)\ -\ Concentration\ profile", color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
         #save_path = "figures"
-        #save_name = "B5"
+        #save_name = "B7"
         #save_figure(save_name,save_path,save_file)
     end
 end

@@ -44,14 +44,14 @@ function advect_interface_regrid!(Ri,V_ip,dt,x_left,x_right,C_left,C_right,nr)
     elseif V_ip < 0                                 #Calculate new grid for negative velocity
         x_right     = [x_right[1]; x_right]
         C_right     = [C_right[1]; C_right]
+        x_right[1]  = Ri[1]
+        dx2         = x_right[2] - x_right[1]
         if Ri[1] < -(x_left[end] - x_left[end-1]) + Rio[1]                       #Check if Ri moved to fast
             @show x_left[end-1] x_left[end] Ri[1]
             error("Interface moved too fast. Ri is smaller than x_left[end-1].")
         end
         x_left[end] = Ri[1]
         dx1         = x_left[end] - x_left[end-1]
-        x_right[1]  = Ri[1]
-        dx2         = x_right[2] - x_right[1]
         Fl_regrid   = 1
         nr[2]       = nr[2] + 1
     else                                            #Leave grid as it was, if velocityis 0

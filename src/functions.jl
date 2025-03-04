@@ -29,28 +29,28 @@ function advect_interface_regrid!(Ri,V_ip,dt,x_left,x_right,C_left,C_right,nr)
     Rio   = copy(Ri)
     Ri[1] = Rio[1] + V_ip * dt                           #Update interface position
     if V_ip > 0                                     #Calculate new grid for positive velocity
-        x_left      = [x_left; x_left[end]]
-        C_left      = [C_left; C_left[end]]
-        x_left[end] = Ri[1]
+        x_left      = push!(copy(x_left),copy(x_left[end]))
+        C_left      = push!(copy(C_left), copy(C_left[end]))
+        x_left[end] = copy(Ri[1])
         dx1         = x_left[end] - x_left[end-1]
         if Ri[1] > x_right[2] - x_right[1] + Rio[1]                     #Check if Ri moved to fast
             @show x_right[1] x_right[2] Ri[1] 
             error("Interface moved too fast. Ri is larger than x_right[2].")
         end
-        x_right[1]  = Ri[1]
+        x_right[1]  = copy(Ri[1])
         dx2         = x_right[2] - x_right[1]
         Fl_regrid   = 1
         nr[1]       = nr[1] + 1
     elseif V_ip < 0                                 #Calculate new grid for negative velocity
-        x_right     = [x_right[1]; x_right]
-        C_right     = [C_right[1]; C_right]
-        x_right[1]  = Ri[1]
+        x_right     = push!(copy(x_right[1]), copy(x_right))
+        C_right     = push!(copy(C_right[1]), copy(C_right))
+        x_right[1]  = copy(Ri[1])
         dx2         = x_right[2] - x_right[1]
         if Ri[1] < -(x_left[end] - x_left[end-1]) + Rio[1]                       #Check if Ri moved to fast
             @show x_left[end-1] x_left[end] Ri[1]
             error("Interface moved too fast. Ri is smaller than x_left[end-1].")
         end
-        x_left[end] = Ri[1]
+        x_left[end] = copy(Ri[1])
         dx1         = x_left[end] - x_left[end-1]
         Fl_regrid   = 1
         nr[2]       = nr[2] + 1
@@ -108,8 +108,8 @@ Constructs a block matrix and a block vector from given input matrices and vecto
 - `Rblock::Vector`: The block vector constructed from `R1` and `R2`.
 """
 function blocktest(L1,R1,L2,R2)
-    n1 = length(R1);
-    n2 = length(R2);
+    n1 = length(R1)
+    n2 = length(R2)
     Lblock = spzeros(n1+n2,n1+n2)
     Rblock = zeros(n1+n2)
     for i in 1:n1

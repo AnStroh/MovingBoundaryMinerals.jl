@@ -91,13 +91,10 @@ function main(plot_sim,verbose)
     C_right             = C_rightB * ones(1,res[2])                                                 #Concentration of component B in phase B
     C0                  = [copy(C_left) copy(C_right)]                                              #Store initial concentration
     dt                  = minimum([dx1,dx2]) ^ 2.0 .* inv((maximum([D_l,D_r])))                     #Initial dt
+    @show dt
     #Total mass-------------------------------------------------------------
     Mass0               = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)                        #Initial mass
     #Preallocate variables--------------------------------------------------
-    #Co          = zeros(size(C0))
-    #Co_left     = zeros(size(C_left))
-    #Co_right    = zeros(size(C_right))
-    #dx          = zeros(length(x0) - 1,1)
     Kloc        = zeros(2, 2)
     Lloc        = zeros(2, 2)
     L_g         = spzeros(length(x0),length(x0))
@@ -107,8 +104,6 @@ function main(plot_sim,verbose)
     R_left_sim  = Float64[]                    
     R_right_sim = Float64[]                    
     Mloc        = zeros(2, 2)
-    nels_l      = res[1] - 1
-    nels_r      = res[2] - 1
     R_g         = zeros(length(x0),1)
     #-----------------------------------------------------------------------
     #Solving the moving boundary problem------------------------------------
@@ -119,16 +114,21 @@ function main(plot_sim,verbose)
         if t <= t_tot          
             T  = linear_interpolation_1D(tpath,Tpath,t)
         end
+        @show t dt T
         #Calculate Equilibrium compositions at actual T---------------------
         C_left[end], C_right[1] = composition(coeff_up,coeff_do,T)
         dC  = C_right[1] - C_left[end]                                                      #Composition difference
         rho = calculate_density(Xwm[:,1],Twm[1,:],rho_left,rho_right,C_leftB,C_rightB,T)
+        @show C_left C_right rho
         #Stefan condition -> Composition difference-------------------------                                 
         JL   = - D_l * rho[1] * (C_left[end] - C_left[end-1]) * inv(dx1)                    #Flux of the left side to the right side
         JR   = - D_r * rho[2] * (C_right[2]  - C_right[1])    * inv(dx2)                    #Flux of the right side to the left side
         V_ip = (JR - JL) * inv(dC)                                                          #Velocity in x direction
+        @show JL JR V_ip
+        error()
         #Advect interface & regrid------------------------------------------
         Fl_regrid, x_left, x_right, C_left, C_right, res, Ri = advect_interface_regrid!(Ri,V_ip,dt,x_left,x_right,vec(C_left),vec(C_right),res)
+        @show x_left
         #FEM SOLVER---------------------------------------------------------
         #Construct global matrices------------------------------------------
         L_g, R_g, Co_l, Co_r = construct_matrix_fem(x_left,x_right,C_left,C_right,D_l,D_r,dt,n,Mloc,Kloc,Lloc,res)
@@ -149,6 +149,9 @@ function main(plot_sim,verbose)
         #end
         #Solve system-------------------------------------------------------
         println("Temperature: $T")
+        p =plot(x_left,C_left)
+        p = plot!(x_right,C_right)
+        display(p)
         println("It: $it")
         if any(isnan,L_g)
             @show findall(X -> X == NaN ,L_g)

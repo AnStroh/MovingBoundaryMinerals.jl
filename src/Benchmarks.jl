@@ -109,8 +109,6 @@ module Benchmarks
         C_l_p  = copy(C_left[LinearIndices(indi)])
         C_bc_p = linear_interpolation_1D(x_left,C_left,Ri0[1])
         C_l_p  = [C_bc_p C_l_p'] 
-        @show size(C_l_p) size(Ray_Cs) size(x_l_p) size(C_left) size(x_left)
-        error()
         return Ray_Fs, Ray_Fl, Ray_Cl, Ray_Cs, C_l_p, phi_solid
     end
 

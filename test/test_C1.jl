@@ -28,7 +28,7 @@ function main(plot_sim,verbose)
                                                                 #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
     CFL    = 0.4                                               #CFL condition
-    res    = [80 120;]                                          #Number of grid points
+    res    = [100 120;]                                          #Number of grid points
     resmin = copy(res)                                          #Minimum number of grid points
     MRefin = 50.0                                               #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     BCout  = [0 0]                                              #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
@@ -121,10 +121,11 @@ end
 @testset "Diffusion couple (MB) - Rayleigh fractionation" begin
     plot_sim = false
     verbose  = false
-    x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, KD0, n, maxC = main(plot_sim,verbose)
+    x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, n, maxC, KD0 = main(plot_sim,verbose)
     Ray_Fs, Ray_Fl, Ray_Cl, Ray_Cs, Cl_p, phi_solid = rayleigh_fractionation(x_left,C_left,Ri0,Ri,C0_r,KD0,n)
-    @test Ray_Cs ≈ Cl_p rtol = 1e-4
-    #@test Ray_Cl ≈ C_right rtol = 1e-4
+    int_Ray   = trapezoidal_integration(Ray_Fs,Ray_Cs)
+    int_model = trapezoidal_integration(phi_solid.^n,Cl_p) 
+    @test int_Ray ≈ int_model rtol = 1e-4
 end
 
 

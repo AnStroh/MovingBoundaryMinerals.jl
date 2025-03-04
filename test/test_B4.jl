@@ -122,7 +122,9 @@ end
     verbose  = false
     x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, KD0, n, maxC = main(plot_sim,verbose)
     Ray_Fs, Ray_Fl, Ray_Cl, Ray_Cs, Cl_p, phi_solid = rayleigh_fractionation(x_left,C_left,Ri0,Ri,C0_r,KD0,n)
-    @test Ray_Cs ≈ Cl_p = 1e-3
+        int_Ray   = trapezoidal_integration(Ray_Fs,Ray_Cs)
+    int_model = trapezoidal_integration(phi_solid.^n,Cl_p) 
+    @test int_Ray ≈ int_model rtol = 1e-3
 end
 
 

@@ -1,6 +1,6 @@
 using Documenter
 push!(LOAD_PATH, "../src/")
-using Diff_Coupled
+using .Diff_Coupled
 
 # Get Diff_Coupled.jl root directory
 DC_root_dir = dirname(@__DIR__)

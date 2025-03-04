@@ -29,8 +29,8 @@ function advect_interface_regrid!(Ri,V_ip,dt,x_left,x_right,C_left,C_right,nr)
     Rio   = copy(Ri)
     Ri[1] = Rio[1] + V_ip * dt                           #Update interface position
     if V_ip > 0                                     #Calculate new grid for positive velocity
-        x_left      = push!(copy(x_left),copy(x_left[end]))
-        C_left      = push!(copy(C_left), copy(C_left[end]))
+        x_left      = [x_left; x_left[end]]
+        C_left      = [C_left; C_left[end]]
         x_left[end] = copy(Ri[1])
         dx1         = x_left[end] - x_left[end-1]
         #if Ri[1] > x_right[2] - x_right[1] + Rio[1]                     #Check if Ri moved to fast
@@ -46,8 +46,8 @@ function advect_interface_regrid!(Ri,V_ip,dt,x_left,x_right,C_left,C_right,nr)
         Fl_regrid   = 1
         nr[1]       = nr[1] + 1
     elseif V_ip < 0                                 #Calculate new grid for negative velocity
-        x_right     = push!(copy(x_right[1]), copy(x_right))
-        C_right     = push!(copy(C_right[1]), copy(C_right))
+        x_right     = [copy(C_right[1]); copy(C_right)]
+        C_right     = [copy(C_right[1]); copy(C_right)]
         x_right[1]  = copy(Ri[1])
         dx2         = x_right[2] - x_right[1]
         #if Ri[1] < -(x_left[end] - x_left[end-1]) + Rio[1]                       #Check if Ri moved to fast
@@ -302,7 +302,9 @@ Constructs the global matrix for the FEM solver in a diffusion couple problem.
 - `Co_l::Vector{Float64}`: Stores left side concentration values before the update.
 - `Co_r::Vector{Float64}`: Stores right side concentration values before the update.
 """
-function construct_matrix_fem(x_left,x_right,C_left,C_right,D_l,D_r,dt,n,nels_l,nels_r,Mloc,Kloc,Lloc,res)
+function construct_matrix_fem(x_left,x_right,C_left,C_right,D_l,D_r,dt,n,Mloc,Kloc,Lloc,res)
+    nels_l      = res[1] - 1
+    nels_r      = res[2] - 1
     #store old values for RHS----------------------------------------------
     Co_l = copy(C_left)
     Co_r = copy(C_right)
@@ -1026,8 +1028,9 @@ function set_inner_bc_flux!(L_g,R_g,KD,D_l,D_r,x_left,x_right,V_ip,rho,nr)
     L_g[nr[1]+1,nr[1]-1] =       (- rho[1] * D_l * inv(x_left[end] - x_left[end-1])) * ScF
     R_g[nr[1]+1]         = 0.0
 
-    @show L_g[nr[1]+0,nr[1]-1:nr[1]+1]
-    @show L_g[nr[1]+1,nr[1]-0:nr[1]+2]
+    #@show L_g[nr[1]+0,nr[1]-1:nr[1]+1]
+    #@show L_g[nr[1]+1,nr[1]-0:nr[1]+2]
+    #@show R_g[nr[1]+1]
     #@show inv(x_right[2] - x_right[1]) inv(x_left[end] - x_left[end-1])
     return L_g, R_g, ScF
 end

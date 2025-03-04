@@ -1,9 +1,10 @@
 using Diff_Coupled, Diff_Coupled.Benchmarks
-using Plots, LinearAlgebra, Revise, LaTeXStrings, CSV, DataFrames,DelimitedFiles
+using Plots, LinearAlgebra, LaTeXStrings
 #Main function----------------------------------------------------
 function main(plot_sim,verbose)
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
-    #Physics-------------------------------------------------------
+    #Phyics-------------------------------------------------------
+    
     Di      = [0.04   0.005]                                    #Initial diffusion coefficient in [m^2/s]           -> in [L*V]
                                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     D0      = [1e-4   5e-4;]                                    #Pre-exponential factor in [m^2/s]                  -> NOT USED
@@ -60,16 +61,16 @@ function main(plot_sim,verbose)
     x       = copy(x0)                                          #Create 1 array containing all x-values  
     Ri0     = copy(Ri)                                          #Store initial radii
     KD      = copy(KD_ar[1])                                    #Initial partition coefficient, just for pre-processing
+    KD0     = copy(KD)                                          #Store initial partition coefficient
     #Total mass---------------------------------------------------
-    Mass0   = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)        
+    Mass0   = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)     
     #Preallocate variables----------------------------------------
     Co, Co_l, Co_r, dt, dx, Kloc, Lloc, L_g, Mass, Mloc, nels, nels_l, nels_r, R_g, x_1, x_2, y_interp = preallocations(x, C, C_left, C_right,res)
     #Calculate initial Ds, KD, T----------------------------------
     D_l, D_r, KD, T = update_t_dependent_param!(D0,Di,dt,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
-    KD0 = copy(KD)
     #First check for correct setup--------------------------------
-    if BCout[1] != 0 && (n == 3 || n == 2)
-        error("The code is only valid for cylindrical/spherical geometry, where the left outer BC has Neumann conditions (0).")
+    if BCout[1] != 0 || BCout[2] != 0 
+        error("The code is only valid for a closed system. Please set outer BC to Neumann conditions (0).")
     elseif t != 0.0
         error("Initial time must be zero.")
     elseif any(dt_diff .<= 0.0) || any(t_ar .< 0.0) || any(t_ar .> t_tot)
@@ -86,12 +87,14 @@ function main(plot_sim,verbose)
         #Update time-dependent parameters-------------------------
         D_l, D_r, KD,T = update_t_dependent_param!(D0,Di,dt,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
         #Advect interface & regrid--------------------------------
-        Fl_regrid, x_left, x_right, C_left, C_right, res, Ri = advect_interface_regrid!(Ri,V_ip,dt,x_left,x_right,C_left,C_right,res)
+        Fl_regrid, x_left, x_right, C_left, C_right, res, Ri = advect_interface_regrid!(Ri,V_ip,dt,x_left,x_right,C_left,C_right,res)    
+        #Calculate current volume---------------------------------
+        Vol_left, Vol_right, dVolC = calc_volume(x_left,x_right,n)
         #FEM SOLVER-----------------------------------------------
         #Construct global matrices--------------------------------
         L_g, R_g, Co_l, Co_r = construct_matrix_fem(x_left,x_right,C_left,C_right,D_l,D_r,dt,n,Mloc,Kloc,Lloc,res)
         #Set inner boundary conditions----------------------------
-        L_g, R_g, ScF = set_inner_bc_flux!(L_g,R_g,KD,D_l,D_r,x_left,x_right,V_ip,rho,res)
+        L_g, R_g, ScF = set_inner_bc_mb!(L_g,R_g,dVolC,Mass0,KD,res)
         #Set outer boundary conditions and scale matrices---------
         L_g, R_g = set_outer_bc!(BCout,L_g,R_g,Co_l[1],Co_r[end],ScF)
         #Solve system---------------------------------------------
@@ -103,13 +106,13 @@ function main(plot_sim,verbose)
             Massnow = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
             push!(Mass, Massnow)                                #Stores the mass of the system
         end
-        if plot_sim
+        if plot_sim 
             #Plotting---------------------------------------------
             maxC = maximum([maximum(C_left),maximum(C_right)])
             p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
             p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
             p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", lw=1.5,
-                       grid=:on, label=L"Initial\ condition",legendfontsize = 6,title = L"Diffusion\ couple\ (flux)\ -\ Rayleigh\ fractionation")
+                       grid=:on, label=L"Initial\ condition",legendfontsize = 4,title = L"Diffusion\ couple\ (MB)\ -\ Rayleigh\ fractionation")
             p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC,title = L"Concentration\ profile", color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
             display(p1)
         end
@@ -120,25 +123,25 @@ function main(plot_sim,verbose)
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
     calc_mass_err(Mass,Mass0)
-    return x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, KD0, n, maxC
+    return x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, n, maxC, KD0
 end
 #Call main function-----------------------------------------------
 run_and_plot = true
 if run_and_plot
-    plot_sim  = true
+    plot_sim  = false
     plot_end  = true
     verbose   = false
     save_file = false
-    x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, KD0, n, maxC = main(plot_sim,verbose)
-        if plot_end
+    x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, n, maxC, KD0 = main(plot_sim,verbose)
+    if plot_end 
         #Plotting-------------------------------------------------
         p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
         p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
         p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance\ [m]", ylabel = L"Concentration", lw=1.5,
                    grid=:on, label=L"Initial\ condition",legendfontsize = 6, dpi = 300)
-        p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC,title = L"Diffusion\ couple\ (flux)\ -\ Concentration\ profile", color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
+        p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC,title = L"Diffusion\ couple\ (MB)\ -\ Concentration\ profile", color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
         #save_path = "figures"
-        #save_name = "B7"
+        #save_name = "C2"
         #save_figure(save_name,save_path,save_file)
     end
 end

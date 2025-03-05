@@ -95,16 +95,13 @@ function main(plot_sim,verbose)
     #Total mass-------------------------------------------------------------
     Mass0               = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)                        #Initial mass
     #Preallocate variables--------------------------------------------------
-    Kloc        = zeros(2, 2)
-    Lloc        = zeros(2, 2)
-    L_g         = spzeros(length(x0),length(x0))
-    Mass        = Float64[]
-    KD_sim      = Float64[]                    
-    T_sim       = Float64[]                    
-    R_left_sim  = Float64[]                    
-    R_right_sim = Float64[]                    
-    Mloc        = zeros(2, 2)
-    R_g         = zeros(length(x0),1)
+    L_g         = spzeros(length(x0),length(x0))                                 #Global LHS matrix   
+    Mass        = Float64[]                                                   #Array to store the mass of the system
+    KD_sim      = Float64[]                           #Array to store the partition coefficient
+    T_sim       = Float64[]                       #Array to store the temperature
+    R_left_sim  = Float64[]                    #Array to store the concentration ratio left side (interface)
+    R_right_sim = Float64[]                    #Array to store the concentration ratio right side (interface)
+    R_g         = zeros(length(x0),1)           #Global RHS vector
     #-----------------------------------------------------------------------
     #Solving the moving boundary problem------------------------------------
     while t < t_tot
@@ -131,7 +128,8 @@ function main(plot_sim,verbose)
         @show x_left
         #FEM SOLVER---------------------------------------------------------
         #Construct global matrices------------------------------------------
-        L_g, R_g, Co_l, Co_r = construct_matrix_fem(x_left,x_right,C_left,C_right,D_l,D_r,dt,n,Mloc,Kloc,Lloc,res)
+        L_g, R_g, Co_l, Co_r = construct_matrix_fem(x_left,x_right,C_left,C_right,D_l,D_r,dt,n,res)
+
 
         @show det(L_g)
         #if det(L_g) == 0.0

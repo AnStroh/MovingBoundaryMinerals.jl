@@ -5,7 +5,7 @@
     Version: 1.0
 =#
 using Diff_Coupled
-using Plots, LinearAlgebra,LaTeXStrings
+using Plots, LinearAlgebra,LaTeXStrings, SparseArrays
 # Main function -------------------------------------------------------
 function main(plot_sim)
     # Physics ---------------------------------------------------------
@@ -44,11 +44,17 @@ function main(plot_sim)
     dt_diff = zeros(length(t_ar)-1)
     dt_diff = t_ar[2:end] .- t_ar[1:end-1]            
     # Preallocate variables -------------------------------------------
-    Co, Co_l, Co_r, dt, dx, Kloc, Lloc, L_g, Mass, Mloc, nels, nels_l, nels_r, R_g, x_1, x_2, y_interp = preallocations(x, C, 0, 0,[0 0])
+    Co      = zeros(size(C))                    #Old concentration
+    dt      = 0.0                               #Initial time step
+    dx      = zeros(length(x) - 1,1)            #Grid spacing   
+    L_g     = spzeros(length(x),length(x))      #Global matrix
+    Mass    = Float64[]                         #Mass array
+    nels    = length(x) - 1                     #Number of elements
+    R_g     = zeros(length(x),1)                #Global vector
     # Calculate grid --------------------------------------------------
     dx    = L * inv(res - 1.0)
     #Calculate initial Ds, KD, T---------------------------------------
-    D, T  = update_t_dependent_param_simple!(D0,Di,dt,Ea1,R,T_ar,t_ar,t,t_tot)
+    D, T  = update_t_dependent_param_simple!(D0,Di,Ea1,R,T_ar,t_ar,t,t_tot)
     #Initial mass calculation------------------------------------------
     Mass0 = calc_mass_vol_simple_diff(x,C,n,rho)
     #First check for correct setup-------------------------------------
@@ -70,7 +76,7 @@ function main(plot_sim)
         #Update time --------------------------------------------------
         t, dt, it = update_time!(t,dt,it,t_tot) 
         #Update time-dependent parameters------------------------------
-        D, T = update_t_dependent_param_simple!(D0,Di,dt,Ea1,R,T_ar,t_ar,t,t_tot)
+        D, T = update_t_dependent_param_simple!(D0,Di,Ea1,R,T_ar,t_ar,t,t_tot)
         #FEM SOLVER ---------------------------------------------------
         #Fill matrix --------------------------------------------------
         L_g, R_g = fill_matrix!(C,x,D,dt,n,nels)
@@ -93,7 +99,7 @@ function main(plot_sim)
     return x, C, x0, C0, D, t, t_tot, Mass, Mass0
 end
 #Run main function-----------------------------------------------------
-run_and_plot = false
+run_and_plot = true
 if run_and_plot
     plot_sim = false
     plot_end = true

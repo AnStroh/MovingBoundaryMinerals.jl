@@ -1,5 +1,5 @@
 using Diff_Coupled, Diff_Coupled.Benchmarks
-using Plots, LinearAlgebra, Revise, LaTeXStrings
+using Plots, LinearAlgebra, Revise, LaTeXStrings, SparseArrays
 #Main function----------------------------------------------------
 function main(adapt_dt,plot_sim,verbose)
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
@@ -64,13 +64,18 @@ function main(adapt_dt,plot_sim,verbose)
     #Total mass---------------------------------------------------
     Mass0   = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)        
     #Preallocate variables----------------------------------------
-    Co, Co_l, Co_r, dt, dx, Kloc, Lloc, L_g, Mass, Mloc, nels, nels_l, nels_r, R_g, x_1, x_2, y_interp = preallocations(x, C, C_left, C_right,res)
-    T_pl       = []
-    t_pl       = []
-    Sols_left  = []
-    Sols_right = []
-    Checks     = []
-    CheckBC    = []
+    Co_l    = zeros(size(C_left))                                           #Matrix to store old concentrations of left side
+    Co_r    = zeros(size(C_right))                                          #Matrix to store old concentrations of right side
+    dt      = 0.0                                                           #Initial time step
+    L_g     = spzeros(length(x),length(x))                                  #Global left hand side matrix
+    Mass    = Float64[]                                                     #Array to store the mass of the system
+    R_g     = zeros(length(x),1)                                            #Global right hand side vector
+    T_pl       = []                                                         #Temperature for plotting
+    t_pl       = []                                                         #Time for plotting
+    Sols_left  = []                                                         #Array to store solutions for the left side
+    Sols_right = []                                                         #Array to store solutions for the right side
+    Checks     = []                                                         #Array to store checks
+    CheckBC    = []                                                         #Array to store checks for boundary conditions
     #Calculate initial D, KD, T-----------------------------------
     KD  = copy(KD0)                       
     D_l = D0[1] * exp(-Ea1 * inv(R) * inv(T0))   
@@ -115,8 +120,7 @@ function main(adapt_dt,plot_sim,verbose)
         Fl_regrid, x_left, x_right, C_left, C_right, res, Ri = advect_interface_regrid!(Ri,V_ip,dt,x_left,x_right,C_left,C_right,res)
         #FEM SOLVER-----------------------------------------------
         #Construct global matrices--------------------------------
-        L_g, R_g, Co_l, Co_r = construct_matrix_fem(x_left,x_right,C_left,C_right,D_l,D_r,dt,n,Mloc,Kloc,Lloc,res)
-
+        L_g, R_g, Co_l, Co_r = construct_matrix_fem(x_left,x_right,C_left,C_right,D_l,D_r,dt,n,res)
         #Set inner boundary conditions----------------------------
         L_g, R_g, ScF, BC_left, BC_right, BC_left_Las, BC_right_Las = set_inner_bc_Lasaga!(Cl_i,beta,t, KD,D_r,D_l,D0,C_left,C_right,dx1,dx2,rho,L_g,R_g,res)
         #Set outer boundary conditions and scale matrices---------

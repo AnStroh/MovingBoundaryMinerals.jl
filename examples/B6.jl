@@ -1,5 +1,5 @@
 using Diff_Coupled, Diff_Coupled.Benchmarks
-using Plots, LinearAlgebra, Revise, LaTeXStrings
+using Plots, LinearAlgebra, Revise, LaTeXStrings, SparseArrays
 #Main function----------------------------------------------------
 function main(plot_sim,verbose)
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
@@ -16,10 +16,10 @@ function main(plot_sim,verbose)
     Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]     -> NOT USED
     Ea2     = 360660.4018                                       #Activation energy for the right side in [J/mol]    -> NOT USED
     Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s                    -> NOT USED
-    t_tot   = 0.2                                              #Total time [s]                                     -> in [L]/[V]
+    t_tot   = 0.2                                               #Total time [s]                                     -> in [L]/[V]
     n       = 1                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical   
     #History dependent parameters---------------------------------
-    KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i,1000)                          #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
+    KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i,1000)                #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
                                                                 #The last value must be equal to the partition coefficient at t = t_tot.
     t_ar    = LinRange(0.0,t_tot,1000)                          #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
                                                                 #The user is prompted to specify suitable time intervals in relation to the respective destination.               
@@ -63,10 +63,14 @@ function main(plot_sim,verbose)
     #Total mass---------------------------------------------------
     Mass0   = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)        
     #Preallocate variables----------------------------------------
-    Co, Co_l, Co_r, dt, dx, Kloc, Lloc, L_g, Mass, Mloc, nels, nels_l, nels_r, R_g, x_1, x_2, y_interp = preallocations(x, C, C_left, C_right,res)
+    Co_l    = zeros(size(C_left))                               #Matrix to store old concentrations of left side
+    Co_r    = zeros(size(C_right))                              #Matrix to store old concentrations of right side
+    dt      = 0.0                                               #Initial time step
+    L_g     = spzeros(length(x),length(x))                      #Global left hand side matrix
+    Mass    = Float64[]                                         #Array to store the mass of the system
+    R_g     = zeros(length(x),1)                                #Global right hand side vector
     #Calculate initial Ds, KD, T----------------------------------
-    D_l, D_r, KD, T = update_t_dependent_param!(D0,Di,dt,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
-
+    D_l, D_r, KD, T = update_t_dependent_param!(D0,Di,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
     KD0 = copy(KD)
     #First check for correct setup--------------------------------
     if BCout[1] != 0 && (n == 3 || n == 2)
@@ -79,7 +83,6 @@ function main(plot_sim,verbose)
         error("Initial temperature must be equal to the first value in the temperature array.")
     end
     #Time loop----------------------------------------------------
-    #for i in 1:1
     while t < t_tot
         #Calculate dt---------------------------------------------
         #dt = find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
@@ -87,13 +90,12 @@ function main(plot_sim,verbose)
         #Update time----------------------------------------------
         t, dt, it = update_time!(t,dt,it,t_tot)
         #Update time-dependent parameters-------------------------
-        D_l, D_r, KD,T = update_t_dependent_param!(D0,Di,dt,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
+        D_l, D_r, KD,T = update_t_dependent_param!(D0,Di,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
         #Advect interface & regrid--------------------------------
         Fl_regrid, x_left, x_right, C_left, C_right, res, Ri = advect_interface_regrid!(Ri,V_ip,dt,x_left,x_right,C_left,C_right,res)
         #FEM SOLVER-----------------------------------------------
         #Construct global matrices--------------------------------
-        L_g, R_g, Co_l, Co_r = construct_matrix_fem(x_left,x_right,C_left,C_right,D_l,D_r,dt,n,Mloc,Kloc,Lloc,res)
-
+        L_g, R_g, Co_l, Co_r = construct_matrix_fem(x_left,x_right,C_left,C_right,D_l,D_r,dt,n,res)
         #Set inner boundary conditions----------------------------
         L_g, R_g, ScF = set_inner_bc_flux!(L_g,R_g,KD,D_l,D_r,x_left,x_right,V_ip,rho,res)
         #Set outer boundary conditions and scale matrices---------

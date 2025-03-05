@@ -7,6 +7,25 @@ module Benchmarks
 
     
 
+    """
+        analytical_sol_step_function(Ri, Di, x, C0, t_tot)
+
+    Calculate the analytical solution for a initiala step function diffusion problem.
+
+    # Arguments
+    - `Ri::Vector{Float64}`: Vector containing the initial position of the step.
+    - `Di::Float64`: Diffusion coefficient.
+    - `x::Vector{Float64}`: Spatial coordinate vector.
+    - `C0::Vector{Float64}`: Initial concentration vector.
+    - `t_tot::Float64`: Total time for which the diffusion is calculated.
+
+    # Returns
+    - `Can::Vector{Float64}`: Analytical solution of the concentration profile at time `t_tot`.
+
+    # Description
+    This function computes the analytical solution for the concentration profile of a step function diffusion problem using the error function (`erf`). The solution is based on the initial concentration values and the diffusion coefficient over a specified time period.
+    """
+
     function analytical_sol_step_function(Ri,Di,x,C0,t_tot)
         #Analytical solution-------------------------------------------------------
         x0  = copy(x)
@@ -14,6 +33,26 @@ module Benchmarks
         Can = (C[end] + C[1]) * inv(2.0) .+ (C[end] - C[1]) * inv(2.0) * erf.((x0 .- Ri[1]) * inv(2.0) * inv(sqrt(Di * t_tot)))       #single Step function
         return Can   
     end
+
+    """
+        analytical_sol_half_space(H, Di, x, C0, t_tot)
+
+    Compute the analytical solution for diffusion in a half-space.
+
+    # Arguments
+    - `H::Float64`: The position of the half-space boundary.
+    - `Di::Float64`: The diffusion coefficient.
+    - `x::Vector{Float64}`: The spatial coordinates where the solution is evaluated.
+    - `C0::Vector{Float64}`: The initial concentration profile.
+    - `t_tot::Float64`: The total time for which the solution is computed.
+
+    # Returns
+    - `Can::Vector{Float64}`: The concentration profile at time `t_tot`.
+
+    # Description
+    This function computes the analytical solution for the concentration profile in a half-space using the error function (`erf`). The concentration profile is calculated based on the initial concentration `C0`, the diffusion coefficient `Di`, and the total time `t_tot`.
+    """
+
     function analytical_sol_half_space(H,Di,x,C0,t_tot)
         #Analytical solution-------------------------------------------------------
         x0  = copy(x)
@@ -21,6 +60,26 @@ module Benchmarks
         Can =  C[1] .+ (C[end] - C[1]) * erf.((x0 .- H) * inv(2.0) * inv(sqrt(Di * t_tot)))       #Half-space solution
         return Can   
     end
+
+    """
+        calc_sinus_sphere(x0, C0, D, tot, nterms)
+
+    Calculate the concentration profile on a sphere using the eigenfunction expansion method for a linear diffusion problem with Neumann boundary conditions.
+
+    # Arguments
+    - `x0::Vector{Float64}`: Initial positions on the sphere.
+    - `C0::Vector{Float64}`: Initial concentration profile.
+    - `D::Float64`: Diffusion coefficient.
+    - `tot::Float64`: Total time for diffusion.
+    - `nterms::Int`: Number of terms in the eigenfunction expansion.
+
+    # Returns
+    - `x::Vector{Float64}`: Spatial vector.
+    - `C::Vector{Float64}`: Concentration profile after diffusion.
+
+    # Description
+    This function computes the concentration profile on a sphere over time using the eigenfunction expansion method. The method is based on the solution provided in Crank (1975): The Mathematics of Diffusion, chapter 6.3. The function iteratively updates the concentration profile by summing the contributions from each term in the eigenfunction expansion.
+    """
 
     function calc_sinus_sphere(x0,C0,D,tot,nterms)
         #Routine to test a linear diffusion code with Neumann BC
@@ -41,6 +100,29 @@ module Benchmarks
         return x,C
     end
 
+    """
+        crank_time_transformation1(C0, x0, T0, T, E, R, D0, t, Cl_i)
+
+    Calculate diffusion with cooling and without growth following Crank (1956). Initial concentration profile is a half space solution.
+
+    # Arguments
+    - `C0::Vector{Float64}`: Initial concentration profile.
+    - `x0::Vector{Float64}`: Spatial coordinates.
+    - `T0::Float64`: Initial temperature.
+    - `T::Float64`: Final temperature.
+    - `E::Float64`: Activation energy.
+    - `R::Float64`: Universal gas constant.
+    - `D0::Float64`: Pre-exponential factor for diffusion coefficient.
+    - `t::Float64`: Time duration for the transformation.
+    - `Cl_i::Float64`: Initial concentration level.
+
+    # Returns
+    - `C_Crank::Vector{Float64}`: Concentration profile after diffusion.
+
+    # Description
+    This function calculates the diffusion profile considering cooling and no growth, based on the method described by Crank (1956). It uses the trapezoidal integration method to compute the integral of the diffusion coefficient over time and applies the error function to determine the concentration profile.
+    """
+
     function crank_time_transformation1(C0,x0,T0,T,E,R,D0,t,Cl_i)
         #Calculate diffusion with cooling and without growth following Crank (1956)
         Myr2sec = 1e6 * 60 * 60 * 24 * 365.25
@@ -53,6 +135,29 @@ module Benchmarks
         C_Crank = C0[1] .+ (C0[end] - C0[1]) * erf.((x0 .- H) * inv(2.0 * sqrt(zeta)))       #Half-space solution       
         return C_Crank
     end
+
+    """
+        crank_time_transformation2(C0, x0, T0, T, E, R, D0, t, Ri)
+
+    Calculate diffusion with cooling and without growth following Crank (1956). Initial Profile: Single step.
+
+    # Arguments
+    - `C0::Vector{Float64}`: Initial concentration profile.
+    - `x0::Vector{Float64}`: Spatial coordinates.
+    - `T0::Float64`: Initial temperature.
+    - `T::Float64`: Final temperature.
+    - `E::Float64`: Activation energy.
+    - `R::Float64`: Gas constant.
+    - `D0::Float64`: Pre-exponential factor for diffusion coefficient.
+    - `t::Float64`: Time duration.
+    - `Ri::Vector{Float64}`: Initial radius.
+
+    # Returns
+    - `C_Crank::Vector{Float64}`: Concentration profile after diffusion.
+
+    # Description
+    This function calculates the concentration profile after diffusion with cooling and without growth, following the method described by Crank (1956). It uses the trapezoidal integration method to compute the integral of the diffusion coefficient over time and applies the error function to determine the concentration profile.
+    """
     function crank_time_transformation2(C0,x0,T0,T,E,R,D0,t,Ri)
         #Calculate diffusion with cooling and without growth following Crank (1956)
         Myr2sec = 1e6 * 60 * 60 * 24 * 365.25
@@ -63,6 +168,31 @@ module Benchmarks
         C_Crank = (C0[end] + C0[1]) * inv(2.0) .+ (C0[end] - C0[1]) * inv(2.0) * erf.((x0 .- Ri[1]) * inv(2.0 * sqrt(zeta)))       #single Step function
         return C_Crank
     end
+
+
+    """
+        crank_time_transformation3(C0, x0, T0, T, E, R, D0, t, nterms)
+
+    Calculate diffusion with cooling and without growth following Crank (1956). Geometry: Sphere.
+
+    # Arguments
+    - `C0::Vector{Float64}`: Initial concentration profile.
+    - `x0::Vector{Float64}`: Initial spatial coordinates.
+    - `T0::Float64`: Initial temperature.
+    - `T::Float64`: Final temperature.
+    - `E::Float64`: Activation energy.
+    - `R::Float64`: Gas constant.
+    - `D0::Float64`: Pre-exponential factor for diffusion coefficient.
+    - `t::Float64`: Time duration for diffusion.
+    - `nterms::Int`: Number of terms in the series expansion.
+
+    # Returns
+    - `C_Crank::Vector{Float64}`: Concentration profile after diffusion.
+    - `xan::Vector{Float64}`: Spatial coordinates.
+
+    # Description
+    This function calculates the diffusion in a sphere with cooling and without growth using the analytical solution provided by Crank (1975). The diffusion coefficient is temperature-dependent and is integrated over time using trapezoidal integration. The concentration profile is updated iteratively using a series expansion.
+    """
     function crank_time_transformation3(C0,x0,T0,T,E,R,D0,t,nterms)
         #Calculate diffusion with cooling and without growth following Crank (1956)
         Myr2sec = 1e6 * 60 * 60 * 24 * 365.25
@@ -86,6 +216,31 @@ module Benchmarks
         return C_Crank, xan
     end
 
+    """
+        rayleigh_fractionation(x_left, C_left, Ri0, Ri, C0_r, KD0, n)
+
+    Compute the Rayleigh fractionation due to growth without diffusion.
+
+    # Arguments
+    - `x_left::Vector{Float64}`: Positions on the left side.
+    - `C_left::Vector{Float64}`: Concentrations on the left side.
+    - `Ri0::Vector{Float64}`: Initial radii.
+    - `Ri::Vector{Float64}`: Actuel radii.
+    - `C0_r::Vector{Float64}`: Initial concentrations.
+    - `KD0::Float64`: Partition coefficient.
+    - `n::Int`: Geometry factor.
+
+    # Returns
+    - `Ray_Fs::Vector{Float64}`: Rayleigh's solid fraction.
+    - `Ray_Fl::Vector{Float64}`: Rayleigh's liquid fraction.
+    - `Ray_Cl::Vector{Float64}`: Rayleigh's solution for the liquid concentration.
+    - `Ray_Cs::Vector{Float64}`: Rayleigh's solution for the solid concentration.
+    - `C_l_p::Vector{Float64}`: Post-processed concentrations on the left side.
+    - `phi_solid::Vector{Float64}`: Solid fraction within the model.
+
+    # References
+    - Albarède, F. (2003) Geochemistry: An Introduction, Cambridge Press, 262 pp.
+    """
     function rayleigh_fractionation(x_left,C_left,Ri0,Ri,C0_r,KD0,n)
         #=Check Rayleigh Limits -> fractionation due to growth, no diffusion
         Albarède, F. (2003) Geochemistry: An Introduction, Cambridge Press, 262 pp.
@@ -112,8 +267,30 @@ module Benchmarks
         return Ray_Fs, Ray_Fl, Ray_Cl, Ray_Cs, C_l_p, phi_solid
     end
 
+    """
+        smith(x_right, C_right, Ri, Di, t_tot, KD, V_ip, n)
+
+    Analytical solution for the concentration of a liquid in growth medium against an advancing planar crystal interface based on Smith et al. (1955).
+
+    # Arguments
+    - `x_right::Array{Float64}`: Array of positions on the right side.
+    - `C_right::Array{Float64}`: Array of concentrations on the right side.
+    - `Ri::Array{Float64}`: Actuel radii.
+    - `Di::Array{Float64}`: Array of diffusion coefficients.
+    - `t_tot::Float64`: Total time.
+    - `KD::Float64`: Partition coefficient.
+    - `V_ip::Float64`: Interface velocity.
+    - `n::Int`: Geometry factor.
+
+    # Returns
+    - `xan::Array{Float64}`: Array of positions (analytical solution).
+    - `Can::Array{Float64}`: Array of calculated concentrations (analytical solution).
+
+    # Notes
+    This function calculates the concentration of a liquid in a growth medium against an advancing planar crystal interface using an analytical solution derived by Smith (1955). The calculation is performed only if `n == 1`.
+    """
     function smith(x_right,C_right,Ri,Di,t_tot,KD,V_ip,n)
-        #Smith (1955): analytical solution for the concentration of a liquid in growth medium against an advancing planar crystal interface
+        #Smith et al. (1955): analytical solution for the concentration of a liquid in growth medium against an advancing planar crystal interface
         if n == 1
             xan  = x_right .- Ri[1]
             Dan  = Di[2]

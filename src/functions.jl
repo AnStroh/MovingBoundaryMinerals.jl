@@ -120,9 +120,9 @@ function blocktest(L1,R1,L2,R2)
         Lblock[i,i]   = L1[n1,n1]
         Lblock[i,i-1] = L1[n1,n1-1]        
        else
-        Lblock[i,i-1] = L1[i,i-1];
-        Lblock[i,i+0] = L1[i,i+0];
-        Lblock[i,i+1] = L1[i,i+1];
+        Lblock[i,i-1] = L1[i,i-1]
+        Lblock[i,i+0] = L1[i,i+0]
+        Lblock[i,i+1] = L1[i,i+1]
        end
        Rblock[i] = R1[i]
     end
@@ -294,7 +294,8 @@ Constructs the global matrix for the FEM solver in a diffusion couple problem.
 - `Co_l::Vector{Float64}`: Stores left side concentration values before the update.
 - `Co_r::Vector{Float64}`: Stores right side concentration values before the update.
 """
-function construct_matrix_fem(x_left,x_right,C_left,C_right,D_l,D_r,dt,n,Mloc,Kloc,Lloc,res)
+function construct_matrix_fem(x_left,x_right,C_left,C_right,D_l,D_r,dt,n,res)
+
     nels_l      = res[1] - 1
     nels_r      = res[2] - 1
     #store old values for RHS----------------------------------------------
@@ -450,7 +451,7 @@ function find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
 end
 
 """
-    fill_matrix!(C, Co, x, D, dt, ndim, nels, Mloc, Kloc, Lloc, res)
+    fill_matrix!(C, Co, x, D, dt, ndim, nels, res)
 
 fill_matrix! function fills the global matrices L_g and R_g with the corresponding local matrices and vectors. 
 
@@ -462,9 +463,6 @@ fill_matrix! function fills the global matrices L_g and R_g with the correspondi
 - `dt`: Time step in [s].
 - `ndim`: Number of dimensions (geometry).
 - `nels`: Number of elements.
-- `Mloc`: Local mass matrix.
-- `Kloc`: Local stiffness matrix.
-- `Lloc`: Local L matrix.
 - `res`: Residual vector.
 
 # Returns
@@ -919,6 +917,40 @@ function regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, nr, nmin
     return x_left, x_right, C_left, C_right, dx1, dx2, nr
 end
 
+"""
+    rescale(Ri0, Ri_input, x_left_input, x_right_input, x0_input, Di_input, D0_input, V_input, t_tot_input, t_ar_input, Lsc, Dsc, Vsc, tsc)
+
+Rescales various input parameters based on provided scaling factors.
+
+# Arguments
+- `Ri0`: Initial radius.
+- `Ri_input`: Input radius.
+- `x_left_input`: Left boundary position.
+- `x_right_input`: Right boundary position.
+- `x0_input`: Initial position.
+- `Di_input`: Input diffusion coefficient.
+- `D0_input`: Initial diffusion coefficient.
+- `V_input`: Input velocity.
+- `t_tot_input`: Total time.
+- `t_ar_input`: Array of time points.
+- `Lsc`: Length scaling factor.
+- `Dsc`: Diffusion scaling factor.
+- `Vsc`: Velocity scaling factor.
+- `tsc`: Time scaling factor.
+
+# Returns
+- `Ri0`: Rescaled initial radius.
+- `Ri`: Rescaled radius.
+- `x_left`: Rescaled left boundary position.
+- `x_right`: Rescaled right boundary position.
+- `x0`: Rescaled initial position.
+- `Di`: Rescaled input diffusion coefficient.
+- `D0`: Rescaled initial diffusion coefficient.
+- `V_ip`: Rescaled input velocity.
+- `t_tot`: Rescaled total time.
+- `t_ar`: Rescaled array of time points.
+"""
+
 function rescale(Ri0, Ri_input, x_left_input, x_right_input, x0_input, Di_input, D0_input, V_input, t_tot_input, t_ar_input, Lsc, Dsc, Vsc, tsc)
     #rescaling of numbers
     #dependent numbers
@@ -935,13 +967,42 @@ function rescale(Ri0, Ri_input, x_left_input, x_right_input, x0_input, Di_input,
     return Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar
 end
 
+"""
+    scaling(Ri_input, Di_input, D0_input, V_input, t_tot_input, t_ar_input)
+
+Non-dimensionalizes the input parameters for a diffusion-coupled growth model.
+
+# Arguments
+- `Ri_input::Vector{Float64}`: Initial radii of the particles [m].
+- `Di_input::Vector{Float64}`: Diffusion coefficients of the particles [m^2/s]. If `Di_input` is `[-1, -1]`, the average of `D0_input` is used.
+- `D0_input::Vector{Float64}`: Initial diffusion coefficients [m^2/s].
+- `V_input::Float64`: Initial velocity [m/s].
+- `t_tot_input::Float64`: Total time [s].
+- `t_ar_input::Float64`: Array of time points [s].
+
+# Returns
+- `V_ip::Float64`: Non-dimensionalized initial velocity.
+- `t_tot::Float64`: Non-dimensionalized total time.
+- `t_ar::Float64`: Non-dimensionalized array of time points.
+- `Di::Vector{Float64}`: Non-dimensionalized diffusion coefficients.
+- `D0::Vector{Float64}`: Non-dimensionalized initial diffusion coefficients.
+- `Ri::Vector{Float64}`: Non-dimensionalized initial radii.
+- `Lsc::Float64`: Length scale [m].
+- `Dsc::Float64`: Diffusion scale [m^2/s].
+- `Vsc::Float64`: Velocity scale [m/s].
+- `tsc::Float64`: Time scale [s].
+
+# Description
+This function performs non-dimensionalization of the input parameters based on the given scales. The length scale (`Lsc`) is fixed at `1e-3` meters. The diffusion scale (`Dsc`) is determined based on the input diffusion coefficients. If `Di_input` is `[-1, -1]`, the average of `D0_input` is used as the diffusion scale. Otherwise, the average of `Di_input` is used. The function then calculates the dependent scales (`tsc`, `Vsc`) and non-dimensionalizes the input parameters accordingly.
+"""
+
 function scaling(Ri_input, Di_input, D0_input, V_input, t_tot_input, t_ar_input)
     #non-dimensionalization of input parameters
     #independent scales
     Lsc = 1e-3                              #[m]
     if Di_input == [-1 -1]
-        Dsc = 1e-15
-        #Dsc = (D0_input[1]+D0_input[2]) * inv(2.0)  #[m^2/s] 
+        #Dsc = 1e-15
+        Dsc = (D0_input[1]+D0_input[2]) * inv(2.0)  #[m^2/s] 
     else
         #Dsc = maximum(Di_input)
         Dsc = (Di_input[1]+Di_input[2]) * inv(2.0)  #[m^2/s] 
@@ -1003,10 +1064,6 @@ Set the inner boundary conditions at the interface using fluxes.
 function set_inner_bc_flux!(L_g,R_g,KD,D_l,D_r,x_left,x_right,V_ip,rho,nr)
     #Reduce the condition Number---------------------------------------
     ScF = 1.0
-    #ScF = mean(diag(L_g)) / length(diag(L_g))
-    #ScF = maximum(abs.(diag(L_g)))
-    #ScF =  norm(L_g,Inf)
-    #ScF = norm(L_g,Frobenius)
     #inner BC1---------------------------------------------------------------
     L_g[nr[1],:] .= 0.0
     L_g[nr[1],nr[1]]     = 1.0 * ScF
@@ -1043,8 +1100,6 @@ Set the inner boundary conditions at the interface using mass balance (MB).
 """
 function set_inner_bc_mb!(L_g,R_g,dVolC,Mtot,KD,nr)
     #Reduce the condition number-------------------------------------------
-    #ScF      = sum(diag(L_g)) / length(diag(L_g))
-    #ScF      = maximum(abs.(diag(L_g)))
     ScF = 1.0
     #Inner BC1 (MB)--------------------------------------------------------
     L_g[nr[1],:] .= 0.0
@@ -1263,7 +1318,7 @@ function trapezoidal_integration(x,fx)
 end
 
 """
-    update_t_dependent_param!(D0, Di, dt, Ea1, Ea2, KD_ar, R, T_ar, t_ar, t, t_tot)
+    update_t_dependent_param!(D0, Di, Ea1, Ea2, KD_ar, R, T_ar, t_ar, t, t_tot)
 
 Update the time dependent parameters `D_l`, `D_r`, `KD`, and `T` based on the given inputs.
 If Di = [-1.0 -1.0], the diffusion coefficient will be calculated based on the Arrhenius relation.
@@ -1271,7 +1326,6 @@ If Di = [-1.0 -1.0], the diffusion coefficient will be calculated based on the A
 # Arguments
 - `D0::Vector{Float64}`: Pre-exponential factor within the calculation of the diffusion coefficient in [m^2/s].
 - `Di::Vector{Float64}`: Diffusion coefficients in [m^2/s].
-- `dt::Float64`: Time step in [s].
 - `Ea1::Float64`: Activation energy for the left phase in [J/mol].
 - `Ea2::Float64`: Activation energy for the right phase in [J/mol].
 - `KD_ar::Vector{Float64}`: Array of partition coefficients.
@@ -1287,7 +1341,8 @@ If Di = [-1.0 -1.0], the diffusion coefficient will be calculated based on the A
 - `KD::Float64`: Updated partition coefficient.
 - `T::Float64`: Updated temperature.
 """
-function update_t_dependent_param!(D0,Di,dt,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
+function update_t_dependent_param!(D0,Di,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
+
     #Interpolate KD and T-------------------------------------------------
     KD  = linear_interpolation_1D(t_ar,KD_ar,t)  #New partition coefficient  
     T   = linear_interpolation_1D(t_ar,T_ar,t)   #New temperature 
@@ -1318,7 +1373,7 @@ function update_t_dependent_param!(D0,Di,dt,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
 end
 
 """
-    update_t_dependent_param_simple!(D0, Di, dt, Ea1, R, T_ar, t_ar, t, t_tot)
+    update_t_dependent_param_simple!(D0, Di, Ea1, R, T_ar, t_ar, t, t_tot)
 
 Update the dependent parameters `D` and `T` based on the given inputs. If Di = [-1.0], the 
 diffusion coefficient will be calculated based on the Arrhenius relation.
@@ -1326,7 +1381,6 @@ diffusion coefficient will be calculated based on the Arrhenius relation.
 # Arguments
 - `D0`: Pre-exponential factor within the calculation of the diffusion coefficient in [m^2/s].
 - `Di`: Initial diffusion coefficient in [m^2/s].
-- `dt`: Time step [J/(mol*K)].
 - `Ea1`: Activation energy in [J/mol].
 - `R`: Gas constant in [J/(mol*K)].
 - `T_ar`: Array of temperatures in [K].
@@ -1339,7 +1393,8 @@ diffusion coefficient will be calculated based on the Arrhenius relation.
 - `T`: Updated temperature.
 
 """
-function update_t_dependent_param_simple!(D0,Di,dt,Ea1,R,T_ar,t_ar,t,t_tot)
+function update_t_dependent_param_simple!(D0,Di,Ea1,R,T_ar,t_ar,t,t_tot)
+
     #Interpolate KD and T-------------------------------------------------
     T   = linear_interpolation_1D(t_ar,T_ar,t)   #New temperature 
     #Check for boundaries-------------------------------------------------

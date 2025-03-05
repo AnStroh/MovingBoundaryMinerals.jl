@@ -1,5 +1,5 @@
 using Diff_Coupled
-using Plots, LinearAlgebra, Revise, LaTeXStrings
+using Plots, LinearAlgebra, Revise, LaTeXStrings,SparseArrays
 #Main function----------------------------------------------------
 function main(plot_sim,verbose)
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
@@ -73,9 +73,14 @@ function main(plot_sim,verbose)
     #Total mass---------------------------------------------------
     Mass0   = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)        
     #Preallocate variables----------------------------------------
-    Co, Co_l, Co_r, dt, dx, Kloc, Lloc, L_g, Mass, Mloc, nels, nels_l, nels_r, R_g, x_1, x_2, y_interp = preallocations(x, C, C_left, C_right,res)
+    Co_l    = zeros(size(C_left))                               #Matrix to store old concentrations of left side
+    Co_r    = zeros(size(C_right))                              #Matrix to store old concentrations of right side
+    dt      = 0.0                                               #Initial time step
+    L_g     = spzeros(length(x),length(x))                      #Global left hand side matrix
+    Mass    = Float64[]                                         #Array to store the mass of the system
+    R_g     = zeros(length(x),1)                                #Global right hand side vector
     #Calculate initial Ds, KD, T----------------------------------
-    D_l, D_r, KD, T = update_t_dependent_param!(D0,Di,dt,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
+    D_l, D_r, KD, T = update_t_dependent_param!(D0,Di,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
     #First check for correct setup--------------------------------
     if BCout[1] != 0 && (n == 3 || n == 2)
         error("The code is only valid for cylindrical/spherical geometry, where the left outer BC has Neumann conditions (0).")
@@ -93,11 +98,10 @@ function main(plot_sim,verbose)
         #Update time----------------------------------------------
         t, dt, it = update_time!(t,dt,it,t_tot)
         #Update time-dependent parameters-------------------------
-        D_l, D_r, KD,T = update_t_dependent_param!(D0,Di,dt,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
+        D_l, D_r, KD,T = update_t_dependent_param!(D0,Di,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
         #FEM SOLVER-----------------------------------------------
         #Construct global matrices--------------------------------
-        L_g, R_g, Co_l, Co_r = construct_matrix_fem(x_left,x_right,C_left,C_right,D_l,D_r,dt,n,Mloc,Kloc,Lloc,res)
-
+        L_g, R_g, Co_l, Co_r = construct_matrix_fem(x_left,x_right,C_left,C_right,D_l,D_r,dt,n,res)
         #Set inner boundary conditions----------------------------
         if Dirichlet == 1
             ScF = 1.0

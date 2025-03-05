@@ -65,7 +65,8 @@ function main(plot_sim,verbose)
     #Preallocate variables----------------------------------------
     Co, Co_l, Co_r, dt, dx, Kloc, Lloc, L_g, Mass, Mloc, nels, nels_l, nels_r, R_g, x_1, x_2, y_interp = preallocations(x, C, C_left, C_right,res)
     #Calculate initial Ds, KD, T----------------------------------
-    D_l, D_r, KD, T = update_t_dependent_param!(D0,Di,dt,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
+    D_l, D_r, KD, T = update_t_dependent_param!(D0,Di,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
+
     #First check for correct setup--------------------------------
     if BCout[1] != 0 || BCout[2] != 0 
         error("The code is only valid for a closed system. Please set outer BC to Neumann conditions (0).")
@@ -83,14 +84,16 @@ function main(plot_sim,verbose)
         #Update time----------------------------------------------
         t, dt, it = update_time!(t,dt,it,t_tot)
         #Update time-dependent parameters-------------------------
-        D_l, D_r, KD,T = update_t_dependent_param!(D0,Di,dt,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
+        D_l, D_r, KD,T = update_t_dependent_param!(D0,Di,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
+
         #Advect interface & regrid--------------------------------
         Fl_regrid, x_left, x_right, C_left, C_right, res, Ri = advect_interface_regrid!(Ri,V_ip,dt,x_left,x_right,C_left,C_right,res)
         #Calculate current volume---------------------------------
         Vol_left, Vol_right, dVolC = calc_volume(x_left,x_right,n)
         #FEM SOLVER-----------------------------------------------
         #Construct global matrices--------------------------------
-        L_g, R_g, Co_l, Co_r = construct_matrix_fem(x_left,x_right,C_left,C_right,D_l,D_r,dt,n,Mloc,Kloc,Lloc,res)
+        L_g, R_g, Co_l, Co_r = construct_matrix_fem(x_left,x_right,C_left,C_right,D_l,D_r,dt,n,res)
+
 
         #Set inner boundary conditions----------------------------
         L_g, R_g, ScF = set_inner_bc_mb!(L_g,R_g,dVolC,Mass0,KD,res)

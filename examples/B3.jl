@@ -1,38 +1,38 @@
 using Diff_Coupled, Diff_Coupled.Benchmarks
-using Plots, LinearAlgebra, Revise, LaTeXStrings
+using Plots, LinearAlgebra, Revise, LaTeXStrings,SparseArrays
 #Main function----------------------------------------------------------
 function main(plot_sim,verbose)
     #-------------------------------------------------------------------
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
     #Phyics-------------------------------------------------------------
-    Di      = [2.65*1e-18   2.65*1e-18;]        #Initial diffusion coefficient in [m^2/s]
-                                                #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
-    D0      = [2.75*1e-6    2.75*1e-6;]         #Pre-exponential factor in [m^2/s]
-    rho     = [1.0      1.0;]                   #Normalized densities in [-]
-    Ri      = [0.0005    0.001;]                #Initial radii [interface    total length] in [m]
-    Cl_i    = 0.0                               #Initial concentration left side in [mol]
-    Cr_i    = 1.0                               #Initial concentration right side in [mol]
-    V_ip    = 0.0                               #Interface velocity in [m/s]
-    R       = 8.314472                          #Universal gas constant in [J/(mol*K)]
-    Ea1     = 292879.6767                       #Activation energy for the left side in [J/mol]
-    Ea2     = 292879.6767                       #Activation energy for the right side in [J/mol]
-    Myr2Sec = 60*60*24*365.25*1e6               #Conversion factor from Myr to s
-    t_tot   = 1e-3 * Myr2Sec                    #Total time [s]
-    n       = 3                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
+    Di      = [2.65*1e-18   2.65*1e-18;]                #Initial diffusion coefficient in [m^2/s]
+                                                        #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
+    D0      = [2.75*1e-6    2.75*1e-6;]                 #Pre-exponential factor in [m^2/s]
+    rho     = [1.0      1.0;]                           #Normalized densities in [-]
+    Ri      = [0.0005    0.001;]                        #Initial radii [interface    total length] in [m]
+    Cl_i    = 0.0                                       #Initial concentration left side in [mol]
+    Cr_i    = 1.0                                       #Initial concentration right side in [mol]
+    V_ip    = 0.0                                       #Interface velocity in [m/s]
+    R       = 8.314472                                  #Universal gas constant in [J/(mol*K)]
+    Ea1     = 292879.6767                               #Activation energy for the left side in [J/mol]
+    Ea2     = 292879.6767                               #Activation energy for the right side in [J/mol]
+    Myr2Sec = 60*60*24*365.25*1e6                       #Conversion factor from Myr to s
+    t_tot   = 1e-3 * Myr2Sec                            #Total time [s]
+    n       = 3                                         #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------------
-    KD_ar   = LinRange(1.0,1.0,1000)            #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
-                                                #The last value must be equal to the partition coefficient at t = t_tot.
-    t_ar    = LinRange(0.0,t_tot,1000)          #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
-                                                #The user is prompted to specify suitable time intervals in relation to the respective destination.               
-    T_ar    = LinRange(1273.15,1273.15,1000)    #Temperature arrray in [K] to calculate temperature history; T changes with respect to time; 
-                                                #The last value must be equal to the temperature at t = t_tot.
+    KD_ar   = LinRange(1.0,1.0,1000)                    #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
+                                                        #The last value must be equal to the partition coefficient at t = t_tot.
+    t_ar    = LinRange(0.0,t_tot,1000)                  #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
+                                                        #The user is prompted to specify suitable time intervals in relation to the respective destination.               
+    T_ar    = LinRange(1273.15,1273.15,1000)            #Temperature arrray in [K] to calculate temperature history; T changes with respect to time; 
+                                                        #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------------
-    CFL    = 0.3                                #CFL condition
-    res    = [50 75;]                           #Number of grid points
-    resmin = copy(res)                          #Minimum number of grid points
-    MRefin = 15.0                               #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
-    BCout  = [0 1]                              #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
-                                                #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
+    CFL    = 0.3                                        #CFL condition
+    res    = [50 75;]                                   #Number of grid points
+    resmin = copy(res)                                  #Minimum number of grid points
+    MRefin = 15.0                                       #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
+    BCout  = [0 1]                                      #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
+                                                        #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Check, if t_ar is valid (increasing in time)-----------------------
     dt_diff = zeros(length(t_ar)-1)
     dt_diff = t_ar[2:end] .- t_ar[1:end-1]
@@ -65,9 +65,14 @@ function main(plot_sim,verbose)
     #Total mass---------------------------------------------------------
     Mass0   = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)      
     #Preallocate variables----------------------------------------------
-    Co, Co_l, Co_r, dt, dx, Kloc, Lloc, L_g, Mass, Mloc, nels, nels_l, nels_r, R_g, x_1, x_2, y_interp = preallocations(x, C, C_left, C_right,res)
+    Co_l    = zeros(size(C_left))                       #Matrix to store old concentrations of left side
+    Co_r    = zeros(size(C_right))                      #Matrix to store old concentrations of right side
+    dt      = 0.0                                       #Initial time step
+    L_g     = spzeros(length(x),length(x))              #Global left hand side matrix
+    Mass    = Float64[]                                 #Array to store the mass of the system
+    R_g     = zeros(length(x),1)                        #Global right hand side vector
     #Calculate initial Ds, KD, T----------------------------------------
-    D_l, D_r, KD, T = update_t_dependent_param!(D0,Di,dt,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
+    D_l, D_r, KD, T = update_t_dependent_param!(D0,Di,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
     #First check for correct setup--------------------------------------
     if BCout[1] != 0 && (n == 3 || n == 2)
         error("The code is only valid for cylindrical/spherical geometry, where the left outer BC has Neumann conditions (0).")
@@ -85,13 +90,12 @@ function main(plot_sim,verbose)
         #Update time----------------------------------------------------
         t, dt, it = update_time!(t,dt,it,t_tot)
         #Update time-dependent parameters-------------------------------
-        D_l, D_r, KD,T = update_t_dependent_param!(D0,Di,dt,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
+        D_l, D_r, KD,T = update_t_dependent_param!(D0,Di,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
         #Advect interface & regrid--------------------------------------
         Fl_regrid, x_left, x_right, C_left, C_right, res, Ri = advect_interface_regrid!(Ri,V_ip,dt,x_left,x_right,C_left,C_right,res)
         #FEM SOLVER-----------------------------------------------------
         #Construct global matrices--------------------------------------
-        L_g, R_g, Co_l, Co_r = construct_matrix_fem(x_left,x_right,C_left,C_right,D_l,D_r,dt,n,Mloc,Kloc,Lloc,res)
-
+        L_g, R_g, Co_l, Co_r = construct_matrix_fem(x_left,x_right,C_left,C_right,D_l,D_r,dt,n,res)
         #Set inner boundary conditions----------------------------------
         L_g, R_g, ScF = set_inner_bc_flux!(L_g,R_g,KD,D_l,D_r,x_left,x_right,V_ip,rho,res)
         #Set outer boundary conditions and scale matrices---------------

@@ -4,20 +4,20 @@ using Plots, LinearAlgebra, Revise, LaTeXStrings,SparseArrays
 function main(plot_sim,verbose)
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
     #Phyics-------------------------------------------------------
-    Di      = [2.65*1e-15   6.23*1e-15;]                        #Initial diffusion coefficient in [m^2/s]; If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
-    D0      = [2.75*1e-6    3.9*1e-7;]                          #Pre-exponential factor in [m^2/s]
-    rho     = [1.0      1.0;]                                   #Normalized densities in [-]
-    Ri      = [0.02    0.05;]                                   #Initial radii [interface    total length] in [m]
-    Cl_i    = 0.6                                               #Initial concentration left side in [mol]
-    Cr_i    = 0.3                                               #Initial concentration right side in [mol]
-    V_ip    = 0.10                                               #Interface velocity in [m/s]
-    R       = 8.314472                                          #Universal gas constant in [J/(mol*K)]
-    Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]
-    Ea2     = 360660.4018                                       #Activation energy for the right side in [J/mol]
-    dH0     = 20919.9769                                        #Standard enthalpy of reaction in [J/mol]
-    Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s
-    t_tot   = 1e-3 * Myr2Sec                                    #Total time [s]
-    n       = 1                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
+    Di      = [4e-8   5e-8]                                     #Initial diffusion coefficient in [m^2/s]           -> in [L*V]
+                                                                #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
+    D0      = [1e-4   5e-4;]                                    #Pre-exponential factor in [m^2/s]                  -> NOT USED
+    rho     = [1.0      1.0;]                                   #Normalized densities in [-]                   -> NOT USED
+    Ri      = [0.5       1.0;]                                  #Initial radii [interface    total length] in [m]   -> in [L]
+    Cl_i    = 0.5                                               #Initial concentration left side in [mol]           -> in [C]
+    Cr_i    = Cl_i/100                                          #Initial concentration right side in [mol]          -> -//-
+    V_ip    = 1e-7                                              #Interface velocity in [m/s]                        -> in [V]
+    R       = 8.314472                                          #Universal gas constant in [J/(mol*K)]              -> NOT USED
+    Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]     -> NOT USED
+    Ea2     = 300660.4018                                       #Activation energy for the right side in [J/mol]    -> NOT USED
+    Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s                    -> NOT USED
+    t_tot   = 1e4                                               #Total time [s]                                     -> in [L]/[V]
+    n       = 3                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
     KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i,1000)                #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
                                                                 #The last value must be equal to the partition coefficient at t = t_tot.
@@ -26,7 +26,7 @@ function main(plot_sim,verbose)
     T_ar    = LinRange(1273.15,923.15,1000)                     #Temperature arrray in [K] to calculate temperature history; T changes with respect to time; 
                                                                 #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
-    CFL    = 0.5                                                #CFL condition
+    CFL    = 0.3                                                #CFL condition
     res    = [100 150;]                                         #Number of grid points
     resmin = copy(res)                                          #Minimum number of grid points
     MRefin = 2.0                                                #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
@@ -52,7 +52,7 @@ function main(plot_sim,verbose)
     t       = 0.0                                               #Initial time in [s]
     it      = 0                                                 #Initial number of time iterations                       
     C_left  = Cl_i*ones(res[1],1)                               #Initial concentration left side in [mol]
-    C_right = Cr_i*C_left[end]*ones(res[2],1)*inv(KD_ar[1])     #Initial concentration right side in [mol]
+    C_right = Cr_i*ones(res[2],1)                               #Initial concentration right side in [mol]
     C0      = [copy(C_left); copy(C_right)]                     #Store initial concentration 
     C       = copy(C0)                                          #Create 1 array with all concentrations  
     C0_l    = copy(C_left)                                      #Store initial concentration left side
@@ -127,7 +127,7 @@ end
 #Call main function-----------------------------------------------
 run_and_plot = true
 if run_and_plot
-    plot_sim = false
+    plot_sim = false            
     plot_end = true
     verbose  = false
     x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0, Mass, Mass0 = main(plot_sim,verbose)
@@ -135,7 +135,7 @@ if run_and_plot
         #Plotting-------------------------------------------------
         plot(x_left,C_left, lw=2, label=L"Left\ side")
         plot!(x_right,C_right, lw=2, label=L"Right\ side")
-        plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ 1D\ flux\ condition", lw=1.5,
+        plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ (flux)", lw=1.5,
               grid=:on, label=L"Initial condition")
     end
 end

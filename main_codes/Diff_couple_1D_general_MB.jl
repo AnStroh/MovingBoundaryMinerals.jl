@@ -4,23 +4,22 @@ using Plots, LinearAlgebra, LaTeXStrings,SparseArrays
 function main(plot_sim,verbose)
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
     #Phyics-------------------------------------------------------
-    Di      = [2.65*1e-18   6.23*1e-20;]                            #Initial diffusion coefficient in [m^2/s]; 
+    Di      = [4e-10   5e-8]                                        #Initial diffusion coefficient in [m^2/s]           -> in [L*V]
                                                                     #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
-    D0      = [2.75*1e-6    3.9*1e-7;]                              #Pre-exponential factor in [m^2/s]
-    rho     = [1.0      1.0;]                                       #Normalized densities in [-]
-    Ri      = [0.002    0.005;]                                     #Initial radii [interface    total length] in [m]
-    Cl_i    = 0.6                                                   #Initial concentration left side in [mol]
-    Cr_i    = 0.3                                                   #Initial concentration right side in [mol]
-    V_ip    = 0.0                                                   #Interface velocity in [m/s]
-    R       = 8.314472                                              #Universal gas constant in [J/(mol*K)]
-    Ea1     = 292879.6767                                           #Activation energy for the left side in [J/mol]
-    Ea2     = 360660.4018                                           #Activation energy for the right side in [J/mol]
-    dH0     = 20919.9769                                            #Standard enthalpy of reaction in [J/mol]
-    Myr2Sec = 60*60*24*365.25*1e6                                   #Conversion factor from Myr to s
-    t_tot   = 0.1 * Myr2Sec                                         #Total time [s]
-    n       = 1                                                     #Geometry; 1: planar, 2: cylindrical, 3: spherical
+    D0      = [1e-4   5e-4;]                                        #Pre-exponential factor in [m^2/s]                  -> NOT USED
+    rho     = [1.0      1.0;]                                       #Normalized densities in [-]                        -> NOT USED
+    Ri      = [0.2       0.8;]                                      #Initial radii [interface    total length] in [m]   -> in [L]
+    Cl_i    = 0.5                                                   #Initial concentration left side in [mol]           -> in [C]
+    Cr_i    = 0.7                                                   #Initial concentration right side in [mol]          -> -//-
+    V_ip    = -1e-7                                                 #Interface velocity in [m/s]                        -> in [V]
+    R       = 8.314472                                              #Universal gas constant in [J/(mol*K)]              -> NOT USED
+    Ea1     = 292879.6767                                           #Activation energy for the left side in [J/mol]     -> NOT USED
+    Ea2     = 300660.4018                                           #Activation energy for the right side in [J/mol]    -> NOT USED
+    Myr2Sec = 60*60*24*365.25*1e6                                   #Conversion factor from Myr to s                    -> NOT USED
+    t_tot   = 1e4                                                   #Total time [s]                                     -> in [L]/[V]
+    n       = 2                                                     #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
-    KD_ar   = LinRange(0.9,0.9,1000)                                #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
+    KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i*0.9,1000)                #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
                                                                     #The last value must be equal to the partition coefficient at t = t_tot.
     t_ar    = LinRange(0.0,t_tot,1000)                              #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
                                                                     #The user is prompted to specify suitable time intervals in relation to the respective destination.               
@@ -53,7 +52,7 @@ function main(plot_sim,verbose)
     t       = 0.0                                                   #Initial time in [s]
     it      = 0                                                     #Initial number of time iterations                       
     C_left  = Cl_i*ones(res[1],1)                                   #Initial concentration left side in [mol]
-    C_right = Cr_i*C_left[end]*ones(res[2],1)*inv(KD_ar[1])         #Initial concentration right side in [mol]
+    C_right = Cr_i*ones(res[2],1)                                   #Initial concentration right side in [mol]
     C0      = [copy(C_left); copy(C_right)]                         #Store initial concentration 
     C       = copy(C0)                                              #Create 1 array with all concentrations  
     C0_l    = copy(C_left)                                          #Store initial concentration left side
@@ -64,12 +63,12 @@ function main(plot_sim,verbose)
     #Total mass---------------------------------------------------
     Mass0   = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)    #Initial mass
     #Preallocate variables----------------------------------------
-    Co_l    = zeros(size(C_left))                               #Matrix to store old concentrations of left side
-    Co_r    = zeros(size(C_right))                              #Matrix to store old concentrations of right side
-    dt      = 0.0                                               #Initial time step
-    L_g     = spzeros(length(x),length(x))                      #Global left hand side matrix
-    Mass    = Float64[]                                         #Array to store the mass of the system
-    R_g     = zeros(length(x),1)                                #Global right hand side vector
+    Co_l    = zeros(size(C_left))                                   #Matrix to store old concentrations of left side
+    Co_r    = zeros(size(C_right))                                  #Matrix to store old concentrations of right side
+    dt      = 0.0                                                   #Initial time step
+    L_g     = spzeros(length(x),length(x))                          #Global left hand side matrix
+    Mass    = Float64[]                                             #Array to store the mass of the system
+    R_g     = zeros(length(x),1)                                    #Global right hand side vector
     #Calculate initial Ds, KD, T----------------------------------
     D_l, D_r, KD, T = update_t_dependent_param!(D0,Di,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
     #First check for correct setup--------------------------------
@@ -128,7 +127,7 @@ function main(plot_sim,verbose)
     return x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0
 end
 #Call main function-----------------------------------------------
-run_and_plot = false
+run_and_plot = true
 if run_and_plot
     plot_sim = false
     plot_end = true
@@ -138,7 +137,7 @@ if run_and_plot
         #Plotting-------------------------------------------------
         plot(x_left,C_left, lw=2, label=L"Left\ side")
         plot!(x_right,C_right, lw=2, label=L"Right\ side")
-        plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ 1D\ MB\ condition", lw=1.5,
+        plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ (MB)", lw=1.5,
               grid=:on, label=L"Initial\ condition")
     end
 end

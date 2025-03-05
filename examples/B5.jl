@@ -4,7 +4,6 @@ using Plots, LinearAlgebra, Revise, LaTeXStrings, SparseArrays
 function main(plot_sim,verbose)
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
     #Physics-------------------------------------------------------
-    #Di      = [-1.0   -1.0;]
     Di      = [0.04   0.005]                                    #Initial diffusion coefficient in [m^2/s]           -> in [L*V]
                                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     D0      = [1e-4   5e-4;]                                    #Pre-exponential factor in [m^2/s]                  -> NOT USED

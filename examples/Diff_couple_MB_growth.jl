@@ -1,25 +1,25 @@
 using Diff_Coupled
-using Plots, LinearAlgebra, LaTeXStrings
+using Plots, LinearAlgebra, LaTeXStrings,SparseArrays
 #Main function----------------------------------------------------
 function main(plot_sim,verbose)
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
     #Phyics-------------------------------------------------------
-    Di      = [2.65*1e-18   6.23*1e-20;]                        #Initial diffusion coefficient in [m^2/s] 
+    Di      = [4e-7   5e-8]                                     #Initial diffusion coefficient in [m^2/s]           -> in [L*V]
                                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
-    D0      = [2.75*1e-6    3.9*1e-7;]                          #Pre-exponential factor in [m^2/s]
-    rho     = [1.0      1.0;]                                   #Normalized densities in [-]
-    Ri      = [0.002    0.1;]                                   #Initial radii [interface    total length] in [m]
-    Cl_i    = 0.6                                               #Initial concentration left side in [mol]
-    Cr_i    = 0.3                                               #Initial concentration right side in [mol]
-    V_ip    = 3.17e-14                                          #Interface velocity in [m/s]
-    R       = 8.314472                                          #Universal gas constant in [J/(mol*K)]
-    Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]
-    Ea2     = 360660.4018                                       #Activation energy for the right side in [J/mol]
-    Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s
-    t_tot   = 1.0e-2 * Myr2Sec                                  #Total time [s]
-    n       = 1                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
+    D0      = [1e-4   5e-4;]                                    #Pre-exponential factor in [m^2/s]                  -> NOT USED
+    rho     = [1.0      1.0;]                                   #Normalized densities in [-]                   -> NOT USED
+    Ri      = [0.5       1.0;]                                  #Initial radii [interface    total length] in [m]   -> in [L]
+    Cl_i    = 0.5                                               #Initial concentration left side in [mol]           -> in [C]
+    Cr_i    = Cl_i/0.1                                          #Initial concentration right side in [mol]          -> -//-
+    V_ip    = 1e-7                                              #Interface velocity in [m/s]                        -> in [V]
+    R       = 8.314472                                          #Universal gas constant in [J/(mol*K)]              -> NOT USED
+    Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]     -> NOT USED
+    Ea2     = 300660.4018                                       #Activation energy for the right side in [J/mol]    -> NOT USED
+    Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s                    -> NOT USED
+    t_tot   = 1e5                                               #Total time [s]                                     -> in [L]/[V]
+    n       = 2                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
-    KD_ar   = LinRange(0.9,0.9,1000)                            #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
+    KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i,1000)                #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
                                                                 #The last value must be equal to the partition coefficient at t = t_tot.
     t_ar    = LinRange(0.0,t_tot,1000)                          #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
                                                                 #The user is prompted to specify suitable time intervals in relation to the respective destination.               
@@ -63,10 +63,14 @@ function main(plot_sim,verbose)
     #Total mass---------------------------------------------------
     Mass0   = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)     
     #Preallocate variables----------------------------------------
-    Co, Co_l, Co_r, dt, dx, Kloc, Lloc, L_g, Mass, Mloc, nels, nels_l, nels_r, R_g, x_1, x_2, y_interp = preallocations(x, C, C_left, C_right,res)
+    Co_l    = zeros(size(C_left))                               #Matrix to store old concentrations of left side
+    Co_r    = zeros(size(C_right))                              #Matrix to store old concentrations of right side
+    dt      = 0.0                                               #Initial time step
+    L_g     = spzeros(length(x),length(x))                      #Global left hand side matrix
+    Mass    = Float64[]                                         #Array to store the mass of the system
+    R_g     = zeros(length(x),1)                                #Global right hand side vector
     #Calculate initial Ds, KD, T----------------------------------
     D_l, D_r, KD, T = update_t_dependent_param!(D0,Di,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
-
     #First check for correct setup--------------------------------
     if BCout[1] != 0 || BCout[2] != 0 
         error("The code is only valid for a closed system. Please set outer BC to Neumann conditions (0).")
@@ -85,7 +89,6 @@ function main(plot_sim,verbose)
         t, dt, it = update_time!(t,dt,it,t_tot)
         #Update time-dependent parameters-------------------------
         D_l, D_r, KD,T = update_t_dependent_param!(D0,Di,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
-
         #Advect interface & regrid--------------------------------
         Fl_regrid, x_left, x_right, C_left, C_right, res, Ri = advect_interface_regrid!(Ri,V_ip,dt,x_left,x_right,C_left,C_right,res)
         #Calculate current volume---------------------------------
@@ -93,8 +96,6 @@ function main(plot_sim,verbose)
         #FEM SOLVER-----------------------------------------------
         #Construct global matrices--------------------------------
         L_g, R_g, Co_l, Co_r = construct_matrix_fem(x_left,x_right,C_left,C_right,D_l,D_r,dt,n,res)
-
-
         #Set inner boundary conditions----------------------------
         L_g, R_g, ScF = set_inner_bc_mb!(L_g,R_g,dVolC,Mass0,KD,res)
         #Set outer boundary conditions and scale matrices---------

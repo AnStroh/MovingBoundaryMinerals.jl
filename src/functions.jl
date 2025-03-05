@@ -800,60 +800,6 @@ function pchip(x,y,X)
 end
 
 """
-    preallocations(x, C, C_left, C_right, res)
-
-Pre-allocates memory for variables used in a diffusion couple simulation.
-
-# Arguments
-- `x`: Array of spatial coordinates.
-- `C`: Concentration array in [mol].
-- `C_left`: Concentration array for the left side of the diffusion couple in [mol].
-- `C_right`: Concentration array for the right side of the diffusion couple in [mol].
-- `res`: Resolution array.
-
-# Returns
-- `Co`: Pre-allocated array for the old concentration `C` in [mol].
-- `Co_left`: Pre-allocated array for old `C_left` in [mol].
-- `Co_right`: Pre-allocated array for old `C_right` in [mol].
-- `dt`: Pre-allocated variable for time step in [s].
-- `dx`: Pre-allocated array for spatial step sizes in [m].
-- `Kloc`: Pre-allocated 2x2 matrix for local stiffness matrix.
-- `Lloc`: Pre-allocated 2x2 matrix for local load matrix.
-- `L_g`: Pre-allocated sparse matrix for global load matrix.
-- `Mass`: Pre-allocated array for mass values.
-- `Mloc`: Pre-allocated 2x2 matrix for local mass matrix.
-- `nels`: Number of elements in the diffusion couple.
-- `nels_l`: Number of elements on the left side of the diffusion couple.
-- `nels_r`: Number of elements on the right side of the diffusion couple.
-- `R_g`: Pre-allocated global RHS vector.
-- `x_1`: Pre-allocated array for `x` (excluding the last element).
-- `x_2`: Pre-allocated array for `x` (excluding the first element).
-- `y_interp`: Pre-allocated array for interpolated values.
-
-"""
-function preallocations(x,C,C_left,C_right,res)
-    #Pre-allocations----------------------------------------------------
-    Co          = zeros(size(C))
-    Co_left     = zeros(size(C_left))
-    Co_right    = zeros(size(C_right))
-    dt          = 0.0
-    dx          = zeros(length(x) - 1,1)
-    Kloc        = zeros(2, 2)
-    Lloc        = zeros(2, 2)
-    L_g         = spzeros(length(x),length(x))
-    Mass        = Float64[]
-    Mloc        = zeros(2, 2)
-    nels        = length(x) - 1
-    nels_l      = res[1] - 1
-    nels_r      = res[2] - 1
-    R_g         = zeros(length(x),1)
-    x_1         = zeros(length(x) - 1,1)
-    x_2         = zeros(length(x) - 1,1)
-    y_interp    = zeros(1)
-    return Co, Co_left, Co_right, dt, dx, Kloc, Lloc, L_g, Mass, Mloc, nels, nels_l, nels_r, R_g, x_1, x_2, y_interp
-end
-
-"""
     regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, nr, nmin, MRefin)
 
 Regrid the grid and interpolate the concentration profiles.

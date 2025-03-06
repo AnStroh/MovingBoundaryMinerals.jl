@@ -211,6 +211,7 @@ if run_and_plot
     plot_sim = true
     plot_end = true
     verbose  = false
+    save_file = true
     x_left, x_right, x0, C_left, C_right, C0, maxC, Tlin, XC_left, XC_right, T, Tstart, Tstop, KDlin, KD_sim,T_sim, Mass0, Mass, Mass01, Mass2 = main(plot_sim,verbose)
     if plot_end
         #Plotting-----------------------------------------------------------
@@ -249,5 +250,8 @@ if run_and_plot
                     grid=:on, label="", color=:teal)
         #p4 = annotate!(0.05, maximum(log.(KD_sim)) - 0.05,"(c)", transform=:axes,legendfontsize = 4)
         plot(p2,p3,p4,p1,suptitle = L"Thermodynamical\ constrained\ Stefan\ condition", dpi = 300)
+        save_path = "figures"
+        save_name = "D1"
+        save_figure(save_name,save_path,save_file)
     end
 end    

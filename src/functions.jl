@@ -191,7 +191,7 @@ Calculate the total mass based on the volume.
 - `C_left::Vector{Float64}`: Concentration values of the left phase in [mol].
 - `C_right::Vector{Float64}`: Concentration values of the right phase in [mol].
 - `n::Int`: Number which defines the geometry.
-- `rho::Vector{Float64}`: Densities of the left and right phase [g/mol].
+- `rho::Vector{Float64}`: Densities of the left and right phase [kg/m^3].
 
 # Returns
 - `Mtot::Float64`: The total mass.
@@ -998,7 +998,7 @@ Set the inner boundary conditions at the interface using fluxes.
 - `x_left::Vector`: Left grid points.
 - `x_right::Vector`: Right grid points.
 - `V_ip::Float64`: The interface velocity in [m/s].
-- `rho::Vector`: The density value in [g/mol].
+- `rho::Vector`: The density value in [kg/m^3].
 - `nr::Vector`: Resolution.
 
 # Returns
@@ -1076,7 +1076,7 @@ Set inner boundary conditions for the special case of Lasaga (1983).
 - `C_right::Array{Float64}`: Array of concentrations on the right side in [mol].
 - `dx1::Float64`: Grid spacing on the left side.
 - `dx2::Float64`: Grid spacing on the right side.
-- `rho::Array{Float64}`: Array of densities in [g/mol].
+- `rho::Array{Float64}`: Array of densities in [kg/m^3].
 - `L_g::Array{Float64}`: Global left-hand side matrix.
 - `R_g::Array{Float64}`: Global right-hand side vector.
 - `nr::Array{Int64}`: Resolution.

@@ -5,8 +5,6 @@ module Benchmarks
     
     export analytical_sol_step_function, analytical_sol_half_space, calc_sinus_sphere, crank_time_transformation1, crank_time_transformation2, lasaga, rayleigh_fractionation ,smith,crank_time_transformation3
 
-    
-
     """
         analytical_sol_step_function(Ri, Di, x, C0, t_tot)
 
@@ -27,10 +25,10 @@ module Benchmarks
     """
 
     function analytical_sol_step_function(Ri,Di,x,C0,t_tot)
-        #Analytical solution-------------------------------------------------------
+        #Analytical solution-----------------------------------------
         x0  = copy(x)
         C   = copy(C0)
-        Can = (C[end] + C[1]) * inv(2.0) .+ (C[end] - C[1]) * inv(2.0) * erf.((x0 .- Ri[1]) * inv(2.0) * inv(sqrt(Di * t_tot)))       #single Step function
+        Can = (C[end] + C[1]) * inv(2.0) .+ (C[end] - C[1]) * inv(2.0) * erf.((x0 .- Ri[1]) * inv(2.0) * inv(sqrt(Di * t_tot)))       #Single step function
         return Can   
     end
 
@@ -54,10 +52,10 @@ module Benchmarks
     """
 
     function analytical_sol_half_space(H,Di,x,C0,t_tot)
-        #Analytical solution-------------------------------------------------------
+        #Analytical solution-----------------------------------------
         x0  = copy(x)
         C   = copy(C0)
-        Can =  C[1] .+ (C[end] - C[1]) * erf.((x0 .- H) * inv(2.0) * inv(sqrt(Di * t_tot)))       #Half-space solution
+        Can =  C[1] .+ (C[end] - C[1]) * erf.((x0 .- H) * inv(2.0) * inv(sqrt(Di * t_tot)))         #Half-space solution
         return Can   
     end
 
@@ -84,7 +82,7 @@ module Benchmarks
     function calc_sinus_sphere(x0,C0,D,tot,nterms)
         #Routine to test a linear diffusion code with Neumann BC
         #The solution is based on the eigenfuction expansion method
-        # Crank (1975): The Mathematics of Diffusion, chapter: 6.3 
+        #Crank (1975): The Mathematics of Diffusion, chapter: 6.3 
         C = copy(C0)
         x = copy(x0)
         C1   = C0[1] 
@@ -125,14 +123,13 @@ module Benchmarks
 
     function crank_time_transformation1(C0,x0,T0,T,E,R,D0,t,Cl_i)
         #Calculate diffusion with cooling and without growth following Crank (1956)
-        Myr2sec = 1e6 * 60 * 60 * 24 * 365.25
         Tan     = LinRange(T0,T,1000)
         tan     = LinRange(0,t,1000)
         Dan     = D0.*exp.(-E.*inv.(R .* Tan))
         zeta    = trapezoidal_integration(tan,Dan)
         index   = findfirst(C0 -> C0 != Cl_i, C0)
-        H       = x0[index]                                                             #Location of the step                                                              
-        C_Crank = C0[1] .+ (C0[end] - C0[1]) * erf.((x0 .- H) * inv(2.0 * sqrt(zeta)))       #Half-space solution       
+        H       = x0[index]                                                                         #Location of the step                                                              
+        C_Crank = C0[1] .+ (C0[end] - C0[1]) * erf.((x0 .- H) * inv(2.0 * sqrt(zeta)))              #Half-space solution       
         return C_Crank
     end
 
@@ -160,12 +157,11 @@ module Benchmarks
     """
     function crank_time_transformation2(C0,x0,T0,T,E,R,D0,t,Ri)
         #Calculate diffusion with cooling and without growth following Crank (1956)
-        Myr2sec = 1e6 * 60 * 60 * 24 * 365.25
         Tan     = LinRange(T0,T,1000)
         tan     = LinRange(0,t,1000)
         Dan     = D0.*exp.(-E.*inv.(R .* Tan))
         zeta    = trapezoidal_integration(tan,Dan)
-        C_Crank = (C0[end] + C0[1]) * inv(2.0) .+ (C0[end] - C0[1]) * inv(2.0) * erf.((x0 .- Ri[1]) * inv(2.0 * sqrt(zeta)))       #single Step function
+        C_Crank = (C0[end] + C0[1]) * inv(2.0) .+ (C0[end] - C0[1]) * inv(2.0) * erf.((x0 .- Ri[1]) * inv(2.0 * sqrt(zeta)))       #Single step function
         return C_Crank
     end
 
@@ -195,12 +191,11 @@ module Benchmarks
     """
     function crank_time_transformation3(C0,x0,T0,T,E,R,D0,t,nterms)
         #Calculate diffusion with cooling and without growth following Crank (1956)
-        Myr2sec = 1e6 * 60 * 60 * 24 * 365.25
         Tan     = LinRange(T0,T,1000)
         tan     = LinRange(0,t,1000)
         Dan     = D0.*exp.(-E.*inv.(R .* Tan))
         zeta    = trapezoidal_integration(tan,Dan)
-        #Analytical solution Diffusion in a sphere, Crank (1975)
+        #Analytical solution diffusion in a sphere, Crank (1975)
         C_Crank = copy(C0)
         xan     = copy(x0)
         C1      = C0[1] 
@@ -246,15 +241,12 @@ module Benchmarks
         Albarède, F. (2003) Geochemistry: An Introduction, Cambridge Press, 262 pp.
         Cliquid/C_tot = F^(KD-1) F: melt fraction    => C_tot = 1 (closed system)
         KD = Cs/Cl =#
-        #Reshape---------------------------------------------------------------
-        #C_left = copy(C_left)'
-        #x_left = copy(x_left)'
-        #Fractions Rayleigh Limit--------------------------------------------------
-        Ray_Fs = LinRange(Ri0[1] *inv(Ri0[2]),Ri[1] * inv(Ri0[2]),1000) .^ n        #Solid fraction; solid = solid/melt fraction (liquid)
-        Ray_Fl = 1.0 .- Ray_Fs                                             #Melt fraction
-        Ray_Cl = Ray_Fl .^ (KD0 - 1.0) .* C0_r[end]                        #Liquid concentration
-        Ray_Cs = Ray_Cl .* KD0                                             #Solid concentration
-        #Post processing----------------------------------------------------------
+        #Fractions Rayleigh Limit------------------------------------
+        Ray_Fs = LinRange(Ri0[1] *inv(Ri0[2]),Ri[1] * inv(Ri0[2]),1000) .^ n                        #Solid fraction; solid = solid/liquid fraction 
+        Ray_Fl = 1.0 .- Ray_Fs                                                                      #Liquid fraction
+        Ray_Cl = Ray_Fl .^ (KD0 - 1.0) .* C0_r[end]                                                 #Liquid concentration
+        Ray_Cs = Ray_Cl .* KD0                                                                      #Solid concentration
+        #Post processing---------------------------------------------
         indi   = findall(x -> x > Ri0[1], x_left)
         x_l_p  = zeros(size(x_left))
         x_l_p  = copy(x_left[LinearIndices(indi)])
@@ -303,7 +295,7 @@ module Benchmarks
                     0.5 .* erfc.(ksi .* (xan .+ R .* tan)) .+ ((1.0 .- Kan) .* inv(2.0)) .* (1.0 .* inv(1.0 .- Kan) .- 1.0 .* inv(Kan)) .* 
                     exp.(- (1.0 .- Kan) .* (R .* inv(Dan)) .* (xan .+ Kan .* R .* tan)) .* 
                     erfc.(ksi .* (xan .+ (2.0 .* Kan .- 1.0) .* R .* tan))
-            Can  = Can * Can0           #solution for liquid
+            Can  = Can * Can0                                                                       #Solution for liquid
         end
         return xan, Can
     end

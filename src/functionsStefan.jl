@@ -10,8 +10,8 @@ Calculate the density of the phases at a given temperature `T` using interpolati
 ## Arguments
 - `X_A`: X-axis values for interpolation (composition X in [mol])
 - `Y_A`: Y-axis values for interpolation (temperature T in [K])
-- `rho_left`: Left density values for interpolation in [g/mol]
-- `rho_right`: Right density values for interpolation in [g/mol]
+- `rho_left`: Left density values for interpolation in [kg/m^3]
+- `rho_right`: Right density values for interpolation in [kg/m^3]
 - `C_leftB`: Left concentration values for interpolation in [mol]
 - `C_rightB`: Right concentration values for interpolation in [mol]
 - `T`: Temperature at which to calculate the density in [K]
@@ -21,11 +21,11 @@ Calculate the density of the phases at a given temperature `T` using interpolati
 
 """
 function calculate_density(X_A,Y_A,rho_left,rho_right,C_leftB,C_rightB,T)
-    rho_LEFT    = interp2(X_A,Y_A,rho_left,C_leftB,T)                  
-    rho_RIGHT   = interp2(X_A,Y_A,rho_right,C_rightB,T)
-    rho_0       = [copy(rho_LEFT) copy(rho_RIGHT)] 
-    rho_norm_L  = rho_LEFT .* inv(rho_0[1])                        #Normalized densities
-    rho_norm_R  = rho_RIGHT .* inv(rho_0[1])                       #Normalized densities
+    rho_LEFT    = interp2(X_A,Y_A,rho_left,C_leftB,T)                       #Interpolated density left side
+    rho_RIGHT   = interp2(X_A,Y_A,rho_right,C_rightB,T)                     #Interpolated density right side
+    rho_0       = [copy(rho_LEFT) copy(rho_RIGHT)]                          #Initial densities    
+    rho_norm_L  = rho_LEFT .* inv(rho_0[1])                                 #Normalized density left side
+    rho_norm_R  = rho_RIGHT .* inv(rho_0[1])                                #Normalized densitiy right side
     rho         = [copy(rho_norm_L) copy(rho_norm_R)]
     return rho
 end
@@ -45,8 +45,8 @@ Extracts coefficients for linear least squares from the input `eq_values`.
 """
 function coeff_trans_line(eq_values)
     #Extract coefficients for linear least squares from input (eq_values) 
-    coeff_up = eq_values[1,:]'      #Coefficients for X(T) upper transition line
-    coeff_do = eq_values[2,:]'      #Coefficients for X(T) lower transition line
+    coeff_up = eq_values[1,:]'                                              #Coefficients for X(T) upper transition line
+    coeff_do = eq_values[2,:]'                                              #Coefficients for X(T) lower transition line
     return coeff_up,coeff_do
 end
 
@@ -65,8 +65,8 @@ Compute the composition of two components A and B at a given temperature.
 - `C_right::Float64`: Composition of component B in [mol].
 """
 function composition(coeff_up,coeff_do,T)
-    C_left  = coeff_do[1] .+ coeff_do[2] .* T .+ coeff_do[3] .* (T) .^ 2      #Composition of A
-    C_right = coeff_up[1] .+ coeff_up[2] .* T .+ coeff_up[3] .* (T) .^ 2      #Composition of B
+    C_left  = coeff_do[1] .+ coeff_do[2] .* T .+ coeff_do[3] .* (T) .^ 2    #Composition of A
+    C_right = coeff_up[1] .+ coeff_up[2] .* T .+ coeff_up[3] .* (T) .^ 2    #Composition of B
     return C_left, C_right
 end
 
@@ -91,11 +91,11 @@ Perform 2D bilinear interpolation within bounds.
 - The function uses 2D bilinear interpolation to compute the interpolated values.
 """
 function interp2(X1d,Y1d,Z2d,xi,yi)
-    @assert length(xi) == length(yi)           "lengths of xi, yi must be the same"
+    @assert length(xi) == length(yi)                        "Lengths of xi and yi must be the same."
     zi = zeros(length(xi)) * NaN
     for (i,_) in enumerate(xi)
-        @assert (xi[i] >= X1d[1]) && (xi[i] <= X1d[end]) "Value should be within x bounds to interpolate"
-        @assert (yi[i] >= Y1d[1]) && (yi[i] <= Y1d[end]) "Value should be within y bounds to interpolate"
+        @assert (xi[i] >= X1d[1]) && (xi[i] <= X1d[end])    "Value should be within x bounds to interpolate."
+        @assert (yi[i] >= Y1d[1]) && (yi[i] <= Y1d[end])    "Value should be within y bounds to interpolate."
         ix_cart = findlast(X1d .< xi[i])
         iy_cart = findlast(Y1d .< yi[i])
         ix_lin  = LinearIndices(X1d)[ix_cart]
@@ -129,33 +129,48 @@ Uses the Stefan boundary conditions to set the inner boundary conditions of the 
 - `ScF::Float64`: Scaling factor for reducing the condition number of the matrix.
 """
 function set_inner_bc_stefan!(L_g,R_g,C_left,C_right,nr)
-    #Reduce the condition number-------------------------------------------
+    #Reduce the condition number-----------------------------
     ScF = 1.0
-    #Apply Dirichlet BC at interface---------------------------------------
-    #inner BC1---------------------------------------------------------------
+    #Apply Dirichlet BC at interface-------------------------
+    #inner BC1-----------------------------------------------
     L_g[nr[1],:] .= 0.0
     L_g[nr[1],nr[1]]     = 1.0 * ScF
     R_g[nr[1]]           = C_left[end] * ScF
-    #Inner BC2 (KD)--------------------------------------------------------
+    #Inner BC2 (KD)------------------------------------------
     L_g[nr[1]+1,:] .= 0.0                               
     L_g[nr[1]+1,nr[1]+1] = 1.0 * ScF                
     R_g[nr[1]+1]         = C_right[1] * ScF
     return L_g, R_g, ScF
 end
 
-function values_between_known_indices!(vec1, vec2, val1, val2)
-    idx1 = findfirst(x -> x <= val1, vec1)        #Find indices, where x is smaller than value 1
-    idx2 = findlast(x -> x >= val2, vec1)        #Find indices, where x is larger than value 2
+"""
+    values_between_known_indices!(vec1, vec2, val1, val2)
 
+Finds the values in `vec2` that correspond to the indices in `vec1` where the elements are between `val1` and `val2`.
+
+# Arguments
+- `vec1::Vector{T}`: A vector of values to search through, where `T` is a type that supports comparison operations.
+- `vec2::Vector{S}`: A vector of values from which the function will return the values at the found indices, where `S` is any type.
+- `val1::T`: The lower bound value to search for in `vec1`.
+- `val2::T`: The upper bound value to search for in `vec1`.
+
+# Returns
+- `first_val::S`: The value in `vec2` at the index corresponding to the first occurrence in `vec1` where the element is less than or equal to `val1`.
+- `last_val::S`: The value in `vec2` at the index corresponding to the last occurrence in `vec1` where the element is greater than or equal to `val2`.
+
+# Errors
+- Throws an error if `val1` or `val2` are outside the range of values in `vec1`.
+"""
+
+function values_between_known_indices!(vec1, vec2, val1, val2)
+    idx1 = findfirst(x -> x <= val1, vec1)                                  #Find indices, where x is smaller than value 1
+    idx2 = findlast(x -> x >= val2, vec1)                                   #Find indices, where x is larger than value 2
     if idx1 === nothing || idx2 === nothing
         error("The starting or end temperature is outside of the defined temperature range.")
     end
-    
-    start_idx = min(idx1, idx2)
-    end_idx = max(idx1, idx2)
-
-    first_val = vec2[start_idx]
-    last_val  = vec2[end_idx]
-
+    start_idx = min(idx1, idx2)                                             #Find the minimum index
+    end_idx = max(idx1, idx2)                                               #Find the maximum index
+    first_val = vec2[start_idx]                                             #First value
+    last_val  = vec2[end_idx]                                               #Last value        
     return first_val,last_val
 end

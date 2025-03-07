@@ -19,7 +19,6 @@ function main(plot_sim,verbose)
     #Phyics-----------------------------------------------------------------
     Di          = [0.002   0.0004;]                                                                     #Initial diffusion coefficient in [m^2/s]  
                                                                                                         #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
-    D0          = [2.75*1e-6    3.9*1e-7;]                                                              #Pre-exponential factor in [m^2/s]
     Ri          = 2.0                                                                                   #Position of the interface -> initial radius of the left phase
     Tstart      = 1400.0 + 273.0                                                                        #Starting temperature in [K]
     Tstop       = 1300.0 + 273.0                                                                        #End temperature in [K]

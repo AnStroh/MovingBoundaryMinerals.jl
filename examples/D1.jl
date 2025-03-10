@@ -199,7 +199,7 @@ if run_and_plot
     plot_sim = true
     plot_end = true
     verbose  = false
-    save_file = false
+    save_file = true
     x_left, x_right, x0, C_left, C_right, C0, maxC, Tlin, XC_left, XC_right, T, Tstart, Tstop, KDlin, KD_sim,T_sim, Mass0, Mass, Mass01, Mass2 = main(plot_sim,verbose)
     if plot_end
         #Plotting-----------------------------------------------------------
@@ -232,10 +232,10 @@ if run_and_plot
                       grid=:on, label="",xlims=(Tp_min, Tp_max), ylims=(first_val-0.01,last_val+0.01),legendfontsize = 4)
         #ln(KD) vs 1/T
         p4 = plot(1.0 ./ T_sim,log.(KD_sim),xlabel = L"1/T", ylabel = L"ln(K_{D})", title = L"Arrhenius\ plot", lw=1.5,
-                    grid=:on, label="", color=:teal)
+                grid=:on, label="", color=:teal, ticks=:auto, xrotation=10)
         plot(p2,p3,p4,p1,suptitle = L"Thermodynamical\ constrained\ Stefan\ condition", dpi = 300)
-        #save_path = "figures"
-        #save_name = "D1"
-        #save_figure(save_name,save_path,save_file)
+        save_path = "figures"
+        save_name = "D1"
+        save_figure(save_name,save_path,save_file)
     end
 end    

@@ -140,7 +140,7 @@ if run_and_plot
         p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
         p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
         p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance\ [m]", ylabel = L"Concentration", lw=1.5,
-                   grid=:on, label=L"Initial\ condition",legendfontsize = 6, dpi = 300)
+                   grid=:on, label=L"Initial\ condition",legendfontsize = 10, dpi = 300)
         p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC,title = L"Diffusion\ couple\ (flux)\ -\ Concentration\ profile", color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
         #save_path = "figures"
         #save_name = "B5"

@@ -60,8 +60,8 @@ representative at an online or offline event.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to
-[Albert de Montserrat](https://github.com/albert-de-montserrat),
-[Pascal Aellig](https://github.com/aelligp),
+[Annalena Stroh](https://github.com/AnStroh),
+[Evangelos Moulas](https://metamorphism.de),
 or any other of the principal developers responsible for enforcement listed in
 [AUTHORS.md](AUTHORS.md).
 All complaints will be reviewed and investigated promptly and fairly.

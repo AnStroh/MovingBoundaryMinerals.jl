@@ -39,7 +39,7 @@ function main()
     #Calculate values for t check--------------------------------------
     dt_diff = zeros(length(t_ar)-1)
     dt_diff = t_ar[2:end] .- t_ar[1:end-1]            
-    # Preallocate variables -------------------------------------------
+    #Preallocate variables --------------------------------------------
     Co      = zeros(size(C))                    #Old concentration
     dt      = 0.0                               #Initial time step
     dx      = zeros(length(x) - 1,1)            #Grid spacing   
@@ -47,11 +47,10 @@ function main()
     Mass    = Float64[]                         #Mass array
     nels    = length(x) - 1                     #Number of elements
     R_g     = zeros(length(x),1)                #Global vector
-    # Calculate grid --------------------------------------------------
+    #Calculate grid ---------------------------------------------------
     dx    = L * inv(res - 1.0)
     #Calculate initial D, KD, T----------------------------------------
     D, T  = update_t_dependent_param_simple!(D0,Di,Ea1,R,T_ar,t_ar,t,t_tot)
-
     #Initial mass calculation------------------------------------------
     Mass0 = calc_mass_vol_simple_diff(x,C,n,rho)
     #First check for correct setup-------------------------------------
@@ -74,7 +73,6 @@ function main()
         t, dt, it = update_time!(t,dt,it,t_tot) 
         #Update time-dependent parameters------------------------------
         D, T = update_t_dependent_param_simple!(D0,Di,Ea1,R,T_ar,t_ar,t,t_tot)
-
         #FEM SOLVER ---------------------------------------------------
         #Fill matrix --------------------------------------------------
         L_g, R_g = fill_matrix!(C,x,D,dt,n,nels)

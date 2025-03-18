@@ -63,12 +63,12 @@ function main(plot_sim,verbose)
     #Total mass---------------------------------------------------
     Mass0   = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)     
     #Preallocate variables----------------------------------------
-    Co_l    = zeros(size(C_left))                               #Matrix to store old concentrations of left side
-    Co_r    = zeros(size(C_right))                              #Matrix to store old concentrations of right side
-    dt      = 0.0                                               #Initial time step
-    L_g     = spzeros(length(x),length(x))                      #Global left hand side matrix
-    Mass    = Float64[]                                         #Array to store the mass of the system
-    R_g     = zeros(length(x),1)                                #Global right hand side vector
+    Co_l    = zeros(size(C_left))                                   #Matrix to store old concentrations of left side
+    Co_r    = zeros(size(C_right))                                  #Matrix to store old concentrations of right side
+    dt      = 0.0                                                   #Initial time step
+    L_g     = spzeros(length(x),length(x))                          #Global left hand side matrix
+    Mass    = Float64[]                                             #Array to store the mass of the system
+    R_g     = zeros(length(x),1)                                    #Global right hand side vector
     #Calculate initial Ds, KD, T----------------------------------
     D_l, D_r, KD, T = update_t_dependent_param!(D0,Di,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
     #First check for correct setup--------------------------------

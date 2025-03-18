@@ -50,7 +50,6 @@ function main()
     dx    = L * inv(res - 1.0)
     #Calculate initial Ds, KD, T---------------------------------------
     D, T  = update_t_dependent_param_simple!(D0,Di,Ea1,R,T_ar,t_ar,t,t_tot)
-
     #Initial mass calculation------------------------------------------
     Mass0 = calc_mass_vol_simple_diff(x,C,n,rho)
     #First check for correct setup-------------------------------------
@@ -73,7 +72,6 @@ function main()
         t, dt, it = update_time!(t,dt,it,t_tot) 
         #Update time-dependent parameters------------------------------
         D, T = update_t_dependent_param_simple!(D0,Di,Ea1,R,T_ar,t_ar,t,t_tot)
-
         #FEM SOLVER ---------------------------------------------------
         #Fill matrix --------------------------------------------------
         L_g, R_g = fill_matrix!(C,x,D,dt,n,nels)

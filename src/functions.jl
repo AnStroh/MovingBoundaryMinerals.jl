@@ -4,22 +4,23 @@ export advect_interface_regrid!, blkdiag, calculate_dt, calc_mass_vol, calc_mass
 """
     advect_interface_regrid!(Ri, V_ip, dt, x_left, x_right, C_left, C_right, nr)
 
-Update the interface position and calculate new grids based on the advection velocity.
+Update the interface position and calculate new grids based on the advection velocity. Units may differ from SI units if 
+non-dimensionalisation has been performed.
 
 # Arguments
-- `Ri::Float64`: Radii [interface    total length] in [m].
+- `Ri::Float64`: Radii [interface    total length in [m].
 - `V_ip::Float64`: Advection velocity in [m/s].
 - `dt::Float64`: Time step in [s].
-- `x_left::Vector{Float64}`: Left grid points.
-- `x_right::Vector{Float64}`: Right grid points.
+- `x_left::Vector{Float64}`: Left distance grid points in [m].
+- `x_right::Vector{Float64}`: Right distance grid points in [m].
 - `C_left::Vector{Float64}`: Concentration values on the left grid points in [mol].
 - `C_right::Vector{Float64}`: Concentration values on the right grid points in [mol].
 - `nr::Vector{Int}`: Resolution of the left and the right grid.
 
 # Returns
 - `Fl_regrid::Int`: Flag indicating if regridding was performed (1) or not (0).
-- `x_left::Vector{Float64}`: Updated left grid points.
-- `x_right::Vector{Float64}`: Updated right grid points.
+- `x_left::Vector{Float64}`: Updated left distance grid points.
+- `x_right::Vector{Float64}`: Updated right distance grid points.
 - `C_left::Vector{Float64}`: Updated concentration values on the left grid points.
 - `C_right::Vector{Float64}`: Updated concentration values on the right grid points.
 - `nr::Vector{Int}`: Updated resolution.
@@ -27,37 +28,37 @@ Update the interface position and calculate new grids based on the advection vel
 """
 function advect_interface_regrid!(Ri,V_ip,dt,x_left,x_right,C_left,C_right,nr)
     Rio   = copy(Ri)
-    Ri[1] = Rio[1] + V_ip * dt                           #Update interface position
-    if V_ip > 0                                     #Calculate new grid for positive velocity
-        x_left      = [x_left; x_left[end]]
-        C_left      = [C_left; C_left[end]]
-        x_left[end] = copy(Ri[1])
-        dx1         = x_left[end] - x_left[end-1]
-        if Ri[1] > x_right[2]    #Check if Ri moved to fast
+    Ri[1] = Rio[1] + V_ip * dt                                                      #Update interface position
+    if V_ip > 0                                                                     #Calculate new grid for positive velocity
+        x_left      = [x_left; x_left[end]]                                         #Add new grid point
+        C_left      = [C_left; C_left[end]]                                         #Add new concentration value
+        x_left[end] = copy(Ri[1])                                                   #Update grid point
+        dx1         = x_left[end] - x_left[end-1]                                   #Calculate new dx on the left side of interface
+        if Ri[1] > x_right[2]                                                       #Check if Ri moved to fast
             @show x_right[1] x_right[2] Ri[1] 
             error("Interface moved too fast. Ri is larger than x_right[2].")
         end
-        x_right[1]  = copy(Ri[1])
-        dx2         = x_right[2] - x_right[1]
-        Fl_regrid   = 1
-        nr[1]       = nr[1] + 1
-    elseif V_ip < 0                                 #Calculate new grid for negative velocity
-        x_right     = [x_right[1];x_right]
-        C_right     = [C_right[1];C_right]
-        x_right[1]  = copy(Ri[1])
-        dx2         = x_right[2] - x_right[1]
-        if Ri[1] < x_left[end-1]                        #Check if Ri moved to fast
-            @show x_left[end-1] x_left[end] Ri[1]
+        x_right[1]  = copy(Ri[1])                                                   #Update grid point
+        dx2         = x_right[2] - x_right[1]                                       #Calculate new dx on the right side of interface
+        Fl_regrid   = 1                                                             #Flag for regridding
+        nr[1]       = nr[1] + 1                                                     #Update resolution
+    elseif V_ip < 0                                                                 #Calculate new grid for negative velocity
+        x_right     = [x_right[1];x_right]                                          #Add new grid point
+        C_right     = [C_right[1];C_right]                                          #Add new concentration value
+        x_right[1]  = copy(Ri[1])                                                   #Update grid point
+        dx2         = x_right[2] - x_right[1]                                       #Calculate new dx on the right side of interface
+        if Ri[1] < x_left[end-1]                                                    #Check if Ri moved to fast
+            @show x_left[end-1] x_left[end] Ri[1]   
             error("Interface moved too fast. Ri is smaller than x_left[end-1].")
         end
-        x_left[end] = copy(Ri[1])
-        dx1         = x_left[end] - x_left[end-1]
-        Fl_regrid   = 1
-        nr[2]       = nr[2] + 1
-    else                                            #Leave grid as it was, if velocityis 0
-        Fl_regrid   = 0
-        dx1         = x_left[end] - x_left[end-1]
-        dx2         = x_right[2] - x_right[1]
+        x_left[end] = copy(Ri[1])                                                   #Update grid point
+        dx1         = x_left[end] - x_left[end-1]                                   #Calculate new dx on the left side of interface
+        Fl_regrid   = 1                                                             #Flag for regridding
+        nr[2]       = nr[2] + 1                                                     #Update resolution
+    else                                                                            #Leave grid as it was, if velocity = 0.0
+        Fl_regrid   = 0                                                             #Flag for regridding
+        dx1         = x_left[end] - x_left[end-1]                                   #Calculate new dx on the left side of interface
+        dx2         = x_right[2] - x_right[1]                                       #Calculate new dx on the right side of interface
     end
     return Fl_regrid, x_left, x_right, C_left, C_right, nr, Ri
 end
@@ -74,6 +75,7 @@ Constructs a block diagonal matrix from a variable number of input matrices.
 # Returns
 - `result::Matrix`: Block diagonal matrix constructed from the input matrices.
 """
+
 function blkdiag(matrices::AbstractMatrix...)
     # Calculate total size for the block diagonal matrix
     total_rows = sum(size(m, 1) for m in matrices)
@@ -107,36 +109,37 @@ Constructs a block matrix and a block vector from given input matrices and vecto
 - `Lblock::SparseMatrixCSC`: The block matrix constructed from `L1` and `L2`.
 - `Rblock::Vector`: The block vector constructed from `R1` and `R2`.
 """
-function blocktest(L1,R1,L2,R2)
-    n1 = length(R1)
-    n2 = length(R2)
-    Lblock = spzeros(n1+n2,n1+n2)
-    Rblock = zeros(n1+n2)
-    for i in 1:n1
-       if i == 1
-        Lblock[i,i] = L1[1,1]
-        Lblock[i,2] = L1[1,2]
-       elseif i == n1
-        Lblock[i,i]   = L1[n1,n1]
-        Lblock[i,i-1] = L1[n1,n1-1]        
-       else
-        Lblock[i,i-1] = L1[i,i-1]
-        Lblock[i,i+0] = L1[i,i+0]
-        Lblock[i,i+1] = L1[i,i+1]
-       end
-       Rblock[i] = R1[i]
-    end
-    for i in 1:n2
-        if i == 1
-            Lblock[i+n1,i+n1] = L2[1,1]
-            Lblock[i+n1,2+n1] = L2[1,2]
-           elseif i == n2
-            Lblock[i+n1,i+n1]   = L2[n2,n2]
-            Lblock[i+n1,i-1+n1] = L2[n2,n2-1]        
-           else
-            Lblock[i+n1,i-1+n1] = L2[i,i-1];
-            Lblock[i+n1,i+0+n1] = L2[i,i+0];
-            Lblock[i+n1,i+1+n1] = L2[i,i+1];
+function blocktest(L1,R1,L2,R2)                                     
+    n1 = length(R1)                                                                     #Length of R1
+    n2 = length(R2)                                                                     #Length of R2
+    Lblock = spzeros(n1+n2,n1+n2)                                                       #Preallocate Lblock
+    Rblock = zeros(n1+n2)                                                               #Preallocate Rblock
+    #Set block matrix and vector-------------------------------------------
+    for i in 1:n1                                                                       #Set block matrix part L1 and vector part R1                 
+       if i == 1                                                                        #First row
+        Lblock[i,i] = L1[1,1]                                       
+        Lblock[i,2] = L1[1,2]                                       
+       elseif i == n1                                                                   #Last row
+        Lblock[i,i]   = L1[n1,n1]                                       
+        Lblock[i,i-1] = L1[n1,n1-1]                                             
+       else                                                                             #Middle rows
+        Lblock[i,i-1] = L1[i,i-1]                                       
+        Lblock[i,i+0] = L1[i,i+0]                                       
+        Lblock[i,i+1] = L1[i,i+1]                                       
+       end                                      
+       Rblock[i] = R1[i]                                        
+    end                                     
+    for i in 1:n2                                                                       #Set block matrix part L2 and vector part R2
+        if i == 1                                                                       #First row
+            Lblock[i+n1,i+n1] = L2[1,1]                                     
+            Lblock[i+n1,2+n1] = L2[1,2]                                     
+           elseif i == n2                                                               #Last row
+            Lblock[i+n1,i+n1]   = L2[n2,n2]                                     
+            Lblock[i+n1,i-1+n1] = L2[n2,n2-1]                                                
+           else                                                                         #Middle rows
+            Lblock[i+n1,i-1+n1] = L2[i,i-1]
+            Lblock[i+n1,i+0+n1] = L2[i,i+0]
+            Lblock[i+n1,i+1+n1] = L2[i,i+1]
         end
         Rblock[i+n1] = R2[i]
     end
@@ -146,7 +149,8 @@ end
 """
     calculate_dt(D, dx, CFL)
 
-Calculate the time step `dt` for a diffusion process.
+Calculate the time step `dt` for a diffusion process. Units may differ from SI units if non-dimensionalisation 
+has been performed.
 
 # Arguments
 - `D::Float64`: The diffusion coefficient in [m^2/s].
@@ -156,6 +160,7 @@ Calculate the time step `dt` for a diffusion process.
 # Returns
 - `dt::Float64`: The calculated time step.
 """
+
 function calculate_dt(D,dx,CFL)
     #Calculate dt----------------------------------------------------------
     dt = CFL * (dx .^ 2) *inv(D)
@@ -165,7 +170,7 @@ end
 """
     calc_mass_err(Mass, Mass0)
 
-Calculate the mass error between the final mass `Mass[end]` and the initial mass `Mass0`.
+Calculate the mass error between the final mass `Mass[end]` and the initial mass `Mass0`. 
 
 # Arguments
 - `Mass::Vector`: A vector containing the mass values in [mol].
@@ -183,7 +188,7 @@ end
 """
     calc_mass_vol(x_left, x_right, C_left, C_right, n, rho)
 
-Calculate the total mass based on the volume.
+Calculate the total mass based on the volume of the phase.
 
 # Arguments
 - `x_left::Float64`: Left grid points.
@@ -191,49 +196,72 @@ Calculate the total mass based on the volume.
 - `C_left::Vector{Float64}`: Concentration values of the left phase in [mol].
 - `C_right::Vector{Float64}`: Concentration values of the right phase in [mol].
 - `n::Int`: Number which defines the geometry.
-- `rho::Vector{Float64}`: Densities of the left and right phase [kg/m^3].
+- `rho::Vector{Float64}`: Densities of the left and right phase [kg/m³].
 
 # Returns
 - `Mtot::Float64`: The total mass.
 """
 function calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
     #Calculate total mass based on the volume---------------------------------------------
-    V_left_ini, V_right_ini, dVC_ini = calc_volume(x_left,x_right,n)
-    M_left  = trapezoidal_integration(rho[1]*V_left_ini,C_left)
-    M_right = trapezoidal_integration(rho[2]*V_right_ini,C_right)
-    Mtot    = M_left + M_right
+    V_left_ini, V_right_ini, dVC_ini = calc_volume(x_left,x_right,n)                    #Extract volumes
+    M_left  = trapezoidal_integration(rho[1]*V_left_ini,C_left)                         #Calculate mass left phase
+    M_right = trapezoidal_integration(rho[2]*V_right_ini,C_right)                       #Calculate mass right phase
+    Mtot    = M_left + M_right                                                          #Total mass
     return Mtot
 end
 
+"""
+    calc_mass_vol_simple_diff(x1, C1, ndim, rho)
+
+Calculate the total mass based on the volume of a phase. This function is written for a calculation of one phase.
+
+# Arguments
+- `x1::Vector{Float64}`: A vector containing the spatial coordinates.
+- `C1::Vector{Float64}`: A vector containing the concentration values at the spatial coordinates.
+- `ndim::Int`: The number related to the geometry.
+- `rho::Vector{Float64}`: A vector containing the density values.
+
+# Returns
+- `Mtot::Float64`: The total mass calculated using trapezoidal integration.
+
+# Description
+This function calculates the total mass based on the volume for a simple diffusion process. It first preallocates arrays 
+for volume (`V`) and volume change (`dV`). It then calculates the volumes for each spatial coordinate and the volume changes
+between consecutive coordinates. The total volume change (`dVC`) is computed by averaging the volume changes. Finally, the 
+total mass (`Mtot`) is calculated using trapezoidal integration of the product of density and volume with respect to the 
+concentration.
+
+"""
+
 function calc_mass_vol_simple_diff(x1,C1,ndim,rho)
     #Calculate total mass based on the volume---------------------------------------------
-    #preallocations
+    #Preallocations
     V = zeros(length(x1),1)
     dV = zeros(length(x1),1)
     #Calculate volumes
     for (i,_) in enumerate(1:length(x1))
-        V[i]   = x1[i] ^ ndim			 #Volume left phase
-    end
-    for (i,_) in enumerate(1:length(V)-1)
-        dV[i] = (V[i+1] - V[i])          #Volume change left phase
-    end
-    dV1 = [dV; 0] * 0.5
-    dV2 = [0; dV] * 0.5
-    dVC    = dV1 + dV2           #Total volume change
-    Mtot  = trapezoidal_integration(rho[1]*V,C1)
+        V[i]   = x1[i] ^ ndim			                                                #Volume 
+    end                 
+    for (i,_) in enumerate(1:length(V)-1)                   
+        dV[i] = (V[i+1] - V[i])                                                         #Volume change 
+    end                 
+    dV1 = [dV; 0] * 0.5                                                                 
+    dV2 = [0; dV] * 0.5                 
+    dVC    = dV1 + dV2                                                                  #Total volume change
+    Mtot  = trapezoidal_integration(rho[1]*V,C1)                                        #Total mass calculation
     return Mtot
 end
 
 """
     calc_volume(x1, x2, ndim)
 
-Calculation of all volumes. The density in both phases is constant,
-which is why the density does not need to be included in the calculations.
+Calculation of all volumes. The density in both phases is constant. Subsequently, shrinking and expanding volumes are not 
+considered.
 
 # Arguments
 - `x1`: Grid points of the left phase.
 - `x2`: Grid points of the right phase.
-- `ndim`: Dimension of the system (representing geometry).
+- `ndim`: Geometry factor.
 
 # Returns
 - `V1`: Array of volumes for the left phase.
@@ -244,48 +272,45 @@ which is why the density does not need to be included in the calculations.
 function calc_volume(x1,x2,ndim)
     #=Calculation of all volumes. We assume a constant density in both phases,
     which is why the density does not need to be included in the calculations.
+    Shrinking or expanding volumes are not considered.
     ==========================================================================
     =#
-    #preallocations
+    #Preallocations
     V1 = zeros(length(x1),1)
     V2 = zeros(length(x2),1)
     dV = zeros(length(x1)+length(x2)-1,1)
     #Calculate volumes
     for (i,_) in enumerate(1:length(x1))
-        V1[i]   = x1[i] ^ ndim			 #Volume left phase
-    end
-    for (i,_) in enumerate(1:length(x2))
-        V2[i]   = x2[i] ^ ndim			 #Volume right phase
-    end
-    V = [V1; V2]                         #Total volume
-    for (i,_) in enumerate(1:length(V)-1)
-        dV[i] = (V[i+1] - V[i])          #Volume change left phase
+        V1[i]   = x1[i] ^ ndim			                                                #Volume left phase
+    end                     
+    for (i,_) in enumerate(1:length(x2))                        
+        V2[i]   = x2[i] ^ ndim			                                                #Volume right phase
+    end                     
+    V = [V1; V2]                                                                        #Total volume
+    for (i,_) in enumerate(1:length(V)-1)                       
+        dV[i] = (V[i+1] - V[i])                                                         #Volume change 
     end
     dV1 = [dV; 0] * 0.5
     dV2 = [0; dV] * 0.5
-    dVC = dV1 + dV2                      #Total volume change
+    dVC = dV1 + dV2                                                                     #Total volume change
     return V1, V2, dVC
 end
 
 """
-    construct_matrix_fem(x_left, x_right, C_left, C_right, D_l, D_r, dt, n, nels_l, nels_r, Mloc, Kloc, Lloc, res)
+    construct_matrix_fem(x_left, x_right, C_left, C_right, D_l, D_r, dt, n, res)
 
-Constructs the global matrix for the FEM solver in a diffusion couple problem.
+Constructs the global matrix for the FEM solver in a diffusion couple problem. Units may differ from SI units if 
+non-dimensionalisation has been performed.
 
 # Arguments
-- `x_left::Vector{Float64}`: Left grid points.
-- `x_right::Vector{Float64}`: Right grid points.
+- `x_left::Vector{Float64}`: Left grid spatial points.
+- `x_right::Vector{Float64}`: Right grid spatial points.
 - `C_left::Vector{Float64}`: Concentration values of the left phase in [mol].
 - `C_right::Vector{Float64}`: Concentration values of the right phase in [mol].
-- `D_l::Float64`: Diffusion coefficient on the left side in [m^2/s].
-- `D_r::Float64`: Diffusion coefficient on the right side in [m^2/s].
-- `dt::Float64`: Time step size in [s].
+- `D_l::Float64`: Diffusion coefficient on the left side in [m²/s].
+- `D_r::Float64`: Diffusion coefficient on the right side in [m²/s].
+- `dt::Float64`: Time step in [s].
 - `n::Int`: Geometry definition.
-- `nels_l::Int`: Number of elements on the left side.
-- `nels_r::Int`: Number of elements on the right side.
-- `Mloc::Matrix{Float64}`: Local mass matrix.
-- `Kloc::Matrix{Float64}`: Local stiffness matrix.
-- `Lloc::Matrix{Float64}`: Local load matrix.
 - `res::Vector{Float64}`: Resolution.
 
 # Returns
@@ -295,10 +320,10 @@ Constructs the global matrix for the FEM solver in a diffusion couple problem.
 - `Co_r::Vector{Float64}`: Stores right side concentration values before the update.
 """
 function construct_matrix_fem(x_left,x_right,C_left,C_right,D_l,D_r,dt,n,res)
-
+    #Calculate number of elements-----------------------------------------
     nels_l      = res[1] - 1
     nels_r      = res[2] - 1
-    #store old values for RHS----------------------------------------------
+    #Store old values for RHS----------------------------------------------
     Co_l = copy(C_left)
     Co_r = copy(C_right)
     #Left side matrix---------------------------------------------------
@@ -317,14 +342,15 @@ function construct_matrix_fem(x_left,x_right,C_left,C_right,D_l,D_r,dt,n,res)
 end
 
 """
-    create_grid!(Ri, nr, MRefin)
+    create_grid!(Ri, nr, MRefin,verbose)
 
-Create grid with or without variable spacing.
+Create grid with or without variable spacing.Units may differ from SI units if non-dimensionalisation has been performed.
 
 # Arguments
 - `Ri::Vector{Float64}`: Initial radii [interface    total length] in [m].
 - `nr::Vector{Int}`: Resolution vector.
 - `MRefin::Int`: The refinement factor for the grid.
+- `verbose::Bool`: A boolean indicating whether to print additional information.
 
 # Returns
 - `x_left::Matrix{Float64}`: Left grid points.
@@ -335,27 +361,27 @@ Create grid with or without variable spacing.
 
 """
 function create_grid!(Ri,nr,MRefin,verbose)
-    Ri, nr, x_left, x_right, dx_left, dx_right = define_new_grid(Ri,nr,MRefin,verbose)
-    dx1 = x_left[end] - x_left[end-1]
-    dx2 = x_right[2]  - x_right[1]
-    x0  = [copy(x_left); copy(x_right)]
+    Ri, nr, x_left, x_right, dx_left, dx_right = define_new_grid(Ri,nr,MRefin,verbose)      #Define new grid
+    dx1 = x_left[end] - x_left[end-1]                                                       #Last dx on the left side
+    dx2 = x_right[2]  - x_right[1]                                                          #First dx on the right side
+    x0  = [copy(x_left); copy(x_right)]                                                     #Initial grid spacing
     return x_left, x_right, dx1, dx2, x0
 end
 
 """
     define_new_grid(Ri, nr, Rfact, verbose)
 
-This function defines a new grid based on the given parameters.
+This function defines a new grid based on the given parameters. Units may differ from SI units if non-dimensionalisation has been performed.
 
 ## Arguments
-- `Ri`: Radii [interface    total length] in [m]..
-- `nr`: Resolution grid points on the left and right sides.
+- `Ri`: Radii [interface    total length] in [m].
+- `nr`: Resolution of grid points on the left and right side.
 - `Rfact`: Grid refinement factor.
 - `verbose`: A boolean indicating whether to print additional information.
 
 ## Returns
-- `Ri`: Radii [interface    total length] in [m]..
-- `nr`: Resolution grid points on the left and right sides.
+- `Ri`: Radii [interface    total length] in [m].
+- `nr`: Resolution of grid points on the left and right sides.
 - `x_left`:Left grid points.
 - `x_right`: Right grid points.
 - `dx_left`: Left grid spacing.
@@ -365,41 +391,39 @@ This function defines a new grid based on the given parameters.
 
 """
 function define_new_grid(Ri,nr,Rfact,verbose)
-    # Parameters
-    if Rfact == 1.0         #Equally spaced grid
-        x_left   = collect(LinRange(0.0, Ri[1], nr[1]))
-        x_right  = collect(LinRange(Ri[1],Ri[2], nr[2]))
-        dx_left  = diff(x_left)
-        dx_right = diff(x_right)
-    elseif Rfact > 1.0      #Refine both
-        dx_left = collect(LinRange(1.0, 1.0 * inv(Rfact), nr[1]-1))     #spacing 
-        x_left = [0; cumsum(dx_left)] * Ri[1] * inv(sum(dx_left))       #appling to left size ratio cumsum(dx_left)/sum(dx_left) is the spacing
-        dx_left = diff(x_left)
-        #Set Non-linear Problem
-        S = Ri[2] - Ri[1]
-        d = dx_left[end]
-        R = newton_solver(S, d, nr[2]-1, 1e-8, 200,verbose)
-        dx_right = make_dx_right(R, d, nr[2]-1)
-        x_right = [Ri[1]; Ri[1] .+ cumsum(dx_right)]
-        dx_right = diff(x_right)
-    else    #Refine only right grid
-        Rfact   = abs(Rfact)
-        x_left  = collect(LinRange(0.0, Ri[1], nr[1]-1))
-        #x_right = collect(LinRange(Ri[1], Ri[2], nr[2]))
-        dx_left = diff(x_left)
-        #Set Non-linear Problem
-        S = Ri[2] - Ri[1]
-        d = dx_left[end]
-        R = newton_solver(S, d, nr[2]-1, 1e-8, 200,verbose)
-        dx_right = make_dx_right(R, d, nr[2]-1)
-        x_right  = [Ri[1]; Ri[1] .+ cumsum(dx_right)]
-        dx_right = diff(x_right)
+    if Rfact == 1.0                                                                         #Equally spaced grid
+        x_left   = collect(LinRange(0.0, Ri[1], nr[1]))                                     #Create vector with nr[1] equally spaced grid points 
+        x_right  = collect(LinRange(Ri[1],Ri[2], nr[2]))                                    #Create vector with nr[2] equally spaced grid points
+        dx_left  = diff(x_left)                                                             #Calculate dx on the left side
+        dx_right = diff(x_right)                                                            #Calculate dx on the right side
+    elseif Rfact > 1.0                                                                      #Refine both
+        dx_left  = collect(LinRange(1.0, 1.0 * inv(Rfact), nr[1]-1))                        #Spacing left side
+        x_left   = [0; cumsum(dx_left)] * Ri[1] * inv(sum(dx_left))                         #Appling to left size; ratio cumsum(dx_left)/sum(dx_left) defines the spacing
+        dx_left  = diff(x_left)                                                             #Calculate dx on the left side       
+        #Set Non-linear Problem                 
+        S = Ri[2] - Ri[1]                                                                   #Length of the right domain
+        d = dx_left[end]                                                                    #Last dx on the left side   
+        R = newton_solver(S, d, nr[2]-1, 1e-8, 200,verbose)                                 #Apply Newton solver to find the new right grid
+        dx_right = make_dx_right(R, d, nr[2]-1)                                             #Calculate new dx on the right side
+        x_right  = [Ri[1]; Ri[1] .+ cumsum(dx_right)]                                       #Calculate new grid points on the right side
+        dx_right = diff(x_right)                                                            #Calculate dx on the right side
+    else                                                                                    #Refine only right grid
+        Rfact    = abs(Rfact)                                                               #Make sure Rfact is positive
+        x_left   = collect(LinRange(0.0, Ri[1], nr[1]-1))                                   #Create vector with nr[1] equally spaced grid points
+        dx_left  = diff(x_left)                                                             #Calculate dx on the left side
+        #Set Non-linear Problem                 
+        S = Ri[2] - Ri[1]                                                                   #Length of the right domain
+        d = dx_left[end]                                                                    #Last dx on the left side
+        R = newton_solver(S, d, nr[2]-1, 1e-8, 200,verbose)                                 #Apply Newton solver to find the new right grid
+        dx_right = make_dx_right(R, d, nr[2]-1)                                             #Calculate new dx on the right side
+        x_right  = [Ri[1]; Ri[1] .+ cumsum(dx_right)]                                       #Calculate new grid points on the right side
+        dx_right = diff(x_right)                                                            #Calculate dx on the right side
         if verbose == true
             println("MRefin: - $Rfact ; replaced by $Rfact on the right side, kept equal spacing on the left")
         end
     end
-    Sc_left  = dx_left[1]*inv(dx_left[end])
-    Sc_right = dx_right[end]*inv(dx_right[1])
+    Sc_left  = dx_left[1]*inv(dx_left[end])                                                 #Scaling factor for left side
+    Sc_right = dx_right[end]*inv(dx_right[1])                                               #Scaling factor for right side
     if verbose == true
         #Print results to check
         println("dx left  : ", dx_left[end])
@@ -418,16 +442,18 @@ end
     find_dt(dx1, dx2, V_ip, D_l, D_r, CFL)
 
 Find the important time step `dt` based on the given parameters. The function calculates the time step `dt` based on the 
-advection and diffusion properties of the system. Usually, advection time scale `dtV` are more dominat than diffusion time scale `dtD`.
-If the advection velocity `V_ip` is zero, `dtD` is used instead.
+advection and diffusion properties of the system. Usually, advection time scale `dtV` are more dominat than diffusion time 
+scale `dtD`. However, we included a dumping of dt, if `dt`` > `dtD` to ensure the visibility of diffusion processes within
+the code. If the advection velocity `V_ip` is zero, `dtD` is used instead. Units may differ from SI units if 
+non-dimensionalisation has been performed.
 
 
 ## Arguments
-- `dx1`: Left spatial step size.
-- `dx2`: Right spatial step size.
+- `dx1`: Left spatial step size next to the interface.
+- `dx2`: Right spatial step size next to the interface.
 - `V_ip`: The advection velocity in [m/s].
-- `D_l`: The diffusion coefficient on the left side in [m^2/s]. 
-- `D_r`: The diffusion coefficient on the right side in [m^2/s].
+- `D_l`: The diffusion coefficient on the left side in [m²/s]. 
+- `D_r`: The diffusion coefficient on the right side in [m²/s].
 - `CFL`: The Courant-Friedrichs-Lewy number.
 
 ## Returns
@@ -437,33 +463,32 @@ If the advection velocity `V_ip` is zero, `dtD` is used instead.
 function find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
     dt_drop = 0.99
     #Find the important dt-------------------------------------------------
-    dtV   = minimum([dx1,dx2]) ^1 * inv(abs(V_ip))               #Advection time
-    dtD   = minimum([dx1,dx2]) ^2 * inv(maximum([D_l,D_r]))      #Diffusion time
-    dtV1  = dtV * dt_drop
-    dtV2  = dtV * CFL * 5.0
-    dt    = minimum([dtV1,dtV2])
-    if V_ip == 0.0
-        dt   = dtD * CFL
-    elseif dt > dtD
+    dtV   = minimum([dx1,dx2]) ^1 * inv(abs(V_ip))                                          #Advection time
+    dtD   = minimum([dx1,dx2]) ^2 * inv(maximum([D_l,D_r]))                                 #Diffusion time
+    dtV1  = dtV * dt_drop                                                                   #Dropped advection time
+    dtV2  = dtV * CFL * 5.0                                                                 #Advection time with CFL
+    dt    = minimum([dtV1,dtV2])                                                            #Calculate dt
+    if V_ip == 0.0                                                                          #dt for pure diffusion
+        dt   = dtD * CFL        
+    elseif dt > dtD                                                                         #Dumping of dt, if advection and diffusion occure                               
         dt   = dtD * CFL *1e4
     end
     return dt
 end
 
 """
-    fill_matrix!(C, Co, x, D, dt, ndim, nels, res)
+    fill_matrix!(C, x, D, dt, ndim, nels)
 
-fill_matrix! function fills the global matrices L_g and R_g with the corresponding local matrices and vectors. 
+fill_matrix! function fills the global matrices L_g and R_g with the corresponding local matrices and vectors. Units may 
+differ from SI units if non-dimensionalisation has been performed.
 
 # Arguments
 - `C`: Concentration matrix in [mol].
-- `Co`: Initial concentration matrix in [mol].
-- `x`: Array of node positions.
-- `D`: Diffusion coefficient in [m^2/s].
+- `x`: Spatial grid  points.
+- `D`: Diffusion coefficient in [m²/s].
 - `dt`: Time step in [s].
-- `ndim`: Number of dimensions (geometry).
+- `ndim`: Geometry factor.
 - `nels`: Number of elements.
-- `res`: Residual vector.
 
 # Returns
 - `L_g`: Global LHS matrix.
@@ -475,29 +500,29 @@ function fill_matrix!(C,x,D,dt,ndim,nels)
         error("Error in geometry (n must be 1,2 or 3).")
     end
     #Reset matrices------------------------------------------------------------
-    L_g     = spzeros(length(x),length(x))                #size changes every iteration
-    R_g     = zeros(length(x),1)                          #size changes every iteration
-    Co      = copy(C)
-    _dt     = inv(dt)
+    L_g     = spzeros(length(x),length(x))                                                          #Size changes every iteration
+    R_g     = zeros(length(x),1)                                                                    #Size changes every iteration
+    Co      = copy(C)                                                                               #Copy concentration values
+    _dt     = inv(dt)                                                                               #Inverse of dt                
     #Make global matrices------------------------------------------------------
     for (iel,_) in enumerate(1:nels)
-        x_1 = copy(x[iel])
-        x_2 = copy(x[iel+1])
+        x_1 = copy(x[iel])                                                                          #Select x[1:end-1]
+        x_2 = copy(x[iel+1])                                                                        #Select x[2:end]
         #Define local matrices using linear shape functions---------------------
         if ndim  == 3
-            Mloc = [-((x_1 - x_2)*(6*x_1^2 + 3*x_1*x_2 + 1*x_2^2))*inv(30)    -((x_1 - x_2)*(3*x_1^2 + 4*x_1*x_2 + 3*x_2^2))*inv(60);       #Local M (sub matrix)
+            Mloc = [-((x_1 - x_2)*(6*x_1^2 + 3*x_1*x_2 + 1*x_2^2))*inv(30)    -((x_1 - x_2)*(3*x_1^2 + 4*x_1*x_2 + 3*x_2^2))*inv(60);   #Local M (sub-matrix)
                     -((x_1 - x_2)*(3*x_1^2 + 4*x_1*x_2 + 3*x_2^2))*inv(60)    -((x_1 - x_2)*(1*x_1^2 + 3*x_1*x_2 + 6*x_2^2))*inv(30)]
-            Kloc = [-(D*(x_1^2 + x_1*x_2 + x_2^2))*inv(3*(x_1 - x_2))              (D*(x_1^2 + x_1*x_2 + x_2^2))*inv(3*(x_1 - x_2));          #Local K (sub matrix)
+            Kloc = [-(D*(x_1^2 + x_1*x_2 + x_2^2))*inv(3*(x_1 - x_2))              (D*(x_1^2 + x_1*x_2 + x_2^2))*inv(3*(x_1 - x_2));    #Local K (sub-matrix)
                      (D*(x_1^2 + x_1*x_2 + x_2^2))*inv(3*(x_1 - x_2))             -(D*(x_1^2 + x_1*x_2 + x_2^2))*inv(3*(x_1 - x_2))]
         elseif ndim == 2
-            Mloc  = [-((x_1 - x_2)*(3*x_1 + x_2))*inv(12)     x_2^2*inv(12) - x_1^2*inv(12);       #Local M (sub matrix)
+            Mloc  = [-((x_1 - x_2)*(3*x_1 + x_2))*inv(12)     x_2^2*inv(12) - x_1^2*inv(12);        #Local M (sub-matrix)
                         x_2^2*inv(12) - x_1^2*inv(12)      -((x_1 - x_2)*(x_1 + 3*x_2))*inv(12)]
-            Kloc  = [-(D*(x_1 + x_2))*inv(2*(x_1 - x_2))     (D*(x_1 + x_2))*inv(2*(x_1 - x_2));      #Local K (sub matrix)
+            Kloc  = [-(D*(x_1 + x_2))*inv(2*(x_1 - x_2))     (D*(x_1 + x_2))*inv(2*(x_1 - x_2));    #Local K (sub-matrix)
                       (D*(x_1 + x_2))*inv(2*(x_1 - x_2))    -(D*(x_1 + x_2))*inv(2*(x_1 - x_2))]
         elseif ndim == 1
-            Mloc  = [x_2*inv(3) - x_1*inv(3)   x_2*inv(6) - x_1*inv(6);       #Local M (sub matrix)
+            Mloc  = [x_2*inv(3) - x_1*inv(3)   x_2*inv(6) - x_1*inv(6);                             #Local M (sub-matrix)
                      x_2*inv(6) - x_1*inv(6)   x_2*inv(3) - x_1*inv(3)]
-            Kloc  = [-D*inv(x_1 - x_2)   D*inv(x_1 - x_2);      #Local K (sub matrix)
+            Kloc  = [-D*inv(x_1 - x_2)   D*inv(x_1 - x_2);                                          #Local K (sub-matrix)
                       D*inv(x_1 - x_2)  -D*inv(x_1 - x_2)]
         end
         #Local matrices--------------------------------------------------------
@@ -550,7 +575,8 @@ end
     linspace_interface(L1, L2, LIP, nx1, nx2, dX1_dXN)
 
 This function calculates the adaptive grid depending on the position of the interface.
-Note: This function assumes that `L1 < L2` and `nx1 <= nx2`.
+Note: This function assumes that `L1 < L2` and `nx1 <= nx2`. 
+Units may differ from SI units if non-dimensionalisation has been performed.
 
 ## Arguments
 - `L1`: Length of the left side in [m]
@@ -568,7 +594,7 @@ Note: This function assumes that `L1 < L2` and `nx1 <= nx2`.
 function linspace_interface(L1,L2,LIP,nx1,nx2,dX1_dXN)
     #This function calculates the adaptive grid depending on the position of
     #the interface.
-    #preallocations----------------------------------------------------------
+    #Preallocations----------------------------------------------------------
     mag_left    = 0.0
     c           = 0.0
     Fa          = zeros(nx2)
@@ -589,19 +615,19 @@ function linspace_interface(L1,L2,LIP,nx1,nx2,dX1_dXN)
     |0     -mag   1| = |dx3| = |  0  | 
     =#
     #Solve the SoE from above
-    mag_left  = (dX1_dXN) .^ (1*inv((1-nx1)))       #Calculate mag factor for left side
-    ndx       = nx1 - 1                        #Number of dxs
-    LHS       = Matrix{Float64}(I,ndx,ndx)          
+    mag_left  = (dX1_dXN) .^ (1*inv((1-nx1)))                                                       #Calculate mag factor for left side
+    ndx       = nx1 - 1                                                                             #Number of dxs (left side)
+    LHS       = Matrix{Float64}(I,ndx,ndx)                                                          #Preallocate LHS                           
     LHS[1,:] .= 1.0                       
     for (i,_) in enumerate(1:ndx-1)
-        LHS[i+1,i] = -mag_left           
+        LHS[i+1,i] = -mag_left                                                                      #Fill LHS
     end
-    RHS       = zeros(ndx,1)
-    RHS[1]    = LIP-L1
-    dx_left   = (LHS\RHS)'       
-    x1        = [0 cumsum(dx_left, dims = 2);]
-    x_left    = (x1 .+ L1)'                      #Calculate left grid
-    dx_left_last  = x_left[end] - x_left[end-1]  #Calculate last dx
+    RHS       = zeros(ndx,1)                                                                        #Preallocate RHS                    
+    RHS[1]    = LIP-L1                                                                                               
+    dx_left   = (LHS\RHS)'                                                                          #Calculate dxs                   
+    x1        = [0 cumsum(dx_left, dims = 2);]      
+    x_left    = (x1 .+ L1)'                                                                         #Calculate new left grid
+    dx_left_last  = x_left[end] - x_left[end-1]                                                     #Calculate last dx
     #=
     --------------------------------------------------------------------------
     Then calculate mag_right based on
@@ -638,17 +664,17 @@ function linspace_interface(L1,L2,LIP,nx1,nx2,dX1_dXN)
     mag_right = float(sum(copy(c)))
     #Calculate Right Grid------------------------------------------------------
     #Same approach as before with the left grid
-    ndx      = nx2 - 1
-    LHS      = Matrix{Float64}(I,ndx,ndx)
+    ndx      = nx2 - 1                                                                              #Number of dxs (right side)
+    LHS      = Matrix{Float64}(I,ndx,ndx)                                                           #Preallocate LHS
     LHS[1,:] .= 1.0
     for (i,_) in enumerate(1:ndx-1)
-        LHS[i+1,i] = - mag_right    
+        LHS[i+1,i] = - mag_right                                                                    #Fill LHS
     end
-    RHS      = zeros(ndx,1)
+    RHS      = zeros(ndx,1)                                                                         #Preallocate RHS
     RHS[1]   = L2 - LIP
-    dx_left  = (LHS\RHS)'
-    x2       = [0 cumsum(dx_left, dims=2);]
-    x_right  = (x2 .+ LIP)'
+    dx_right = (LHS\RHS)'                                                                           #Calculate dxs             
+    x2       = [0 cumsum(dx_right, dims=2);]                                                        #Calculate x2
+    x_right  = (x2 .+ LIP)'                                                                         #Calculate new right grid
     return x_left, x_right
 end
 
@@ -692,19 +718,19 @@ Solves the non-linear equation F(x) = (1 - x^n) / (1-x) - S / d using the Newton
 """
 function newton_solver(S, d, n, tol, max_iter,verbose)
     #Newton Solver--------------------------------------
-    x   = 1.1                                                       #Do not change this value (initial guess)
-    Res = 1e23                                                      #Some large number
-    for i in 1:max_iter
-        Fx  = (1 - x^n) * inv(1 - x) - (S *inv(d))                         #Function to solve Eq.21 in the paper
-        _dFx = inv(fma(-n * x^(n - 1), (1 - x), (1 - x^n)) *inv((1 - x)^2))    #Derivative
-        Res = abs(Fx)                                              #Residual
+    x   = 1.1                                                                                       #CAUTION: Do not change this value (initial guess)
+    Res = 1e23                                                                                      #Some large number
+    for i in 1:max_iter                 
+        Fx  = (1 - x^n) * inv(1 - x) - (S *inv(d))                                                  #Function to solve
+        _dFx = inv(fma(-n * x^(n - 1), (1 - x), (1 - x^n)) *inv((1 - x)^2))                         #Derivative
+        Res = abs(Fx)                                                                               #Residual
         if Res < tol
             if verbose == true
                 println("Newton converged in $i iterations - Res: $Res")
             end
             return x
         end
-        x = x - 1.0* Fx * _dFx                                       #New value
+        x = x - 1.0* Fx * _dFx                                                                      #New value
         if verbose == true
             println("Newton iteration $i: x = $x with Res: $Res")
         end
@@ -736,7 +762,7 @@ the given data points `(x, y)`.
 function pchip(x,y,X)
     #Shape-preserving piecewise Cubic Hermite Interpolating Polynomial
     #Define parameters---------------------------------------------------
-    msl = 3.0           #Mon. Slope Limiter
+    msl = 3.0                                                                                       #Mon. Slope Limiter
     n   = length(x)
     @views h   = x[2:end] .- x[1:end-1]
     @views y1  = y[1:end-1]
@@ -762,7 +788,7 @@ function pchip(x,y,X)
             if m[i-1] * m[i] < 0.0 || m[i-1] == 0.0 || m[i] == 0.0
                 d[i] = 0.0
             end
-            d[i] = min(abs(d[i]),msl * min(abs(m[i-1]),abs(m[i]))) * sign(d[i])     #Monotonicity adjustment
+            d[i] = min(abs(d[i]),msl * min(abs(m[i-1]),abs(m[i]))) * sign(d[i])                     #Monotonicity adjustment
         end
     end
     #Interpolation--------------------------------------------------------
@@ -800,21 +826,23 @@ function pchip(x,y,X)
 end
 
 """
-    regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, nr, nmin, MRefin)
+    regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, nr, nmin, MRefin, verbose)
 
-Regrid the grid and interpolate the concentration profiles.
+Regrid the grid and interpolate the concentration profiles. Units may differ from SI units if non-dimensionalisation has
+been performed.
 
 # Arguments
 - `Fl_regrid::Int`: Flag indicating whether to regrid or not.
-- `x_left::Vector`: Vector of left grid points.
-- `x_right::Vector`: Vector of right grid points.
+- `x_left::Vector`: Vector of left spatial grid points in [m].
+- `x_right::Vector`: Vector of right spatial grid points in [m].
 - `C_left::Vector`: Vector of left concentration values in [mol].
 - `C_right::Vector`: Vector of right concentration values in [mol].
 - `Ri::Vector`: Radii [interface    total length] in [m].
 - `V_ip::Float64`: Velocity of the interface in [m/s].
-- `nr::Vector`: Resoluzion.
+- `nr::Vector`: Resolution.
 - `nmin::Int`: Minimum grid size.
 - `MRefin::Int`: Refinement factor.
+- `verbose::Bool`: Whether to print additional information.
 
 # Returns
 - `x_left::Matrix`: Matrix of left grid points.
@@ -829,36 +857,36 @@ function regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, nr, nmin
     x_left  = copy(vec(x_left))
     x_right = copy(vec(x_right))
     if Fl_regrid == 1
-        if V_ip > 0.0            #Store new grid size for positive velocities
-            nr[1] = round(Ri[1] * inv(Ri[2] - Ri[1]) * nr[2])
-            if nr[1] < nmin[1]
+        if V_ip > 0.0                                                                           #Store new grid size for positive velocities
+            nr[1] = round(Ri[1] * inv(Ri[2] - Ri[1]) * nr[2])                                   #Define resolution for left side
+            if nr[1] < nmin[1]                                                                  #Check if resolution is above minimum (left side)
                 nr[1] = nmin[1]
             end
-            if nr[2] < nmin[2]
+            if nr[2] < nmin[2]                                                                  #Check if resolution is above minimum (right side)      
                 nr[2] = nmin[2]
             end
-        elseif V_ip < 0.0        #Store new grid size for negative velocities
-            nr[2] = round(Ri[2] * inv(Ri[2] - Ri[1]) * nr[1])
-            if nr[1] < nmin[1]
+        elseif V_ip < 0.0                                                                       #Store new grid size for negative velocities
+            nr[2] = round(Ri[2] * inv(Ri[2] - Ri[1]) * nr[1])                                   #Define resolution for right side
+            if nr[1] < nmin[1]                                                                  #Check if resolution is above minimum (left side)           
                 nr[1] = nmin[1]
             end
-            if nr[2] < nmin[2]
+            if nr[2] < nmin[2]                                                                  #Check if resolution is above minimum (right side)
                 nr[2] = nmin[2]
             end
         end
         #Calculate new grid
-        #X_left, X_right = linspace_interface(0, Ri[2], Ri[1], nr[1], nr[2], MRefin)
-        Ri, nr, X_left, X_right = define_new_grid(Ri,nr,MRefin,verbose)
-        dx1     = X_left[end] - X_left[end-1]
-        dx2     = X_right[2] - X_right[1]
-        C_left  = pchip(x_left, C_left, vec(X_left))
-        C_right = pchip(x_right, C_right, vec(X_right))
+        #X_left, X_right = linspace_interface(0, Ri[2], Ri[1], nr[1], nr[2], MRefin)            #Use the bisection method
+        Ri, nr, X_left, X_right = define_new_grid(Ri,nr,MRefin,verbose)                         #Use the Newton method (better performance!)
+        dx1     = X_left[end] - X_left[end-1]                                                   #Calculate last dx on the left side            
+        dx2     = X_right[2] - X_right[1]                                                       #Calculate first dx on the right side
+        C_left  = pchip(x_left, C_left, vec(X_left))                                            #Interpolate concentration on the left side
+        C_right = pchip(x_right, C_right, vec(X_right))                                         #Interpolate concentration on the right side
         #Update grid
-        x_left  = copy(collect(X_left))
+        x_left  = copy(collect(X_left))                                     
         x_right = copy(collect(X_right))
     else
-        dx1 = x_left[end] - x_left[end-1]
-        dx2 = x_right[2] - x_right[1]
+        dx1 = x_left[end] - x_left[end-1]                                                       #Calculate last dx on the left side                
+        dx2 = x_right[2] - x_right[1]                                                           #Calculate first dx on the right side           
     end
     return x_left, x_right, C_left, C_right, dx1, dx2, nr
 end
@@ -866,40 +894,40 @@ end
 """
     rescale(Ri0, Ri_input, x_left_input, x_right_input, x0_input, Di_input, D0_input, V_input, t_tot_input, t_ar_input, Lsc, Dsc, Vsc, tsc)
 
-Rescales various input parameters based on provided scaling factors.
+Rescales various input parameters based on provided scaling factors. Rescaled factors are provided in Si units.
 
 # Arguments
-- `Ri0`: Initial radius.
-- `Ri_input`: Input radius.
-- `x_left_input`: Left boundary position.
-- `x_right_input`: Right boundary position.
-- `x0_input`: Initial position.
-- `Di_input`: Input diffusion coefficient.
-- `D0_input`: Initial diffusion coefficient.
-- `V_input`: Input velocity.
-- `t_tot_input`: Total time.
-- `t_ar_input`: Array of time points.
-- `Lsc`: Length scaling factor.
-- `Dsc`: Diffusion scaling factor.
-- `Vsc`: Velocity scaling factor.
-- `tsc`: Time scaling factor.
+- `Ri0`: Non-dimensionalized initial radii.
+- `Ri_input`: Non-dimensionalized input radius.
+- `x_left_input`: Non-dimensionalized spatial vector left side.
+- `x_right_input`: Non-dimensionalized spatial vector right side.
+- `x0_input`: Non-dimensionalized initial position.
+- `Di_input`: Non-dimensionalized diffusion coefficient.
+- `D0_input`: Non-dimensionalized pre-exponential factor.
+- `V_input`: Non-dimensionalized input velocity.
+- `t_tot_input`: Non-dimensionalized total time.
+- `t_ar_input`: Non-dimensionalized array of time points.
+- `Lsc`: Length non-dimensionalization factor.
+- `Dsc`: Diffusion non-dimensionalization factor.
+- `Vsc`: Velocity non-dimensionalization factor.
+- `tsc`: Time non-dimensionalization factor.
 
 # Returns
-- `Ri0`: Rescaled initial radius.
-- `Ri`: Rescaled radius.
-- `x_left`: Rescaled left boundary position.
-- `x_right`: Rescaled right boundary position.
-- `x0`: Rescaled initial position.
-- `Di`: Rescaled input diffusion coefficient.
-- `D0`: Rescaled initial diffusion coefficient.
-- `V_ip`: Rescaled input velocity.
-- `t_tot`: Rescaled total time.
-- `t_ar`: Rescaled array of time points.
+- `Ri0`: Dimensionalized initial radii in [m].
+- `Ri`: Dimensionalized radii in [m].
+- `x_left`: Dimensionalized spatial vector left side in [m].
+- `x_right`: Dimensionalized spatial vector right side in [m].
+- `x0`: Dimensionalized initial spatial position in [m].
+- `Di`: Dimensionalized input diffusion coefficient in [m²/s].
+- `D0`: Dimensionalized initial diffusion coefficient in [m²/s].
+- `V_ip`: Dimensionalized input velocity in [m/s].
+- `t_tot`: Dimensionalized total time in [s].
+- `t_ar`: Dimensionalized array of time points in [s].
 """
 
 function rescale(Ri0, Ri_input, x_left_input, x_right_input, x0_input, Di_input, D0_input, V_input, t_tot_input, t_ar_input, Lsc, Dsc, Vsc, tsc)
-    #rescaling of numbers
-    #dependent numbers
+    #Rescaling utilized numbers
+    #Dependent numbers
     V_ip    = V_input        * Vsc
     t_tot   = t_tot_input    * tsc
     t_ar    = t_ar_input     * tsc
@@ -919,9 +947,9 @@ end
 Non-dimensionalizes the input parameters for a diffusion-coupled growth model.
 
 # Arguments
-- `Ri_input::Vector{Float64}`: Initial radii of the particles [m].
-- `Di_input::Vector{Float64}`: Diffusion coefficients of the particles [m^2/s]. If `Di_input` is `[-1, -1]`, the average of `D0_input` is used.
-- `D0_input::Vector{Float64}`: Initial diffusion coefficients [m^2/s].
+- `Ri_input::Vector{Float64}`: Initial radii of the phases [m].
+- `Di_input::Vector{Float64}`: Diffusion coefficients of the particles [m²/s]. If `Di_input` is `[-1, -1]`, the Arrhenius equation is used to calculate `D`.
+- `D0_input::Vector{Float64}`: Pre-exponential factor.
 - `V_input::Float64`: Initial velocity [m/s].
 - `t_tot_input::Float64`: Total time [s].
 - `t_ar_input::Float64`: Array of time points [s].
@@ -939,21 +967,21 @@ Non-dimensionalizes the input parameters for a diffusion-coupled growth model.
 - `tsc::Float64`: Time scale [s].
 
 # Description
-This function performs non-dimensionalization of the input parameters based on the given scales. The length scale (`Lsc`) is fixed at `1e-3` meters. The diffusion scale (`Dsc`) is determined based on the input diffusion coefficients. If `Di_input` is `[-1, -1]`, the average of `D0_input` is used as the diffusion scale. Otherwise, the average of `Di_input` is used. The function then calculates the dependent scales (`tsc`, `Vsc`) and non-dimensionalizes the input parameters accordingly.
+This function performs non-dimensionalization of the input parameters based on the given scales. 
+The length scale (`Lsc`) is fixed at `1e-3` meters. The diffusion scale is the average of `Di_input` or `D0_input`. 
+The function then calculates the dependent scales (`tsc`, `Vsc`) and non-dimensionalizes the input parameters accordingly.
 """
 
 function scaling(Ri_input, Di_input, D0_input, V_input, t_tot_input, t_ar_input)
-    #non-dimensionalization of input parameters
-    #independent scales
-    Lsc = 1e-3                              #[m]
-    if Di_input == [-1 -1]
-        #Dsc = 1e-15
-        Dsc = (D0_input[1]+D0_input[2]) * inv(2.0)  #[m^2/s] 
-    else
-        #Dsc = maximum(Di_input)
-        Dsc = (Di_input[1]+Di_input[2]) * inv(2.0)  #[m^2/s] 
+    #Non-dimensionalization of input parameters
+    #Independent scales
+    Lsc = 1e-3                                                                                  #[m]
+    if Di_input == [-1 -1]                                  
+        Dsc = (D0_input[1]+D0_input[2]) * inv(2.0)                                              #[m²/s] 
+    else                                    
+        Dsc = (Di_input[1]+Di_input[2]) * inv(2.0)                                              #[m²/s] 
     end                                       
-    #dependent scales
+    #Dependent scales
     tsc   = Lsc^2 * inv(Dsc)
     Vsc   = Dsc   * inv(Lsc)
     #independent numbers

@@ -1,6 +1,6 @@
 using Test
 using Diff_Coupled, Diff_Coupled.Benchmarks
-using LinearAlgebra, Revise, LaTeXStrings, SparseArrays
+using LinearAlgebra, LaTeXStrings, SparseArrays
 #Main function----------------------------------------------------
 function main(plot_sim,verbose)
     #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])

@@ -1,6 +1,6 @@
 using Test
 using Diff_Coupled, Diff_Coupled.Benchmarks
-using LinearAlgebra, Revise, LaTeXStrings,SparseArrays
+using LinearAlgebra, LaTeXStrings,SparseArrays
 #Main function----------------------------------------------------------
 function main(plot_sim,verbose)
     #-------------------------------------------------------------------

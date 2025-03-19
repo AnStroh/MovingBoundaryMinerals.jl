@@ -1,11 +1,11 @@
 using Test
 using Diff_Coupled
-using Plots, LinearAlgebra, Revise, LaTeXStrings,SparseArrays
+using LinearAlgebra, Revise, LaTeXStrings,SparseArrays
 #Main function----------------------------------------------------
 function main(plot_sim,verbose)
     #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
     #Phyics-------------------------------------------------------
-    Di      = [2.65*1e-18   2.65*1e-18;]                #Initial diffusion coefficient in [m^2/s]; 
+    Di      = [2.65*1e-18   2.65*1e-18;]                #Initial diffusion coefficient in [m^2/s];
                                                         #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     D0      = [2.75*1e-6    2.75*1e-6;]                 #Pre-exponential factor in [m^2/s]
     rho     = [1.0      1.0;]                           #Normalized densities in [-]
@@ -23,8 +23,8 @@ function main(plot_sim,verbose)
     KD_ar   = LinRange(1.0,1.0,1000)                    #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
                                                         #The last value must be equal to the partition coefficient at t = t_tot.
     t_ar    = LinRange(0.0,t_tot,1000)                  #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
-                                                        #The user is prompted to specify suitable time intervals in relation to the respective destination.               
-    T_ar    = LinRange(1273.15,1273.15,1000)            #Temperature arrray in [K] to calculate temperature history; T changes with respect to time; 
+                                                        #The user is prompted to specify suitable time intervals in relation to the respective destination.
+    T_ar    = LinRange(1273.15,1273.15,1000)            #Temperature arrray in [K] to calculate temperature history; T changes with respect to time;
                                                         #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
     CFL    = 0.5                                        #CFL condition
@@ -32,7 +32,7 @@ function main(plot_sim,verbose)
     resmin = copy(res)                                  #Minimum number of grid points
     MRefin = 1.0                                        #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     Dirichlet = 1                                       #Dirchlet BC at the interface
-    BCout  = [1 1]                                      #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
+    BCout  = [1 1]                                      #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
                                                         #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Check, if t_ar is valid (increasing in time)-----------------
     dt_diff = zeros(length(t_ar)-1)
@@ -63,16 +63,16 @@ function main(plot_sim,verbose)
     #Preprocess and initial condition-----------------------------
     L       = Ri[end]                                   #Length of the domain in [m]
     t       = 0.0                                       #Initial time in [s]
-    it      = 0                                         #Initial number of time iterations                       
-    C0      = [copy(C_left); copy(C_right)]             #Store initial concentration 
-    C       = copy(C0)                                  #Create 1 array with all concentrations  
+    it      = 0                                         #Initial number of time iterations
+    C0      = [copy(C_left); copy(C_right)]             #Store initial concentration
+    C       = copy(C0)                                  #Create 1 array with all concentrations
     C0_l    = copy(C_left)                              #Store initial concentration left side
     C0_r    = copy(C_right)                             #Store initial concentration right side
-    x       = copy(x0)                                  #Create 1 array containing all x-values  
+    x       = copy(x0)                                  #Create 1 array containing all x-values
     Ri0     = copy(Ri)                                  #Store initial radii
     KD      = copy(KD_ar[1])                            #Initial partition coefficient, just for pre-processing
     #Total mass---------------------------------------------------
-    Mass0   = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)        
+    Mass0   = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
     #Preallocate variables----------------------------------------
     Co, Co_l, Co_r, dt, dx, Kloc, Lloc, L_g, Mass, Mloc, nels, nels_l, nels_r, R_g, x_1, x_2, y_interp = preallocations(x, C, C_left, C_right,res)
     #Calculate initial Ds, KD, T----------------------------------
@@ -84,7 +84,7 @@ function main(plot_sim,verbose)
         error("Initial time must be zero.")
     elseif any(dt_diff .<= 0.0) || any(t_ar .< 0.0) || any(t_ar .> t_tot)
         error("The time array is not valid. Please check your inputs.")
-    elseif T  != T_ar[1]   
+    elseif T  != T_ar[1]
         error("Initial temperature must be equal to the first value in the temperature array.")
     end
     #Time loop----------------------------------------------------
@@ -115,11 +115,11 @@ function main(plot_sim,verbose)
         #Solve system---------------------------------------------
         C_left, C_right = solve_soe(L_g,R_g,res)
         #Post-Preprocessing---------------------------------------
-        for iit in enumerate(1)       
+        for iit in enumerate(1)
             Massnow = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
             push!(Mass, Massnow)  #Stores the mass of the system
         end
-        if plot_sim  
+        if plot_sim
             #Plotting---------------------------------------------
             p = plot(x_left,C_left, lw=2, label=L"Left\ side")
             p = plot!(x_right,C_right, lw=2, label=L"Right\ side")
@@ -145,6 +145,3 @@ end
     @test Can_l ≈ C_left rtol = 1e-5
     @test Can_r ≈ C_right rtol = 1e-4
 end
-
-
-

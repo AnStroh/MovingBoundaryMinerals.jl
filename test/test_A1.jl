@@ -1,6 +1,6 @@
 using Test
 using Diff_Coupled
-using Plots, LinearAlgebra, LaTeXStrings, SparseArrays
+using LinearAlgebra, LaTeXStrings, SparseArrays
 # Main function -------------------------------------------------------
 function main()
     # Physics ---------------------------------------------------------
@@ -20,7 +20,7 @@ function main()
     # Domain ----------------------------------------------------------
     dx    = L*inv(res-1)                        #Grid spacing
     x     = [0:dx:L;]                           #Grid points
-    BCout = [1, 1]                              #Boundary condition; 0: Neumann, 1: Dirichlet 
+    BCout = [1, 1]                              #Boundary condition; 0: Neumann, 1: Dirichlet
     #Create initial profile--------------------------------------------
     Cini   = zeros(length(res))                 #Initial background concentration
     nmodes = [1; 2; 5; 7; 12] .* 1.0            #Modes of the sinusoids
@@ -29,20 +29,20 @@ function main()
     # Initial condition -----------------------------------------------
     t     = 0.0                                 #Initial time in [s]
     it    = 0                                   #Time iterations
-    C0    = copy(C)                             #Store initial concentration 
+    C0    = copy(C)                             #Store initial concentration
     x0    = copy(x)                             #Store initial grid points
     #History dependent parameters--------------------------------------
-    T_ar    = LinRange(1273.15,1273.15,1000)    #Temperature arrray in [K] to calculate temperature history; T changes with respect to time; 
+    T_ar    = LinRange(1273.15,1273.15,1000)    #Temperature arrray in [K] to calculate temperature history; T changes with respect to time;
                                                 #The last value must be equal to the temperature at t = t_tot.
     t_ar    = LinRange(0.0,t_tot,1000)          #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
-                                                #The user is prompted to specify suitable time intervals in relation to the respective destination. 
+                                                #The user is prompted to specify suitable time intervals in relation to the respective destination.
     #Calculate values for t check--------------------------------------
     dt_diff = zeros(length(t_ar)-1)
-    dt_diff = t_ar[2:end] .- t_ar[1:end-1]            
+    dt_diff = t_ar[2:end] .- t_ar[1:end-1]
     #Preallocate variables --------------------------------------------
     Co      = zeros(size(C))                    #Old concentration
     dt      = 0.0                               #Initial time step
-    dx      = zeros(length(x) - 1,1)            #Grid spacing   
+    dx      = zeros(length(x) - 1,1)            #Grid spacing
     L_g     = spzeros(length(x),length(x))      #Global matrix
     Mass    = Float64[]                         #Mass array
     nels    = length(x) - 1                     #Number of elements
@@ -60,7 +60,7 @@ function main()
         error("Initial time must be zero.")
     elseif any(dt_diff .<= 0.0) || any(t_ar .< 0.0) || any(t_ar .> t_tot)
         error("The time array is not valid. Please check your inputs.")
-    elseif T  != T_ar[1]   
+    elseif T  != T_ar[1]
         error("Initial temperature must be equal to the first value in the temperature array.")
     end
     #Time loop --------------------------------------------------------
@@ -68,9 +68,9 @@ function main()
         #Store old values
         Co = copy(C)
         #Calculate dt -------------------------------------------------
-        dt = calculate_dt(D,dx,CFL) 
+        dt = calculate_dt(D,dx,CFL)
         #Update time --------------------------------------------------
-        t, dt, it = update_time!(t,dt,it,t_tot) 
+        t, dt, it = update_time!(t,dt,it,t_tot)
         #Update time-dependent parameters------------------------------
         D, T = update_t_dependent_param_simple!(D0,Di,Ea1,R,T_ar,t_ar,t,t_tot)
         #FEM SOLVER ---------------------------------------------------
@@ -81,7 +81,7 @@ function main()
         #Set boundary conditions and scale matrices -------------------
         L_g, R_g = set_outer_bc!(BCout,L_g,R_g,Co[1],Co[end],ScF)
         #Solve system -------------------------------------------------
-        C = L_g \ R_g   
+        C = L_g \ R_g
     end
     Mass = calc_mass_vol_simple_diff(x,C,n,rho)
     #calc_mass_err(Mass,Mass0)
@@ -94,4 +94,3 @@ end
     Can = sinusoid_profile(Cini,nmodes,L,Di,t,Amp,xan)
     @test Can ≈ C rtol = 1e-4
 end
-

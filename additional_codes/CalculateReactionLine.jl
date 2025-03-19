@@ -1,5 +1,5 @@
-#= This code uses the digitized data from digitizePlot.jl (within this Pkg) to calculate the 
-equation of the reaction line of two phases from a X-T phase diagram. The results are the 
+#= This code uses the digitized data from digitizePlot.jl (within this Pkg) to calculate the
+equation of the reaction line of two phases from a X-T phase diagram. The results are the
 coefficients a, b, c of X(T) = c + b*T + a*T², which are used in Chemical_Stefan_problem_XT.jl.
 =#
 using FileIO, DelimitedFiles, Plots
@@ -9,7 +9,7 @@ using FileIO, DelimitedFiles, Plots
 
 Calculates coefficients for two transition lines in a phase diagram using Linear Least Squares.
 The composition X is a function of temperature T, where X(T) = a + b*T + c*T².
-    
+
 ##Units
 - `T` is in [K].
 - `X` is dimensionless (normalized).
@@ -23,18 +23,18 @@ The composition X is a function of temperature T, where X(T) = a + b*T + c*T².
 - `coeff_do::Array{Float64,1}`: The coefficients for the lower transition line equation.
 """
 function CalculateReactionLine(data1,data2)
-    #Data preperation-------------------------------------
+    #Data preparation-------------------------------------
     T_data_up = data2[:,2]	                                            #Extract coordinates for linear least squares
     T_data_do = data1[:,2]                                              #Extract coordinates for linear least squares
     X_data_up = data2[:,1]                                              #Extract coordinates for linear least squares
     X_data_do = data1[:,1]                                              #Extract coordinates for linear least squares
     A1        = ones(length(X_data_up),3)
     A2        = ones(length(X_data_do),3)
-    for (ni,_) in enumerate(1:length(X_data_up))                          
+    for (ni,_) in enumerate(1:length(X_data_up))
         A1[ni,2] = T_data_up[ni]
         A1[ni,3] = T_data_up[ni] ^ 2.0
     end
-    for (ni,_) in enumerate(1:length(X_data_do))                           
+    for (ni,_) in enumerate(1:length(X_data_do))
         A2[ni,2] = T_data_do[ni]
         A2[ni,3] = T_data_do[ni] ^ 2.0
     end
@@ -55,13 +55,13 @@ function CalculateReactionLine(data1,data2)
     folder_path = "examples/Examples_phase_diagram/"
     writedlm(folder_path * "Coefficients_Reaction_lines.csv", [coeff_up coeff_do ])
 
-    return coeff_up, coeff_do 
+    return coeff_up, coeff_do
 end
 
 #Call function--------------------------------------------
 #CAUTION: CSV.file with more points give inaccurate results at the boundaries (Check ~ X = 0 and ~ X = 1).
-#file_name_1 = "examples/Examples_phase_diagram/Lower_Line.csv" 
-#file_name_2 = "examples/Examples_phase_diagram/Upper_Line.csv" 
+#file_name_1 = "examples/Examples_phase_diagram/Lower_Line.csv"
+#file_name_2 = "examples/Examples_phase_diagram/Upper_Line.csv"
 
 #CAUTION: CSV.file with fewer points give more accurate results at the boundaries (Check ~ X = 0 and ~ X = 1).
 file_name_1 = "examples/Examples_phase_diagram/digitized_data_2.csv"    #Lower Line

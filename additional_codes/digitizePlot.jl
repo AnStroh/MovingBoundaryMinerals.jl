@@ -1,19 +1,19 @@
-#= 
+#=
 This is a short summery of details related to our Olivine example and the digitalization of the
 phase diagram.We are using the repository PlotDigitizer.jl in GitHub from Stroh & Frasunkiewicz
 (07.01.2025,https://github.com/AnStroh/PlotDigitizer)
 Their example is the same as in our case. The phase diagram was created using Perple_X PERPLE_X software package (Connolly, 2005,
 https://doi.org/10.1016/j.epsl.2005.04.033; Connolly, 2009, https://doi.org/10.1029/2009GC002540; Xiang & Connolly, 2022,
-https://doi.org/10.1111/jmg.12626). 
-thermodynamic data set: 
+https://doi.org/10.1111/jmg.12626).
+thermodynamic data set:
 hp02ver.dat (Holland & Powell, 1998, https://doi.org/10.1111/j.1525-1314.1998.00140.x)
-solution models: 
-O(HP)       (Holland & Powell, 1998, https://doi.org/10.1111/j.1525-1314.1998.00140.x)   
-melt(HP)    (Holland & Powell, 2001, https://doi.org/10.1093/petrology/42.4.673; White, Powell & Holland, 2001, https://doi.org/10.1046/j.0263-4929.2000.00303.x)  
+solution models:
+O(HP)       (Holland & Powell, 1998, https://doi.org/10.1111/j.1525-1314.1998.00140.x)
+melt(HP)    (Holland & Powell, 2001, https://doi.org/10.1093/petrology/42.4.673; White, Powell & Holland, 2001, https://doi.org/10.1046/j.0263-4929.2000.00303.x)
 
-Reminder: PlotDigitizer.jl is not included into this Pkg. Please download PlotDigitizer.jl to 
-use it or use your prefered digitizer. The code shown here is only a previous version of the package. 
-More options are possible with the help of the package. To proceed, two output files containing X-T values for the 
+Reminder: PlotDigitizer.jl is not included into this Pkg. Please download PlotDigitizer.jl to
+use it or use your preferred digitizer. The code shown here is only a previous version of the package.
+More options are possible with the help of the package. To proceed, two output files containing X-T values for the
 reaction lines are needed.
 CAUTION: Be careful, that limits are captured correctly. Sometimes fewer points give better results.
 =#
@@ -41,7 +41,7 @@ function calc_X_Y(point, X_BC, Y_BC, pixel)
     m_X = (X_BC[2]- X_BC[1])/pixel[1]
     m_Y = (Y_BC[2]- Y_BC[1])/pixel[2]
     X = linear_func(X_BC, point[1], m_X)
-    Y = linear_func(Y_BC, point[2], m_Y) 
+    Y = linear_func(Y_BC, point[2], m_Y)
     return (X, Y)
 end
 
@@ -75,7 +75,7 @@ Digitizes points from an image file and exports the coordinates.
 - `export_name::String`: (Optional) Base name for the exported CSV files. Default is "digitized_data".
 
 # Description
-This function loads an image and allows the user to interactively digitize points on the image. The digitized points 
+This function loads an image and allows the user to interactively digitize points on the image. The digitized points
 are transformed based on the provided boundary conditions and can be exported to CSV files.
 
 # Interactions
@@ -96,7 +96,7 @@ function digitizePlot(X_BC::Tuple, Y_BC::Tuple, file_name::String, export_name::
     pixel       = size(img)
     #Create scene-------------------------------------------------------
     scene       = Scene(camera = campixel!, size=pixel)
-    image!(scene,img) 
+    image!(scene,img)
     #Initialize Observables---------------------------------------------
     lines       = Observable([[]])
     lines_conv  = Observable([[]])
@@ -105,9 +105,9 @@ function digitizePlot(X_BC::Tuple, Y_BC::Tuple, file_name::String, export_name::
     colors      = [RGBf(rand(3)...)]
     active      = 1
     #Flag to stop the interaction---------------------------------------
-    interaction = true                      
+    interaction = true
     #Plot the points and lines------------------------------------------
-    p1          = lines!(scene, points, color = colors[active], linewidth = 3) 
+    p1          = lines!(scene, points, color = colors[active], linewidth = 3)
     p2          = scatter!(scene, points, color = :red, marker = :cross,markersize = 25)
     #Define interactions------------------------------------------------
     on(events(scene).mousebutton) do event
@@ -202,10 +202,8 @@ function digitizePlot(X_BC::Tuple, Y_BC::Tuple, file_name::String, export_name::
     return lines_conv[]
 end
 
-file_name = "examples/Examples_phase_diagram/Ol_Phase_diagram_without_framework.png" 
+file_name = "examples/Examples_phase_diagram/Ol_Phase_diagram_without_framework.png"
 T_BC      = (1273.0, 1873.0)                                                            #min max of T in the phase diagram
 X_BC      = (0.0, 1.0)                                                                  #min max of X (composition) in the phase diagram
 println("Please export your data before finishing.")
 lines = digitizePlot(X_BC, T_BC, file_name)
-
-

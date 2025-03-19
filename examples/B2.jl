@@ -2,9 +2,9 @@ using Diff_Coupled, Diff_Coupled.Benchmarks
 using Plots, LinearAlgebra, Revise, LaTeXStrings, SparseArrays
 #Main function----------------------------------------------------
 function main(adapt_dt,plot_sim,verbose)
-    #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
+    #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])
     #Phyics-------------------------------------------------------
-    Di      = [-1.0    -1.0]                                                #Initial diffusion coefficient in [m^2/s] 
+    Di      = [-1.0    -1.0]                                                #Initial diffusion coefficient in [m^2/s]
                                                                             #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     D0      = [2.75*1e-6    3.9*1e-7;]                                      #Pre-exponential factor in [m^2/s]
     rho     = [1.0      1.0;]                                               #Normalized densities in [-]
@@ -21,17 +21,17 @@ function main(adapt_dt,plot_sim,verbose)
     T0      = 1200.00                                                       #Initial maximal temperature in [K]
     s       = 10.0 * inv(Myr2Sec)                                           #Cooling rate in [K/s]
     n       = 1                                                             #Geometry; 1: planar, 2: cylindrical, 3: spherical
-    #History dependent parameters---------------------------------    
+    #History dependent parameters---------------------------------
     t_ar    = LinRange(0.0,t_tot,10000)                                     #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
-                                                                            #The user is prompted to specify suitable time intervals in relation to the respective destination.               
-    T_ar    = T0 .* inv.( 1.0 .+ (s .* t_ar .* inv(T0)))                    #Temperature arrray in [K] to calculate temperature history; T changes with respect to time; 
+                                                                            #The user is prompted to specify suitable time intervals in relation to the respective destination.
+    T_ar    = T0 .* inv.( 1.0 .+ (s .* t_ar .* inv(T0)))                    #Temperature array in [K] to calculate temperature history; T changes with respect to time;
                                                                             #The last value must be equal to the temperature at t = t_tot.
-    #Numerics-----------------------------------------------------  
+    #Numerics-----------------------------------------------------
     CFL    = 0.10                                                           #CFL condition
     res    = [80 100;]                                                      #Number of grid points
     resmin = copy(res)                                                      #Minimum number of grid points
     MRefin = 50.0                                                           #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
-    BCout  = [0 0]                                                          #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
+    BCout  = [0 0]                                                          #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
                                                                             #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Check, if t_ar is valid (increasing in time)-----------------
     dt_diff = zeros(length(t_ar)-1)
@@ -51,18 +51,18 @@ function main(adapt_dt,plot_sim,verbose)
     #Preprocess and initial condition-----------------------------
     L       = Ri[end]                                                       #Length of the domain in [m]
     t       = 0.0                                                           #Initial time in [s]
-    it      = 0                                                             #Initial number of time iterations                       
+    it      = 0                                                             #Initial number of time iterations
     C_left  = Cl_i*ones(res[1],1)                                           #Initial concentration left side in [mol fraction]
     C_right = Cr_i*ones(res[2],1)                                           #Initial concentration right side in [mol fraction]
-    C0      = [copy(C_left); copy(C_right)]                                 #Store initial concentration 
-    C       = copy(C0)                                                      #Create 1 array with all concentrations  
+    C0      = [copy(C_left); copy(C_right)]                                 #Store initial concentration
+    C       = copy(C0)                                                      #Create 1 array with all concentrations
     C0_l    = copy(C_left)                                                  #Store initial concentration left side
     C0_r    = copy(C_right)                                                 #Store initial concentration right side
-    x       = copy(x0)                                                      #Create 1 array containing all x-values  
+    x       = copy(x0)                                                      #Create 1 array containing all x-values
     Ri0     = copy(Ri)                                                      #Store initial radii
     KD0     = (Cl_i * inv(1 - Cl_i)) * inv((Cr_i * inv(1 - Cr_i)))          #Initial partition coefficient, just for pre-processing
     #Total mass---------------------------------------------------
-    Mass0   = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)        
+    Mass0   = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
     #Preallocate variables----------------------------------------
     Co_l    = zeros(size(C_left))                                           #Matrix to store old concentrations of left side
     Co_r    = zeros(size(C_right))                                          #Matrix to store old concentrations of right side
@@ -77,8 +77,8 @@ function main(adapt_dt,plot_sim,verbose)
     Checks     = []                                                         #Array to store checks
     CheckBC    = []                                                         #Array to store checks for boundary conditions
     #Calculate initial D, KD, T-----------------------------------
-    KD  = copy(KD0)                       
-    D_l = D0[1] * exp(-Ea1 * inv(R) * inv(T0))   
+    KD  = copy(KD0)
+    D_l = D0[1] * exp(-Ea1 * inv(R) * inv(T0))
     D_r = D0[2] * exp(-Ea2 * inv(R) * inv(T0))
     T   = T0
     #Parameter for the semi-analytical solution of Lasaga (1983)
@@ -96,7 +96,7 @@ function main(adapt_dt,plot_sim,verbose)
         error("Initial time must be zero.")
     elseif any(dt_diff .<= 0.0) || any(t_ar .< 0.0) || any(t_ar .> t_tot)
         error("The time array is not valid. Please check your inputs.")
-    elseif T  != T_ar[1]   
+    elseif T  != T_ar[1]
         error("Initial temperature must be equal to the first value in the temperature array.")
     end
     #Time loop----------------------------------------------------
@@ -130,7 +130,7 @@ function main(adapt_dt,plot_sim,verbose)
         #Regrid---------------------------------------------------
         x_left, x_right, C_left, C_right, dx1, dx2, res = regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, res, resmin, MRefin,verbose)
         #Post-Preprocessing---------------------------------------
-        for iit in enumerate(1)       
+        for iit in enumerate(1)
             Massnow = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
             push!(Mass, Massnow)                                            #Stores the mass of the system
         end
@@ -156,7 +156,7 @@ function main(adapt_dt,plot_sim,verbose)
                           title = L"t-T\ path", lw=2, grid=:on, label="")
                 p3 = plot(T_pl,last.(Sols_left), lw=2, label=L"Left\ side\ num.\ solution")
                 p3 = plot!(T_pl,last.(Sols_right), lw=2, label=L"Right\ side\ num.\ solution",
-                          xlabel = L"Temperature\ [K]", ylabel = L"Concentration", 
+                          xlabel = L"Temperature\ [K]", ylabel = L"Concentration",
                           title = L"Boundary\ concentrations", grid=:on)
                 p = plot(p2,p1,suptitle = L"Diffusion\ couple\ (Lasaga)")
                 display(p)
@@ -192,7 +192,7 @@ if run_and_plot
                   title = L"t-T\ path", lw=2, grid=:on, label="")
         p3 = plot(T_pl,last.(Sols_left), lw=2, label=L"Left\ side\ num.\ solution")
         p3 = plot!(T_pl,last.(Sols_right), lw=2, label=L"Right\ side\ num.\ solution",
-                  xlabel = L"Temperature\ [K]", ylabel = L"Concentration", 
+                  xlabel = L"Temperature\ [K]", ylabel = L"Concentration",
                   title = L"Boundary\ concentrations", grid=:on)
         p3 = scatter!(T_pl,Can1[:,1], marker=:circle, markersize=2.0, label=L"Left\ side\ semi-ana.\ solution",
                       markerstrokecolor=:midnightblue, markercolor=:midnightblue)

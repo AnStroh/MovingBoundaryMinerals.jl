@@ -4,7 +4,7 @@ export advect_interface_regrid!, blkdiag, calculate_dt, calc_mass_vol, calc_mass
 """
     advect_interface_regrid!(Ri, V_ip, dt, x_left, x_right, C_left, C_right, nr)
 
-Update the interface position and calculate new grids based on the advection velocity. Units may differ from SI units if 
+Update the interface position and calculate new grids based on the advection velocity. Units may differ from SI units if
 non-dimensionalisation has been performed.
 
 # Arguments
@@ -35,7 +35,7 @@ function advect_interface_regrid!(Ri,V_ip,dt,x_left,x_right,C_left,C_right,nr)
         x_left[end] = copy(Ri[1])                                                                   #Update grid point
         dx1         = x_left[end] - x_left[end-1]                                                   #Calculate new dx on the left side of interface
         if Ri[1] > x_right[2]                                                                       #Check if Ri moved to fast
-            @show x_right[1] x_right[2] Ri[1] 
+            @show x_right[1] x_right[2] Ri[1]
             error("Interface moved too fast. Ri is larger than x_right[2].")
         end
         x_right[1]  = copy(Ri[1])                                                                   #Update grid point
@@ -48,7 +48,7 @@ function advect_interface_regrid!(Ri,V_ip,dt,x_left,x_right,C_left,C_right,nr)
         x_right[1]  = copy(Ri[1])                                                                   #Update grid point
         dx2         = x_right[2] - x_right[1]                                                       #Calculate new dx on the right side of interface
         if Ri[1] < x_left[end-1]                                                                    #Check if Ri moved to fast
-            @show x_left[end-1] x_left[end] Ri[1]   
+            @show x_left[end-1] x_left[end] Ri[1]
             error("Interface moved too fast. Ri is smaller than x_left[end-1].")
         end
         x_left[end] = copy(Ri[1])                                                                   #Update grid point
@@ -109,33 +109,33 @@ Constructs a block matrix and a block vector from given input matrices and vecto
 - `Lblock::SparseMatrixCSC`: The block matrix constructed from `L1` and `L2`.
 - `Rblock::Vector`: The block vector constructed from `R1` and `R2`.
 """
-function blocktest(L1,R1,L2,R2)                                     
+function blocktest(L1,R1,L2,R2)
     n1 = length(R1)                                                                                 #Length of R1
     n2 = length(R2)                                                                                 #Length of R2
     Lblock = spzeros(n1+n2,n1+n2)                                                                   #Preallocate Lblock
     Rblock = zeros(n1+n2)                                                                           #Preallocate Rblock
     #Set block matrix and vector------------------------------
-    for i in 1:n1                                                                                   #Set block matrix part L1 and vector part R1                 
+    for i in 1:n1                                                                                   #Set block matrix part L1 and vector part R1
        if i == 1                                                                                    #First row
-        Lblock[i,i] = L1[1,1]                                       
-        Lblock[i,2] = L1[1,2]                                       
+        Lblock[i,i] = L1[1,1]
+        Lblock[i,2] = L1[1,2]
        elseif i == n1                                                                               #Last row
-        Lblock[i,i]   = L1[n1,n1]                                       
-        Lblock[i,i-1] = L1[n1,n1-1]                                             
+        Lblock[i,i]   = L1[n1,n1]
+        Lblock[i,i-1] = L1[n1,n1-1]
        else                                                                                         #Middle rows
-        Lblock[i,i-1] = L1[i,i-1]                                       
-        Lblock[i,i+0] = L1[i,i+0]                                       
-        Lblock[i,i+1] = L1[i,i+1]                                       
-       end                                      
-       Rblock[i] = R1[i]                                        
-    end                                     
+        Lblock[i,i-1] = L1[i,i-1]
+        Lblock[i,i+0] = L1[i,i+0]
+        Lblock[i,i+1] = L1[i,i+1]
+       end
+       Rblock[i] = R1[i]
+    end
     for i in 1:n2                                                                                   #Set block matrix part L2 and vector part R2
         if i == 1                                                                                   #First row
-            Lblock[i+n1,i+n1] = L2[1,1]                                     
-            Lblock[i+n1,2+n1] = L2[1,2]                                     
+            Lblock[i+n1,i+n1] = L2[1,1]
+            Lblock[i+n1,2+n1] = L2[1,2]
            elseif i == n2                                                                           #Last row
-            Lblock[i+n1,i+n1]   = L2[n2,n2]                                     
-            Lblock[i+n1,i-1+n1] = L2[n2,n2-1]                                                
+            Lblock[i+n1,i+n1]   = L2[n2,n2]
+            Lblock[i+n1,i-1+n1] = L2[n2,n2-1]
            else                                                                                     #Middle rows
             Lblock[i+n1,i-1+n1] = L2[i,i-1]
             Lblock[i+n1,i+0+n1] = L2[i,i+0]
@@ -149,7 +149,7 @@ end
 """
     calculate_dt(D, dx, CFL)
 
-Calculate the time step `dt` for a diffusion process. Units may differ from SI units if non-dimensionalisation 
+Calculate the time step `dt` for a diffusion process. Units may differ from SI units if non-dimensionalisation
 has been performed.
 
 # Arguments
@@ -170,7 +170,7 @@ end
 """
     calc_mass_err(Mass, Mass0)
 
-Calculate the mass error between the final mass `Mass[end]` and the initial mass `Mass0`. 
+Calculate the mass error between the final mass `Mass[end]` and the initial mass `Mass0`.
 
 # Arguments
 - `Mass::Vector`: A vector containing the mass values in [mol].
@@ -225,10 +225,10 @@ Calculate the total mass based on the volume of a phase. This function is writte
 - `Mtot::Float64`: The total mass calculated using trapezoidal integration.
 
 # Description
-This function calculates the total mass based on the volume for a simple diffusion process. It first preallocates arrays 
+This function calculates the total mass based on the volume for a simple diffusion process. It first preallocates arrays
 for volume (`V`) and volume change (`dV`). It then calculates the volumes for each spatial coordinate and the volume changes
-between consecutive coordinates. The total volume change (`dVC`) is computed by averaging the volume changes. Finally, the 
-total mass (`Mtot`) is calculated using trapezoidal integration of the product of density and volume with respect to the 
+between consecutive coordinates. The total volume change (`dVC`) is computed by averaging the volume changes. Finally, the
+total mass (`Mtot`) is calculated using trapezoidal integration of the product of density and volume with respect to the
 concentration.
 
 """
@@ -240,13 +240,13 @@ function calc_mass_vol_simple_diff(x1,C1,ndim,rho)
     dV = zeros(length(x1),1)
     #Calculate volumes
     for (i,_) in enumerate(1:length(x1))
-        V[i]   = x1[i] ^ ndim			                                                            #Volume 
-    end                 
-    for (i,_) in enumerate(1:length(V)-1)                   
-        dV[i] = (V[i+1] - V[i])                                                                     #Volume change 
-    end                 
-    dV1 = [dV; 0] * 0.5                                                                 
-    dV2 = [0; dV] * 0.5                             
+        V[i]   = x1[i] ^ ndim			                                                            #Volume
+    end
+    for (i,_) in enumerate(1:length(V)-1)
+        dV[i] = (V[i+1] - V[i])                                                                     #Volume change
+    end
+    dV1 = [dV; 0] * 0.5
+    dV2 = [0; dV] * 0.5
     dVC    = dV1 + dV2                                                                              #Total volume change
     Mtot  = trapezoidal_integration(rho[1]*V,C1)                                                    #Total mass calculation
     return Mtot
@@ -255,7 +255,7 @@ end
 """
     calc_volume(x1, x2, ndim)
 
-Calculation of all volumes. The density in both phases is constant. Subsequently, shrinking and expanding volumes are not 
+Calculation of all volumes. The density in both phases is constant. Subsequently, shrinking and expanding volumes are not
 considered.
 
 # Arguments
@@ -282,13 +282,13 @@ function calc_volume(x1,x2,ndim)
     #Calculate volumes
     for (i,_) in enumerate(1:length(x1))
         V1[i]   = x1[i] ^ ndim			                                                            #Volume left phase
-    end                     
-    for (i,_) in enumerate(1:length(x2))                        
+    end
+    for (i,_) in enumerate(1:length(x2))
         V2[i]   = x2[i] ^ ndim			                                                            #Volume right phase
-    end                     
+    end
     V = [V1; V2]                                                                                    #Total volume
-    for (i,_) in enumerate(1:length(V)-1)                       
-        dV[i] = (V[i+1] - V[i])                                                                     #Volume change 
+    for (i,_) in enumerate(1:length(V)-1)
+        dV[i] = (V[i+1] - V[i])                                                                     #Volume change
     end
     dV1 = [dV; 0] * 0.5
     dV2 = [0; dV] * 0.5
@@ -299,7 +299,7 @@ end
 """
     construct_matrix_fem(x_left, x_right, C_left, C_right, D_l, D_r, dt, n, res)
 
-Constructs the global matrix for the FEM solver in a diffusion couple problem. Units may differ from SI units if 
+Constructs the global matrix for the FEM solver in a diffusion couple problem. Units may differ from SI units if
 non-dimensionalisation has been performed.
 
 # Arguments
@@ -371,7 +371,7 @@ end
 """
     define_new_grid(Ri, nr, Rfact, verbose)
 
-This function defines a new grid based on the given parameters. Units may differ from SI units if non-dimensionalisation 
+This function defines a new grid based on the given parameters. Units may differ from SI units if non-dimensionalisation
 has been performed.
 
 ## Arguments
@@ -393,17 +393,17 @@ has been performed.
 """
 function define_new_grid(Ri,nr,Rfact,verbose)
     if Rfact == 1.0                                                                                 #Equally spaced grid
-        x_left   = collect(LinRange(0.0, Ri[1], nr[1]))                                             #Create vector with nr[1] equally spaced grid points 
+        x_left   = collect(LinRange(0.0, Ri[1], nr[1]))                                             #Create vector with nr[1] equally spaced grid points
         x_right  = collect(LinRange(Ri[1],Ri[2], nr[2]))                                            #Create vector with nr[2] equally spaced grid points
         dx_left  = diff(x_left)                                                                     #Calculate dx on the left side
         dx_right = diff(x_right)                                                                    #Calculate dx on the right side
     elseif Rfact > 1.0                                                                              #Refine both
         dx_left  = collect(LinRange(1.0, 1.0 * inv(Rfact), nr[1]-1))                                #Spacing left side
-        x_left   = [0; cumsum(dx_left)] * Ri[1] * inv(sum(dx_left))                                 #Appling to left size; ratio cumsum(dx_left)/sum(dx_left) defines the spacing
-        dx_left  = diff(x_left)                                                                     #Calculate dx on the left side       
-        #Set Non-linear Problem                 
+        x_left   = [0; cumsum(dx_left)] * Ri[1] * inv(sum(dx_left))                                 #Applying to left size; ratio cumsum(dx_left)/sum(dx_left) defines the spacing
+        dx_left  = diff(x_left)                                                                     #Calculate dx on the left side
+        #Set Non-linear Problem
         S = Ri[2] - Ri[1]                                                                           #Length of the right domain
-        d = dx_left[end]                                                                            #Last dx on the left side   
+        d = dx_left[end]                                                                            #Last dx on the left side
         R = newton_solver(S, d, nr[2]-1, 1e-8, 200,verbose)                                         #Apply Newton solver to find the new right grid
         dx_right = make_dx_right(R, d, nr[2]-1)                                                     #Calculate new dx on the right side
         x_right  = [Ri[1]; Ri[1] .+ cumsum(dx_right)]                                               #Calculate new grid points on the right side
@@ -412,7 +412,7 @@ function define_new_grid(Ri,nr,Rfact,verbose)
         Rfact    = abs(Rfact)                                                                       #Make sure Rfact is positive
         x_left   = collect(LinRange(0.0, Ri[1], nr[1]-1))                                           #Create vector with nr[1] equally spaced grid points
         dx_left  = diff(x_left)                                                                     #Calculate dx on the left side
-        #Set Non-linear Problem                 
+        #Set Non-linear Problem
         S = Ri[2] - Ri[1]                                                                           #Length of the right domain
         d = dx_left[end]                                                                            #Last dx on the left side
         R = newton_solver(S, d, nr[2]-1, 1e-8, 200,verbose)                                         #Apply Newton solver to find the new right grid
@@ -432,7 +432,7 @@ function define_new_grid(Ri,nr,Rfact,verbose)
         println("x_left   : ", x_left[end])
         println("x_right  : ", x_right[end])
         println("Refinement factor for left is ",Sc_left)
-        println("Refinement factor for right is ",Sc_right) 
+        println("Refinement factor for right is ",Sc_right)
         println("dx1/dx2 (left)  = ",dx_left[1]*inv(dx_left[2]))
         println("dx2/dx1 (right) = ",dx_right[2]*inv(dx_right[1]))
     end
@@ -442,10 +442,10 @@ end
 """
     find_dt(dx1, dx2, V_ip, D_l, D_r, CFL)
 
-Find the important time step `dt` based on the given parameters. The function calculates the time step `dt` based on the 
-advection and diffusion properties of the system. Usually, advection time scale `dtV` are more dominat than diffusion time 
+Find the important time step `dt` based on the given parameters. The function calculates the time step `dt` based on the
+advection and diffusion properties of the system. Usually, advection time scale `dtV` are more dominat than diffusion time
 scale `dtD`. However, we included a dumping of dt, if `dt`` > `dtD` to ensure the visibility of diffusion processes within
-the code. If the advection velocity `V_ip` is zero, `dtD` is used instead. Units may differ from SI units if 
+the code. If the advection velocity `V_ip` is zero, `dtD` is used instead. Units may differ from SI units if
 non-dimensionalisation has been performed.
 
 
@@ -453,7 +453,7 @@ non-dimensionalisation has been performed.
 - `dx1`: Left spatial step size next to the interface.
 - `dx2`: Right spatial step size next to the interface.
 - `V_ip`: The advection velocity in [m/s].
-- `D_l`: The diffusion coefficient on the left side in [m²/s]. 
+- `D_l`: The diffusion coefficient on the left side in [m²/s].
 - `D_r`: The diffusion coefficient on the right side in [m²/s].
 - `CFL`: The Courant-Friedrichs-Lewy number.
 
@@ -470,8 +470,8 @@ function find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
     dtV2  = dtV * CFL * 5.0                                                                         #Advection time with CFL
     dt    = minimum([dtV1,dtV2])                                                                    #Calculate dt
     if V_ip == 0.0                                                                                  #dt for pure diffusion
-        dt   = dtD * CFL                    
-    elseif dt > dtD                                                                                 #Dumping of dt, if advection and diffusion occure                               
+        dt   = dtD * CFL
+    elseif dt > dtD                                                                                 #Dumping of dt, if advection and diffusion occur
         dt   = dtD * CFL *1e4
     end
     return dt
@@ -480,7 +480,7 @@ end
 """
     fill_matrix!(C, x, D, dt, ndim, nels)
 
-fill_matrix! function fills the global matrices L_g and R_g with the corresponding local matrices and vectors. Units may 
+fill_matrix! function fills the global matrices L_g and R_g with the corresponding local matrices and vectors. Units may
 differ from SI units if non-dimensionalisation has been performed.
 
 # Arguments
@@ -504,7 +504,7 @@ function fill_matrix!(C,x,D,dt,ndim,nels)
     L_g     = spzeros(length(x),length(x))                                                          #Size changes every iteration
     R_g     = zeros(length(x),1)                                                                    #Size changes every iteration
     Co      = copy(C)                                                                               #Copy concentration values
-    _dt     = inv(dt)                                                                               #Inverse of dt                
+    _dt     = inv(dt)                                                                               #Inverse of dt
     #Make global matrices-------------------------------------
     for (iel,_) in enumerate(1:nels)
         x_1 = copy(x[iel])                                                                          #Select x[1:end-1]
@@ -528,12 +528,12 @@ function fill_matrix!(C,x,D,dt,ndim,nels)
         end
         #Local matrices---------------------------------------
         Lloc = Mloc .* _dt .+ Kloc
-        Rloc = Mloc .* _dt  * Co[iel:iel+1]  
+        Rloc = Mloc .* _dt  * Co[iel:iel+1]
         #Global matrices--------------------------------------
         L_g[iel:iel+1,iel:iel+1]  .+= Lloc
         R_g[iel:iel+1]            .+= Rloc
-    end     
-    return L_g, R_g  
+    end
+    return L_g, R_g
 end
 
 """
@@ -551,7 +551,7 @@ Perform linear interpolation in 1D.
 
 """
 function linear_interpolation_1D(x, y, x_interp)
-    if length(x) != length(y)       
+    if length(x) != length(y)
         #Check if input arrays are of the same length
         error("x data and y data must be of the same length. Please check your inputs.")
     elseif x_interp < minimum(x) || x_interp > maximum(x)
@@ -566,7 +566,7 @@ function linear_interpolation_1D(x, y, x_interp)
             x1, y1   = x[i + 1], y[i + 1]
             N1       = 1 - (x_interp - x0) * inv(x1 - x0)
             N2       =     (x_interp - x0) * inv(x1 - x0)
-            y_interp =  N1 * y0 + N2 * y1               
+            y_interp =  N1 * y0 + N2 * y1
             return y_interp
         end
     end
@@ -576,7 +576,7 @@ end
     linspace_interface(L1, L2, LIP, nx1, nx2, dX1_dXN)
 
 This function calculates the adaptive grid depending on the position of the interface.
-Note: This function assumes that `L1 < L2` and `nx1 <= nx2`. 
+Note: This function assumes that `L1 < L2` and `nx1 <= nx2`.
 Units may differ from SI units if non-dimensionalisation has been performed.
 
 ## Arguments
@@ -607,26 +607,26 @@ function linspace_interface(L1,L2,LIP,nx1,nx2,dX1_dXN)
     #=
     ==========================================================
     Create Left Grid------------------------------------------
-    mag is the magnification factor between sequential dx. 
+    mag is the magnification factor between sequential dx.
     Note that dx_i+1 = mag*dx_i -> Thus dx_n = mag^(nx-1)*dx_i
     The dxs are found by constructing a system of equations as shown below
     L1: length left side, L2: length right side, LIP: interface position
     |1     1      1|   |dx1|   |L2-L1|
     |-mag  1      0| = |dx2| = |  0  |
-    |0     -mag   1| = |dx3| = |  0  | 
+    |0     -mag   1| = |dx3| = |  0  |
     =#
     #Solve the SoE from above
     mag_left  = (dX1_dXN) .^ (1*inv((1-nx1)))                                                       #Calculate mag factor for left side
     ndx       = nx1 - 1                                                                             #Number of dxs (left side)
-    LHS       = Matrix{Float64}(I,ndx,ndx)                                                          #Preallocate LHS                           
-    LHS[1,:] .= 1.0                       
+    LHS       = Matrix{Float64}(I,ndx,ndx)                                                          #Preallocate LHS
+    LHS[1,:] .= 1.0
     for (i,_) in enumerate(1:ndx-1)
         LHS[i+1,i] = -mag_left                                                                      #Fill LHS
     end
-    RHS       = zeros(ndx,1)                                                                        #Preallocate RHS                    
-    RHS[1]    = LIP-L1                                                                                               
-    dx_left   = (LHS\RHS)'                                                                          #Calculate dxs                   
-    x1        = [0 cumsum(dx_left, dims = 2);]      
+    RHS       = zeros(ndx,1)                                                                        #Preallocate RHS
+    RHS[1]    = LIP-L1
+    dx_left   = (LHS\RHS)'                                                                          #Calculate dxs
+    x1        = [0 cumsum(dx_left, dims = 2);]
     x_left    = (x1 .+ L1)'                                                                         #Calculate new left grid
     dx_left_last  = x_left[end] - x_left[end-1]                                                     #Calculate last dx
     #=
@@ -634,7 +634,7 @@ function linspace_interface(L1,L2,LIP,nx1,nx2,dX1_dXN)
     Then calculate mag_right based on
     dx1   +    dx2     +   ...   + dxn   = L2-LIP
     dx1   + magdx1     +   mag^(n-1)*dx1 = L2-LIP
-    (1+mag+mag^2.+mag^(n-1))*dx1         = L2-LIP 
+    (1+mag+mag^2.+mag^(n-1))*dx1         = L2-LIP
     mag_right is calculated using the bisection method
     =#
     a   = [1e-10]
@@ -673,7 +673,7 @@ function linspace_interface(L1,L2,LIP,nx1,nx2,dX1_dXN)
     end
     RHS      = zeros(ndx,1)                                                                         #Preallocate RHS
     RHS[1]   = L2 - LIP
-    dx_right = (LHS\RHS)'                                                                           #Calculate dxs             
+    dx_right = (LHS\RHS)'                                                                           #Calculate dxs
     x2       = [0 cumsum(dx_right, dims=2);]                                                        #Calculate x2
     x_right  = (x2 .+ LIP)'                                                                         #Calculate new right grid
     return x_left, x_right
@@ -682,7 +682,7 @@ end
 """
     make_dx_right(R, d1, n)
 
-Constructs an array containing the right side `dx`. 
+Constructs an array containing the right side `dx`.
 
 # Arguments
 - `R::Number`: The common ratio to scale all `dx`.
@@ -704,7 +704,7 @@ end
 """
     newton_solver(S, d, n, tol, max_iter, verbose)
 
-Solves the non-linear equation F(x) = (1 - x^n) / (1-x) - S / d using the Newton method. 
+Solves the non-linear equation F(x) = (1 - x^n) / (1-x) - S / d using the Newton method.
 
 # Arguments
 - `S::Float64`: The value of S in the equation (scaling factor).
@@ -721,7 +721,7 @@ function newton_solver(S, d, n, tol, max_iter,verbose)
     #Newton Solver--------------------------------------------
     x   = 1.1                                                                                       #CAUTION: Do not change this value (initial guess)
     Res = 1e23                                                                                      #Some large number
-    for i in 1:max_iter                 
+    for i in 1:max_iter
         Fx  = (1 - x^n) * inv(1 - x) - (S *inv(d))                                                  #Function to solve
         _dFx = inv(fma(-n * x^(n - 1), (1 - x), (1 - x^n)) *inv((1 - x)^2))                         #Derivative
         Res = abs(Fx)                                                                               #Residual
@@ -741,7 +741,7 @@ function newton_solver(S, d, n, tol, max_iter,verbose)
     else
         println("Warning Newton RES: ",Res," - increase Ri[1] or increase grid resolution.")
     end
-    return x    
+    return x
 end
 
 """
@@ -798,15 +798,15 @@ function pchip(x,y,X)
         if !isempty(findall(x -> x == X[j],x))
             k = findall(x -> x == X[j],x)
             P[j] = y[k][1]
-        elseif X[j] > maximum(x) 
+        elseif X[j] > maximum(x)
             k = maximum(findall(x -> x == maximum(x),x))
             P[j] = y[k][1]
-        elseif X[j] < minimum(x) 
+        elseif X[j] < minimum(x)
             k = minimum(findall(x -> x == minimum(x),x))
             P[j] = y[k][1]
         else
             k = maximum(findall(x -> x < X[j],x))
-            if k > length(x) - 1 
+            if k > length(x) - 1
                 error("k out of bounds")
             end
             @views x1 = x[k]
@@ -863,12 +863,12 @@ function regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, nr, nmin
             if nr[1] < nmin[1]                                                                      #Check if resolution is above minimum (left side)
                 nr[1] = nmin[1]
             end
-            if nr[2] < nmin[2]                                                                      #Check if resolution is above minimum (right side)      
+            if nr[2] < nmin[2]                                                                      #Check if resolution is above minimum (right side)
                 nr[2] = nmin[2]
             end
         elseif V_ip < 0.0                                                                           #Store new grid size for negative velocities
             nr[2] = round(Ri[2] * inv(Ri[2] - Ri[1]) * nr[1])                                       #Define resolution for right side
-            if nr[1] < nmin[1]                                                                      #Check if resolution is above minimum (left side)           
+            if nr[1] < nmin[1]                                                                      #Check if resolution is above minimum (left side)
                 nr[1] = nmin[1]
             end
             if nr[2] < nmin[2]                                                                      #Check if resolution is above minimum (right side)
@@ -878,17 +878,17 @@ function regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, nr, nmin
         #Calculate new grid
         #X_left, X_right = linspace_interface(0, Ri[2], Ri[1], nr[1], nr[2], MRefin)                #Use the bisection method
         Ri, nr, X_left, X_right = define_new_grid(Ri,nr,MRefin,verbose)                             #Use the Newton method (better performance!)
-        dx1     = X_left[end] - X_left[end-1]                                                       #Calculate last dx on the left side            
+        dx1     = X_left[end] - X_left[end-1]                                                       #Calculate last dx on the left side
         dx2     = X_right[2] - X_right[1]                                                           #Calculate first dx on the right side
         C_left  = pchip(x_left, C_left, vec(X_left))                                                #Interpolate concentration on the left side
         C_right = pchip(x_right, C_right, vec(X_right))                                             #Interpolate concentration on the right side
         #Update grid
-        x_left  = copy(collect(X_left))                                     
+        x_left  = copy(collect(X_left))
         x_right = copy(collect(X_right))
     else
-        dx1 = x_left[end] - x_left[end-1]                                                           #Calculate last dx on the left side                
-        dx2 = x_right[2] - x_right[1]                                                               #Calculate first dx on the right side           
-    end 
+        dx1 = x_left[end] - x_left[end-1]                                                           #Calculate last dx on the left side
+        dx2 = x_right[2] - x_right[1]                                                               #Calculate first dx on the right side
+    end
     return x_left, x_right, C_left, C_right, dx1, dx2, nr
 end
 
@@ -934,7 +934,7 @@ function rescale(Ri0, Ri_input, x_left_input, x_right_input, x0_input, Di_input,
     t_ar    = t_ar_input     * tsc
     D0      = D0_input      .* Dsc
     Di      = Di_input      .* Dsc
-    Ri      = Ri_input      .* Lsc 
+    Ri      = Ri_input      .* Lsc
     Ri0     = Ri0           .* Lsc
     x_left  = x_left_input  .* Lsc
     x_right = x_right_input .* Lsc
@@ -968,8 +968,8 @@ Non-dimensionalizes the input parameters for a diffusion-coupled growth model.
 - `tsc::Float64`: Time scale.
 
 # Description
-This function performs non-dimensionalization of the input parameters based on the given scales. 
-The length scale (`Lsc`) is fixed at `1e-3` meters. The diffusion scale is the average of `Di_input` or `D0_input`. 
+This function performs non-dimensionalization of the input parameters based on the given scales.
+The length scale (`Lsc`) is fixed at `1e-3` meters. The diffusion scale is the average of `Di_input` or `D0_input`.
 The function then calculates the dependent scales (`tsc`, `Vsc`) and non-dimensionalizes the input parameters accordingly.
 """
 
@@ -977,11 +977,11 @@ function scaling(Ri_input, Di_input, D0_input, V_input, t_tot_input, t_ar_input)
     #Non-dimensionalization of input parameters
     #Independent scales
     Lsc = 1e-3                                                                                      #[m]
-    if Di_input == [-1 -1]                                      
-        Dsc = (D0_input[1]+D0_input[2]) * inv(2.0)                                                  #[m²/s] 
-    else                                        
-        Dsc = (Di_input[1]+Di_input[2]) * inv(2.0)                                                  #[m²/s] 
-    end                                         
+    if Di_input == [-1 -1]
+        Dsc = (D0_input[1]+D0_input[2]) * inv(2.0)                                                  #[m²/s]
+    else
+        Dsc = (Di_input[1]+Di_input[2]) * inv(2.0)                                                  #[m²/s]
+    end
     #Dependent scales
     tsc   = Lsc^2 * inv(Dsc)
     Vsc   = Dsc   * inv(Lsc)
@@ -991,14 +991,14 @@ function scaling(Ri_input, Di_input, D0_input, V_input, t_tot_input, t_ar_input)
     t_ar  = t_ar_input  * inv(tsc)
     D0    = D0_input   .* inv(Dsc)
     Di    = Di_input   .* inv(Dsc)
-    Ri    = Ri_input   .* inv(Lsc) 
+    Ri    = Ri_input   .* inv(Lsc)
     return V_ip, t_tot, t_ar, Di, D0, Ri, Lsc, Dsc, Vsc, tsc
 end
 
 """
     save_figure(save_path::String, save_file::Bool)
 
-Save the current figure to a file if `save_file` is `true`. The file will be saved in the directory specified by `save_path` 
+Save the current figure to a file if `save_file` is `true`. The file will be saved in the directory specified by `save_path`
 with a filename `save_name` that includes the current date and time.
 
 # Arguments
@@ -1088,9 +1088,9 @@ function set_inner_bc_mb!(L_g,R_g,dVolC,Mtot,KD,nr)
     R_g[nr[1]]    = copy(Mtot)
     #Inner BC2 (KD)-------------------------------------------
     #KD = C_left/C_right
-    L_g[nr[1]+1,:] .= 0.0                      
-    L_g[nr[1]+1,nr[1]+0] = - 1.0 * ScF                
-    L_g[nr[1]+1,nr[1]+1] = + KD * ScF               
+    L_g[nr[1]+1,:] .= 0.0
+    L_g[nr[1]+1,nr[1]+0] = - 1.0 * ScF
+    L_g[nr[1]+1,nr[1]+1] = + KD * ScF
     R_g[nr[1]+1]         = 0.0
     return L_g, R_g, ScF
 end
@@ -1103,7 +1103,7 @@ differ from SI units if non-dimensionalisation has been performed.
 
 # Arguments
 - `Cl_i::Float64`: Initial concentration on the left side in [mol].
-- `beta::Float64`: Variable from Lasagas semi-analytical solution. 
+- `beta::Float64`: Variable from Lasagas semi-analytical solution.
 - `t::Float64`: Time in [s].
 - `KD::Float64`: Partition coefficient.
 - `D_r::Float64`: Diffusion coefficient on the right side in [m²/s].
@@ -1126,12 +1126,12 @@ differ from SI units if non-dimensionalisation has been performed.
 - `BC_right::Float64`: Modelled right inner boundary condition (interface) in [mol].
 - `BC_left_Las::Float64`: Left inner boundary condition following Lasaga (1983) in [mol].
 - `BC_right_Las::Float64`: Right inner boundary condition following Lasaga (1983) in [mol].
-""" 
+"""
 function set_inner_bc_Lasaga!(Cl_i,beta,t, KD,D_r,D_l,D0,C_left,C_right,dx1,dx2,rho,L_g,R_g,nr)
     #Set inner boundary conditions for major elements following Lasaga (1983)
     #Semi-analytical solution
     BC_left_Las  = Cl_i * exp(- beta * t)                                                           #Conentration at the left side of the interface
-    C_right_Las  = BC_left_Las * inv(1 - BC_left_Las) * inv(KD)                                     
+    C_right_Las  = BC_left_Las * inv(1 - BC_left_Las) * inv(KD)
     BC_right_Las = C_right_Las * inv(1 + C_right_Las)                                               #Conentration at the right side of the interface
     #=Numerical solution--------------------------------------
     Eq1 = (C_left[end]/(1-C_left[end])/(C_right[1]/(1-C_right[1})) == KD)
@@ -1143,34 +1143,34 @@ function set_inner_bc_Lasaga!(Cl_i,beta,t, KD,D_r,D_l,D0,C_left,C_right,dx1,dx2,
     2. Substitute solution of step 1 in Eq4
     3. Solve Eq4 for C_right[1]
     =#
-    sol1 = (D_r * dx1 * rho[2] - (C_left[end-1] ^ 2 * D_l ^ 2 * KD ^ 2 * dx2 ^ 2 * rho[1] ^ 2 - 
-            2 * C_left[end-1] ^ 2 * D_l ^ 2 * KD * dx2 ^ 2 * rho[1] ^ 2 + C_left[end-1] ^ 2 * D_l ^ 2 * dx2 ^ 2 * rho[1] ^ 2 + 
-            2 * C_left[end-1] * C_right[2] * D_l * D_r * KD ^ 2 * dx1 * dx2 * rho[1] * rho[2] - 
-            4 * C_left[end-1] * C_right[2] * D_l * D_r * KD * dx1 * dx2 * rho[1] * rho[2] + 
-            2 * C_left[end-1] * C_right[2] * D_l * D_r * dx1 * dx2 *rho[1] * rho[2] - 
-            2 * C_left[end-1] * D_l ^ 2 * KD ^ 2 * dx2 ^ 2 * rho[1] ^ 2 + 2 * C_left[end-1] * D_l ^ 2 * KD * dx2 ^ 2 * rho[1] ^ 2 + 
-            2 * C_left[end-1] * D_l * D_r * KD * dx1 * dx2 * rho[1] * rho[2] - 2 * C_left[end-1] * D_l * D_r * dx1 * dx2 * rho[1] * rho[2] + 
-            C_right[2] ^ 2 * D_r ^ 2 * KD ^ 2 * dx1 ^ 2 * rho[2] ^ 2 - 2 * C_right[2] ^ 2 * D_r ^ 2 * KD * dx1 ^ 2 * rho[2] ^ 2 + 
-            C_right[2] ^ 2 * D_r ^ 2 * dx1 ^ 2 *rho[2] ^ 2 - 2 * C_right[2] * D_l * D_r * KD ^ 2 * dx1 * dx2 * rho[1] * rho[2] + 
-            2 * C_right[2] * D_l * D_r * KD * dx1 * dx2 * rho[1] * rho[2] + 2 * C_right[2] * D_r ^ 2 * KD * dx1 ^ 2 * rho[2] ^ 2 - 
-            2 * C_right[2] * D_r ^ 2 * dx1 ^ 2 * rho[2] ^ 2 + D_l ^ 2 * KD ^ 2 * dx2 ^ 2 * rho[1] ^ 2 + 
-            2 * D_l * D_r * KD * dx1 * dx2 * rho[1] * rho[2] + D_r ^ 2 * dx1 ^ 2 * rho[2] ^ 2) ^ (1*inv(2)) + C_left[end-1] * D_l * dx2 * rho[1] + 
-            C_right[2] * D_r * dx1 * rho[2] + D_l * KD * dx2 * rho[1] - C_left[end-1] * D_l * KD * dx2 * rho[1] - 
+    sol1 = (D_r * dx1 * rho[2] - (C_left[end-1] ^ 2 * D_l ^ 2 * KD ^ 2 * dx2 ^ 2 * rho[1] ^ 2 -
+            2 * C_left[end-1] ^ 2 * D_l ^ 2 * KD * dx2 ^ 2 * rho[1] ^ 2 + C_left[end-1] ^ 2 * D_l ^ 2 * dx2 ^ 2 * rho[1] ^ 2 +
+            2 * C_left[end-1] * C_right[2] * D_l * D_r * KD ^ 2 * dx1 * dx2 * rho[1] * rho[2] -
+            4 * C_left[end-1] * C_right[2] * D_l * D_r * KD * dx1 * dx2 * rho[1] * rho[2] +
+            2 * C_left[end-1] * C_right[2] * D_l * D_r * dx1 * dx2 *rho[1] * rho[2] -
+            2 * C_left[end-1] * D_l ^ 2 * KD ^ 2 * dx2 ^ 2 * rho[1] ^ 2 + 2 * C_left[end-1] * D_l ^ 2 * KD * dx2 ^ 2 * rho[1] ^ 2 +
+            2 * C_left[end-1] * D_l * D_r * KD * dx1 * dx2 * rho[1] * rho[2] - 2 * C_left[end-1] * D_l * D_r * dx1 * dx2 * rho[1] * rho[2] +
+            C_right[2] ^ 2 * D_r ^ 2 * KD ^ 2 * dx1 ^ 2 * rho[2] ^ 2 - 2 * C_right[2] ^ 2 * D_r ^ 2 * KD * dx1 ^ 2 * rho[2] ^ 2 +
+            C_right[2] ^ 2 * D_r ^ 2 * dx1 ^ 2 *rho[2] ^ 2 - 2 * C_right[2] * D_l * D_r * KD ^ 2 * dx1 * dx2 * rho[1] * rho[2] +
+            2 * C_right[2] * D_l * D_r * KD * dx1 * dx2 * rho[1] * rho[2] + 2 * C_right[2] * D_r ^ 2 * KD * dx1 ^ 2 * rho[2] ^ 2 -
+            2 * C_right[2] * D_r ^ 2 * dx1 ^ 2 * rho[2] ^ 2 + D_l ^ 2 * KD ^ 2 * dx2 ^ 2 * rho[1] ^ 2 +
+            2 * D_l * D_r * KD * dx1 * dx2 * rho[1] * rho[2] + D_r ^ 2 * dx1 ^ 2 * rho[2] ^ 2) ^ (1*inv(2)) + C_left[end-1] * D_l * dx2 * rho[1] +
+            C_right[2] * D_r * dx1 * rho[2] + D_l * KD * dx2 * rho[1] - C_left[end-1] * D_l * KD * dx2 * rho[1] -
             C_right[2] * D_r * KD * dx1 * rho[2]) * inv((2 * (D_r * dx1 * rho[2] - D_r * KD * dx1 * rho[2])))
-    sol2 = ((C_left[end-1] ^ 2 * D_l ^ 2 * KD ^ 2 * dx2 ^ 2 * rho[1] ^ 2 - 2 * C_left[end-1] ^ 2 * D_l ^ 2 * KD * dx2 ^ 2 * rho[1] ^ 2 + 
+    sol2 = ((C_left[end-1] ^ 2 * D_l ^ 2 * KD ^ 2 * dx2 ^ 2 * rho[1] ^ 2 - 2 * C_left[end-1] ^ 2 * D_l ^ 2 * KD * dx2 ^ 2 * rho[1] ^ 2 +
             C_left[end-1] ^ 2 * D_l ^ 2 * dx2 ^ 2 * rho[1] ^ 2 +
-            2 * C_left[end-1] * C_right[2] * D_l * D_r * KD ^ 2 * dx1 * dx2 * rho[1] * rho[2] - 
-            4 * C_left[end-1] * C_right[2] * D_l * D_r * KD * dx1 * dx2 * rho[1] * rho[2] + 
-            2 * C_left[end-1] * C_right[2] * D_l * D_r * dx1 * dx2 * rho[1] * rho[2] - 
-            2 * C_left[end-1] * D_l ^ 2 * KD ^ 2 * dx2 ^ 2 * rho[1] ^ 2 + 2 * C_left[end-1] * D_l ^ 2 * KD * dx2 ^ 2 * rho[1] ^ 2 + 
-            2 * C_left[end-1] * D_l * D_r * KD * dx1 * dx2 * rho[1] * rho[2] - 2 * C_left[end-1] * D_l * D_r * dx1 * dx2 * rho[1] * rho[2] + 
-            C_right[2] ^ 2 * D_r ^ 2 * KD ^ 2 * dx1 ^ 2 * rho[2] ^ 2 - 2 * C_right[2] ^ 2 * D_r ^ 2 * KD * dx1 ^ 2 * rho[2] ^ 2 + 
-            C_right[2] ^ 2 * D_r ^ 2 * dx1 ^ 2 * rho[2] ^ 2 - 2 * C_right[2] * D_l * D_r * KD ^ 2 * dx1 * dx2 * rho[1] * rho[2] + 
-            2 * C_right[2] * D_l * D_r * KD * dx1 * dx2 * rho[1] * rho[2] + 
-            2 * C_right[2] * D_r ^ 2 * KD * dx1 ^ 2 * rho[2] ^ 2 - 2 * C_right[2] * D_r ^ 2 * dx1 ^ 2 * rho[2] ^ 2 + 
-            D_l ^ 2 * KD ^ 2 * dx2 ^ 2 * rho[1] ^ 2 + 2 * D_l * D_r * KD * dx1 * dx2 * rho[1] * rho[2] + 
-            D_r ^ 2 * dx1 ^ 2 * rho[2] ^ 2) ^ (1*inv(2)) + D_r * dx1 * rho[2] + C_left[end-1] * D_l * dx2 * rho[1] + 
-            C_right[2] * D_r * dx1 * rho[2] + D_l * KD * dx2 * rho[1] - C_left[end-1] * D_l * KD * dx2 * rho[1] - 
+            2 * C_left[end-1] * C_right[2] * D_l * D_r * KD ^ 2 * dx1 * dx2 * rho[1] * rho[2] -
+            4 * C_left[end-1] * C_right[2] * D_l * D_r * KD * dx1 * dx2 * rho[1] * rho[2] +
+            2 * C_left[end-1] * C_right[2] * D_l * D_r * dx1 * dx2 * rho[1] * rho[2] -
+            2 * C_left[end-1] * D_l ^ 2 * KD ^ 2 * dx2 ^ 2 * rho[1] ^ 2 + 2 * C_left[end-1] * D_l ^ 2 * KD * dx2 ^ 2 * rho[1] ^ 2 +
+            2 * C_left[end-1] * D_l * D_r * KD * dx1 * dx2 * rho[1] * rho[2] - 2 * C_left[end-1] * D_l * D_r * dx1 * dx2 * rho[1] * rho[2] +
+            C_right[2] ^ 2 * D_r ^ 2 * KD ^ 2 * dx1 ^ 2 * rho[2] ^ 2 - 2 * C_right[2] ^ 2 * D_r ^ 2 * KD * dx1 ^ 2 * rho[2] ^ 2 +
+            C_right[2] ^ 2 * D_r ^ 2 * dx1 ^ 2 * rho[2] ^ 2 - 2 * C_right[2] * D_l * D_r * KD ^ 2 * dx1 * dx2 * rho[1] * rho[2] +
+            2 * C_right[2] * D_l * D_r * KD * dx1 * dx2 * rho[1] * rho[2] +
+            2 * C_right[2] * D_r ^ 2 * KD * dx1 ^ 2 * rho[2] ^ 2 - 2 * C_right[2] * D_r ^ 2 * dx1 ^ 2 * rho[2] ^ 2 +
+            D_l ^ 2 * KD ^ 2 * dx2 ^ 2 * rho[1] ^ 2 + 2 * D_l * D_r * KD * dx1 * dx2 * rho[1] * rho[2] +
+            D_r ^ 2 * dx1 ^ 2 * rho[2] ^ 2) ^ (1*inv(2)) + D_r * dx1 * rho[2] + C_left[end-1] * D_l * dx2 * rho[1] +
+            C_right[2] * D_r * dx1 * rho[2] + D_l * KD * dx2 * rho[1] - C_left[end-1] * D_l * KD * dx2 * rho[1] -
             C_right[2] * D_r * KD * dx1 * rho[2]) * ((2 * (D_r * dx1 * rho[2] - D_r * KD * dx1 * rho[2])))
     #Find realistic solution
     if sol2>1 || sol2<0
@@ -1195,7 +1195,7 @@ end
 """
     set_outer_bc!(BCout, L_g, R_g, C_left, C_right, ScF)
 
-Set the outer boundary conditions (Dirichlet or Neumann) for the diffusion-advection problem. Units may differ from SI units 
+Set the outer boundary conditions (Dirichlet or Neumann) for the diffusion-advection problem. Units may differ from SI units
 if non-dimensionalisation has been performed.
 
 # Arguments
@@ -1234,8 +1234,8 @@ end
 
 Calculates a sinusoidal concentration profile.
 
-This function takes the initial concentration `C0`, the number of sinusoidal modes `n`, the length of the system `L`, 
-the diffusion coefficient `D`, the time `t`, and the amplitude `G` as input parameters. It calculates the concentration 
+This function takes the initial concentration `C0`, the number of sinusoidal modes `n`, the length of the system `L`,
+the diffusion coefficient `D`, the time `t`, and the amplitude `G` as input parameters. It calculates the concentration
 profile at a given time `t` using the sinusoidal equation. Units may differ from SI units if non-dimensionalisation has
 been performed.
 
@@ -1276,7 +1276,7 @@ Solves a system of equations.
 """
 function solve_soe(L_g,R_g,res)
     #Solve the system of equations
-    CN      = L_g \ R_g 
+    CN      = L_g \ R_g
     C_left  = CN[1:res[1]]
     C_right = CN[res[1]+1:end]
     return C_left, C_right
@@ -1313,7 +1313,7 @@ end
     update_t_dependent_param!(D0, Di, Ea1, Ea2, KD_ar, R, T_ar, t_ar, t, t_tot)
 
 Update the time dependent parameters `D_l`, `D_r`, `KD`, and `T` based on the given inputs.
-If Di = [-1.0 -1.0], the diffusion coefficient will be calculated based on the Arrhenius relation. Units may differ from SI 
+If Di = [-1.0 -1.0], the diffusion coefficient will be calculated based on the Arrhenius relation. Units may differ from SI
 units if non-dimensionalisation has been performed.
 
 # Arguments
@@ -1336,8 +1336,8 @@ units if non-dimensionalisation has been performed.
 """
 function update_t_dependent_param!(D0,Di,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
     #Interpolate KD and T-------------------------------------
-    KD  = linear_interpolation_1D(t_ar,KD_ar,t)                                                     #New partition coefficient  
-    T   = linear_interpolation_1D(t_ar,T_ar,t)                                                      #New temperature 
+    KD  = linear_interpolation_1D(t_ar,KD_ar,t)                                                     #New partition coefficient
+    T   = linear_interpolation_1D(t_ar,T_ar,t)                                                      #New temperature
     #Check for boundaries-------------------------------------
     tol = 1e-12
     if t == t_tot
@@ -1355,7 +1355,7 @@ function update_t_dependent_param!(D0,Di,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
     if Di == [-1 -1]                                                                                #Use Arrhenius relation
         D_l = D0[1] * exp(-Ea1 * inv(R * T))                                                        #Diffusion coefficient left
         D_r = D0[2] * exp(-Ea2 * inv(R * T))                                                        #Diffusion coefficient right
-    elseif Di != [-1 -1]                                                                            #Use initial diffusivities  
+    elseif Di != [-1 -1]                                                                            #Use initial diffusivities
         D_l = Di[1]                                                                                 #Diffusion coefficient left
         D_r = Di[2]                                                                                 #Diffusion coefficient right
     else
@@ -1367,8 +1367,8 @@ end
 """
     update_t_dependent_param_simple!(D0, Di, Ea1, R, T_ar, t_ar, t, t_tot)
 
-Update the dependent parameters `D` and `T` based on the given inputs. If Di = [-1.0], the 
-diffusion coefficient will be calculated based on the Arrhenius relation. Units may differ from SI units if 
+Update the dependent parameters `D` and `T` based on the given inputs. If Di = [-1.0], the
+diffusion coefficient will be calculated based on the Arrhenius relation. Units may differ from SI units if
 non-dimensionalisation has been performed.
 
 # Arguments
@@ -1388,7 +1388,7 @@ non-dimensionalisation has been performed.
 """
 function update_t_dependent_param_simple!(D0,Di,Ea1,R,T_ar,t_ar,t,t_tot)
     #Interpolate T--------------------------------------------
-    T   = linear_interpolation_1D(t_ar,T_ar,t)   
+    T   = linear_interpolation_1D(t_ar,T_ar,t)
     #Check for boundaries-------------------------------------
     tol = 1e-12
     if t == t_tot
@@ -1400,7 +1400,7 @@ function update_t_dependent_param_simple!(D0,Di,Ea1,R,T_ar,t_ar,t,t_tot)
     end
     #Calculate D----------------------------------------------
     if Di == -1                                                                                     #Use Arrhenius relation
-        D_l = D0 * exp(-Ea1 * inv(R * T))                                                           #Diffusion coefficient 
+        D_l = D0 * exp(-Ea1 * inv(R * T))                                                           #Diffusion coefficient
     elseif Di != -1                                                                                 #Use initial diffusivity
         D_l = Di                                                                                    #Diffusion coefficient
     else
@@ -1412,7 +1412,7 @@ end
 """
     update_time!(t, dt, it, t_tot)
 
-Update the time and time  related variables `t`, `dt`, and `it` for a given total time `t_tot`. Units may differ from SI 
+Update the time and time  related variables `t`, `dt`, and `it` for a given total time `t_tot`. Units may differ from SI
 units if non-dimensionalisation has been performed.
 
 # Arguments

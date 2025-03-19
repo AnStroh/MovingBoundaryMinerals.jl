@@ -6,7 +6,7 @@
     ------------------------------------------------------------------------
     The software can be used to calculate concentration profiles taking into
     account diffusion and a moving boundary. Mass balance describes
-    concentration changes at the interface.' 
+    concentration changes at the interface.'
     Phase A: left component (stable at lower T), Phase B: right component
     (stable at higher T)
 ============================================================================#
@@ -14,10 +14,10 @@ using Diff_Coupled
 using Plots, LinearAlgebra, DelimitedFiles, SparseArrays, LaTeXStrings
 #Main function--------------------------------------------------------------
 function main(plot_sim,verbose)
-    #If you find a [] with two entires this belong to the respective side of 
+    #If you find a [] with two entries this belong to the respective side of
     #the diffusion couple ([left right])
     #Phyics-----------------------------------------------------------------
-    Di          = [0.002   0.0004;]                                                                     #Initial diffusion coefficient in [m^2/s]  
+    Di          = [0.002   0.0004;]                                                                     #Initial diffusion coefficient in [m^2/s]
                                                                                                         #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     Ri          = 2.0                                                                                   #Position of the interface -> initial radius of the left phase
     Tstart      = 1400.0 + 273.0                                                                        #Starting temperature in [K]
@@ -27,39 +27,39 @@ function main(plot_sim,verbose)
     n           = 1                                                                                     #Geometry; 1: planar, 2: cylindrical, 3: spherical
     CompInt     = 0.3                                                                                   #Composition of interest of the solid solution
     coeff       = readdlm("examples/Examples_phase_diagram/Coefficients_Reaction_lines.csv")            #Reads the coefficients for the linear least squares
-    eq_values   = [coeff[1,1]  coeff[2,1]  coeff[3,1];	                                                #Coefficients for composition calculation of component B (stable at higher T) X2 = a2 + b2*T + c2*T²   
-                   coeff[1,2]  coeff[2,2]  coeff[3,2]]                                                  #Coefficients for composition calculation of component A (stable at lower T) X1 = a1 + b1*T + c1*T²     
+    eq_values   = [coeff[1,1]  coeff[2,1]  coeff[3,1];	                                                #Coefficients for composition calculation of component B (stable at higher T) X2 = a2 + b2*T + c2*T²
+                   coeff[1,2]  coeff[2,2]  coeff[3,2]]                                                  #Coefficients for composition calculation of component A (stable at lower T) X1 = a1 + b1*T + c1*T²
     rho_phases  = readdlm("./examples/Examples_phase_diagram/density_phases copy.tab")                  #Reads the density values for the phases
     #Numerics---------------------------------------------------------------
     CFL                 = 0.8                                                                           #CFL condition
     res                 = [15 25;]                                                                      #Number of grid points
     resmin              = copy(res)                                                                     #Minimum number of grid points
     MRefin              = 5.0                                                                           #Refinement factor
-    BCout               = [0 0]                                                                         #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
+    BCout               = [0 0]                                                                         #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
                                                                                                         #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Create data set--------------------------------------------------------
     #Create arrays X(T) using linear least squares
     coeff_up, coeff_do  = coeff_trans_line(eq_values)                                                   #Extract coefficients
     TMAX                = Tstart + 1000.0                                                               #Max temperature for T-array
-    TMIN                = Tstop  - 1000.0                                                               #Min temperature for T-array 
+    TMIN                = Tstop  - 1000.0                                                               #Min temperature for T-array
     Tlin                = LinRange(TMAX,TMIN,10000)                                                     #Temperature values
     XC_left, XC_right   = composition(coeff_up,coeff_do,Tlin)                                           #e.g. liquidus/solidus/solvus
     C_leftlin           = copy(XC_left)                                                                 #Store the composition of A for later calculations
     C_rightlin          = copy(XC_right)                                                                #Store the composition of B for later calculations
     #Create density plots---------------------------------------------------
-    nd1                 = Int(round(sqrt.(length(rho_phases[:,1]))))                                 
-    Xwm                 = copy(rho_phases[:,1]) 
+    nd1                 = Int(round(sqrt.(length(rho_phases[:,1]))))
+    Xwm                 = copy(rho_phases[:,1])
     Xwm                 = reshape(Xwm,nd1,nd1)                                                          #X(C1)
-    Twm                 = copy(rho_phases[:,2])                                    
+    Twm                 = copy(rho_phases[:,2])
     Twm                 = reshape(Twm,nd1,nd1)                                                          #Temperature in [K]
-    rho_left            = copy(rho_phases[:,3])                                    
+    rho_left            = copy(rho_phases[:,3])
     rho_left            = reshape(rho_left,nd1,nd1)                                                     #Density component A in [kg/m^3]
-    rho_right           = copy(rho_phases[:,4])                                    
+    rho_right           = copy(rho_phases[:,4])
     rho_right           = reshape(rho_right,nd1,nd1)                                                    #Density component B in [kg/m^3]
     #Create other arrays----------------------------------------------------
     R_left              = C_leftlin .* inv.((1.0 .- C_leftlin))                                         #Concentration rate in phase A
     R_right             = C_rightlin .* inv.((1.0 .- C_rightlin))                                       #Concentration rate in phase B
-    KDlin               = R_left .* inv.(R_right)                                                       #Partition coefficient KD 
+    KDlin               = R_left .* inv.(R_right)                                                       #Partition coefficient KD
     Tpath               = LinRange(Tstart,Tstop,10000)                                                  #Temperature path in [K]
     tpath               = LinRange(0,t_tot+1e-10,10000)                                                 #Time path in [s]
     #Preprocess and initial condition---------------------------------------
@@ -70,7 +70,7 @@ function main(plot_sim,verbose)
     T                   = copy(Tstart)                                                                  #Initial temperature
     C_leftB, C_rightB   = composition(coeff_up,coeff_do,T)                                              #Initial composition of the phases
     Xc                  = (1.0 - CompInt) * C_rightB + CompInt * C_leftB                                #Actual total composition (Xc intersection with black dashed line, e.g. Xc = C(Ol)*V(Ol)+C(melt)*V(melt)
-    L                   = (Ri[1] ^ n * (Xc - C_leftB) * inv((C_rightB - Xc)) ^ (1 * inv(n))) + Ri[1]    #Total length of the modelling domain 
+    L                   = (Ri[1] ^ n * (Xc - C_leftB) * inv((C_rightB - Xc)) ^ (1 * inv(n))) + Ri[1]    #Total length of the modelling domain
     Ri                  = [Ri L]                                                                        #Radii of the 2 phases
     #Create mesh, discretization and mapping--------------------------------
     if Ri[1] >= Ri[2]
@@ -93,7 +93,7 @@ function main(plot_sim,verbose)
     Mass0               = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)                            #Initial mass
     Mass01              = (trapezoidal_integration(x_left.^n*rho[1],C_left)+ trapezoidal_integration(x_right.^n*rho[2],C_right))/Ri[2]    #Initial mass (plot)
     #Preallocate variables--------------------------------------------------
-    L_g         = spzeros(length(x0),length(x0))                                                        #Global LHS matrix   
+    L_g         = spzeros(length(x0),length(x0))                                                        #Global LHS matrix
     Mass        = Float64[]                                                                             #Array to store the mass of the system
     Mass2       = Float64[]                                                                             #Array to store the mass of the system (plot)
     KD_sim      = Float64[]                                                                             #Array to store the partition coefficient
@@ -106,14 +106,14 @@ function main(plot_sim,verbose)
     while t < t_tot
         #Update time--------------------------------------------------------
         t, dt, it = update_time!(t,dt,it,t_tot)
-        if t <= t_tot          
+        if t <= t_tot
             T  = linear_interpolation_1D(tpath,Tpath,t)
         end
         #Calculate Equilibrium compositions at actual T---------------------
         C_left[end], C_right[1] = composition(coeff_up,coeff_do,T)
         dC  = C_right[1] - C_left[end]                                                                  #Composition difference
         rho = calculate_density(Xwm[:,1],Twm[1,:],rho_left,rho_right,C_leftB,C_rightB,T)
-        #Stefan condition -> Composition difference-------------------------                                 
+        #Stefan condition -> Composition difference-------------------------
         JL   = - D_l * rho[1] * (C_left[end] - C_left[end-1]) * inv(dx1)                                #Flux of the left side to the right side
         JR   = - D_r * rho[2] * (C_right[2]  - C_right[1])    * inv(dx2)                                #Flux of the right side to the left side
         V_ip = (JR - JL) * inv(dC)                                                                      #Velocity in x direction
@@ -131,7 +131,7 @@ function main(plot_sim,verbose)
         #Regrid-------------------------------------------------------------
         x_left, x_right, C_left, C_right, dx1, dx2, res = regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, res, resmin, MRefin,verbose)
         #Post-Preprocessing-------------------------------------------------
-        for iit in enumerate(1)       
+        for iit in enumerate(1)
             Massnow     = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
             Massnow2    = (trapezoidal_integration(x_left.^n*rho[1],C_left)+ trapezoidal_integration(x_right.^n*rho[2],C_right))/Ri[2]
             R_left     = C_left[end] .* inv((1.0 - C_left[end]))
@@ -165,9 +165,9 @@ function main(plot_sim,verbose)
             #Phase diagram
             p2 = plot(Tlin,XC_left, lw=2, label=L"Left\ side")
             p2 = plot!(Tlin,XC_right, lw=2, label=L"Right\ side")
-            p2 = scatter!([T],[C_left[end]],marker=:circle, markersize=2, markercolor=:black, 
+            p2 = scatter!([T],[C_left[end]],marker=:circle, markersize=2, markercolor=:black,
                           markerstrokecolor=:black,label = "")
-            p2 = scatter!([T],[C_right[1]],marker=:circle, markersize=2, markercolor=:black, 
+            p2 = scatter!([T],[C_right[1]],marker=:circle, markersize=2, markercolor=:black,
                           markerstrokecolor=:black,label = "")
             p2 = plot!([T; T],[0; maximum([C_left[end],C_right[1]])],lw=1.5, label="",color=:black,linestyle=:dash)
             p2 = plot!([T; 0],[C_left[end];C_left[end]],lw=1.5, label="",color=:royalblue,linestyle =:dot)
@@ -191,7 +191,7 @@ function main(plot_sim,verbose)
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
     calc_mass_err(Mass,Mass0)
-    return x_left, x_right, x0, vec(C_left), vec(C_right), vec(C0),maxC, Tlin, XC_left, XC_right, T, Tstart, Tstop, KDlin, KD_sim,T_sim, Mass0, Mass, Mass01, Mass2 
+    return x_left, x_right, x0, vec(C_left), vec(C_right), vec(C0),maxC, Tlin, XC_left, XC_right, T, Tstart, Tstop, KDlin, KD_sim,T_sim, Mass0, Mass, Mass01, Mass2
 end
 #Run calculation------------------------------------------------------------
 run_and_plot = true
@@ -215,9 +215,9 @@ if run_and_plot
         #Phase diagram
         p2 = plot(Tlin,XC_left, lw=2, label=L"Left\ side")
         p2 = plot!(Tlin,XC_right, lw=2, label=L"Right\ side")
-        p2 = scatter!([T],[C_left[end]],marker=:circle, markersize=2, markercolor=:black, 
+        p2 = scatter!([T],[C_left[end]],marker=:circle, markersize=2, markercolor=:black,
                       markerstrokecolor=:black,label = "")
-        p2 = scatter!([T],[C_right[1]],marker=:circle, markersize=2, markercolor=:black, 
+        p2 = scatter!([T],[C_right[1]],marker=:circle, markersize=2, markercolor=:black,
                       markerstrokecolor=:black,label = "")
         p2 = plot!([T; T],[0; maximum([C_left[end],C_right[1]])],lw=1.5, label="",color=:black,linestyle=:dash)
         p2 = plot!([T; 0],[C_left[end];C_left[end]],lw=1.5, label="",color=:royalblue,linestyle =:dot)
@@ -238,4 +238,4 @@ if run_and_plot
         save_name = "D1"
         save_figure(save_name,save_path,save_file)
     end
-end    
+end

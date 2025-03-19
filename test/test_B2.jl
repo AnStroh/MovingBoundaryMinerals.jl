@@ -3,7 +3,7 @@ using Diff_Coupled, Diff_Coupled.Benchmarks
 using LinearAlgebra, Revise, LaTeXStrings, SparseArrays
 #Main function----------------------------------------------------
 function main(adapt_dt,plot_sim,verbose)
-    #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
+    #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])
     #Phyics-------------------------------------------------------
     Di      = [-1.0    -1.0]                                                #Initial diffusion coefficient in [m^2/s]
                                                                             #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
@@ -25,7 +25,7 @@ function main(adapt_dt,plot_sim,verbose)
     #History dependent parameters---------------------------------
     t_ar    = LinRange(0.0,t_tot,10000)                                     #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
                                                                             #The user is prompted to specify suitable time intervals in relation to the respective destination.
-    T_ar    = T0 .* inv.( 1.0 .+ (s .* t_ar .* inv(T0)))                    #Temperature arrray in [K] to calculate temperature history; T changes with respect to time;
+    T_ar    = T0 .* inv.( 1.0 .+ (s .* t_ar .* inv(T0)))                    #Temperature array in [K] to calculate temperature history; T changes with respect to time;
                                                                             #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
     CFL    = 0.10                                                           #CFL condition

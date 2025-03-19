@@ -3,7 +3,7 @@ using Diff_Coupled, Diff_Coupled.Benchmarks
 using LinearAlgebra, LaTeXStrings, SparseArrays
 #Main function----------------------------------------------------
 function main(plot_sim,verbose)
-    #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
+    #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])
     #Phyics-------------------------------------------------------
     Di      = [1e-4   1e4;]                                     #Initial diffusion coefficient in [m^2/s]           -> in [L*V]
                                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
@@ -24,7 +24,7 @@ function main(plot_sim,verbose)
                                                                 #The last value must be equal to the partition coefficient at t = t_tot.
     t_ar    = LinRange(0.0,t_tot,1000)                          #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
                                                                 #The user is prompted to specify suitable time intervals in relation to the respective destination.
-    T_ar    = LinRange(1273.15,1273.15,1000)                    #Temperature arrray in [K] to calculate temperature history; T changes with respect to time;
+    T_ar    = LinRange(1273.15,1273.15,1000)                    #Temperature array in [K] to calculate temperature history; T changes with respect to time;
                                                                 #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
     CFL    = 0.4                                                #CFL condition

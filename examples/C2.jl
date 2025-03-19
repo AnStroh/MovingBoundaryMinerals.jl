@@ -2,9 +2,9 @@ using Diff_Coupled, Diff_Coupled.Benchmarks
 using Plots, LinearAlgebra, LaTeXStrings,SparseArrays
 #Main function----------------------------------------------------
 function main(plot_sim,verbose)
-    #If you find a [] with two entires this belong to the respective side of the diffusion couple ([left right])
+    #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])
     #Phyics-------------------------------------------------------
-    
+
     Di      = [0.04   0.005]                                    #Initial diffusion coefficient in [m^2/s]           -> in [L*V]
                                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     D0      = [1e-4   5e-4;]                                    #Pre-exponential factor in [m^2/s]                  -> NOT USED
@@ -23,15 +23,15 @@ function main(plot_sim,verbose)
     KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i*0.5,1000)            #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
                                                                 #The last value must be equal to the partition coefficient at t = t_tot.
     t_ar    = LinRange(0.0,t_tot,1000)                          #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
-                                                                #The user is prompted to specify suitable time intervals in relation to the respective destination.               
-    T_ar    = LinRange(1273.15,1073.15,1000)                    #Temperature arrray in [K] to calculate temperature history; T changes with respect to time; 
+                                                                #The user is prompted to specify suitable time intervals in relation to the respective destination.
+    T_ar    = LinRange(1273.15,1073.15,1000)                    #Temperature array in [K] to calculate temperature history; T changes with respect to time;
                                                                 #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
     CFL    = 0.4                                                #CFL condition
     res    = [80 120;]                                          #Number of grid points
     resmin = copy(res)                                          #Minimum number of grid points
     MRefin = 50.0                                               #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
-    BCout  = [0 0]                                              #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann; 
+    BCout  = [0 0]                                              #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
                                                                 #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Non-dimensionslization---------------------------------------
     V_ip, t_tot, t_ar, Di, D0, Ri, Lsc, Dsc, Vsc, tsc = scaling(Ri, Di, D0, V_ip, t_tot, t_ar)
@@ -51,19 +51,19 @@ function main(plot_sim,verbose)
     #Preprocess and initial condition-----------------------------
     L       = Ri[end]                                           #Length of the domain in [m]
     t       = 0.0                                               #Initial time in [s]
-    it      = 0                                                 #Initial number of time iterations                       
+    it      = 0                                                 #Initial number of time iterations
     C_left  = Cl_i*ones(res[1],1)                               #Initial concentration left side in [mol]
     C_right = Cr_i*ones(res[2],1)                               #Initial concentration right side in [mol]
-    C0      = [copy(C_left); copy(C_right)]                     #Store initial concentration 
-    C       = copy(C0)                                          #Create 1 array with all concentrations  
+    C0      = [copy(C_left); copy(C_right)]                     #Store initial concentration
+    C       = copy(C0)                                          #Create 1 array with all concentrations
     C0_l    = copy(C_left)                                      #Store initial concentration left side
     C0_r    = copy(C_right)                                     #Store initial concentration right side
-    x       = copy(x0)                                          #Create 1 array containing all x-values  
+    x       = copy(x0)                                          #Create 1 array containing all x-values
     Ri0     = copy(Ri)                                          #Store initial radii
     KD      = copy(KD_ar[1])                                    #Initial partition coefficient, just for pre-processing
     KD0     = copy(KD)                                          #Store initial partition coefficient
     #Total mass---------------------------------------------------
-    Mass0   = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)     
+    Mass0   = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
     #Preallocate variables----------------------------------------
     Co_l    = zeros(size(C_left))                               #Matrix to store old concentrations of left side
     Co_r    = zeros(size(C_right))                              #Matrix to store old concentrations of right side
@@ -74,13 +74,13 @@ function main(plot_sim,verbose)
     #Calculate initial Ds, KD, T----------------------------------
     D_l, D_r, KD, T = update_t_dependent_param!(D0,Di,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
     #First check for correct setup--------------------------------
-    if BCout[1] != 0 || BCout[2] != 0 
+    if BCout[1] != 0 || BCout[2] != 0
         error("The code is only valid for a closed system. Please set outer BC to Neumann conditions (0).")
     elseif t != 0.0
         error("Initial time must be zero.")
     elseif any(dt_diff .<= 0.0) || any(t_ar .< 0.0) || any(t_ar .> t_tot)
         error("The time array is not valid. Please check your inputs.")
-    elseif T  != T_ar[1]   
+    elseif T  != T_ar[1]
         error("Initial temperature must be equal to the first value in the temperature array.")
     end
     #Time loop----------------------------------------------------
@@ -92,7 +92,7 @@ function main(plot_sim,verbose)
         #Update time-dependent parameters-------------------------
         D_l, D_r, KD,T = update_t_dependent_param!(D0,Di,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
         #Advect interface & regrid--------------------------------
-        Fl_regrid, x_left, x_right, C_left, C_right, res, Ri = advect_interface_regrid!(Ri,V_ip,dt,x_left,x_right,C_left,C_right,res)    
+        Fl_regrid, x_left, x_right, C_left, C_right, res, Ri = advect_interface_regrid!(Ri,V_ip,dt,x_left,x_right,C_left,C_right,res)
         #Calculate current volume---------------------------------
         Vol_left, Vol_right, dVolC = calc_volume(x_left,x_right,n)
         #FEM SOLVER-----------------------------------------------
@@ -107,11 +107,11 @@ function main(plot_sim,verbose)
         #Regrid---------------------------------------------------
         x_left, x_right, C_left, C_right, dx1, dx2, res = regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, res, resmin, MRefin,verbose)
         #Post-Preprocessing---------------------------------------
-        for iit in enumerate(1)       
+        for iit in enumerate(1)
             Massnow = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
             push!(Mass, Massnow)                                #Stores the mass of the system
         end
-        if plot_sim 
+        if plot_sim
             #Plotting---------------------------------------------
             maxC = maximum([maximum(C_left),maximum(C_right)])
             p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
@@ -123,7 +123,7 @@ function main(plot_sim,verbose)
         end
     end
     #Rescaling---------------------------------------------------
-    Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar = rescale(Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar, Lsc, Dsc, Vsc, tsc)    
+    Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar = rescale(Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar, Lsc, Dsc, Vsc, tsc)
     #Post-process------------------------------------------------
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
@@ -138,7 +138,7 @@ if run_and_plot
     verbose   = false
     save_file = false
     x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, n, maxC, KD0 = main(plot_sim,verbose)
-    if plot_end 
+    if plot_end
         #Plotting-------------------------------------------------
         p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
         p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")

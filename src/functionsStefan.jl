@@ -1,4 +1,4 @@
-using BenchmarkTools, Revise, GLMakie, FileIO
+using BenchmarkTools, Revise, FileIO
 export calculate_density, coeff_trans_line, composition, ndgrid, set_inner_bc_stefan!,values_between_known_indices!
 #Functions---------------------------------------------------
 
@@ -23,9 +23,9 @@ Calculate the density of the phases at a given temperature `T` using interpolati
 function calculate_density(X_A,Y_A,rho_left,rho_right,C_leftB,C_rightB,T)
     rho_LEFT    = interp2(X_A,Y_A,rho_left,C_leftB,T)                       #Interpolated density left side
     rho_RIGHT   = interp2(X_A,Y_A,rho_right,C_rightB,T)                     #Interpolated density right side
-    rho_0       = [copy(rho_LEFT) copy(rho_RIGHT)]                          #Initial densities    
+    rho_0       = [copy(rho_LEFT) copy(rho_RIGHT)]                          #Initial densities
     rho_norm_L  = rho_LEFT .* inv(rho_0[1])                                 #Normalized density left side
-    rho_norm_R  = rho_RIGHT .* inv(rho_0[1])                                #Normalized densitiy right side
+    rho_norm_R  = rho_RIGHT .* inv(rho_0[1])                                #Normalized density right side
     rho         = [copy(rho_norm_L) copy(rho_norm_R)]
     return rho
 end
@@ -44,7 +44,7 @@ Extracts coefficients for linear least squares from the input `eq_values`.
 - `coeff_do`: A 1x3 vector containing the coefficients for the lower transition line.
 """
 function coeff_trans_line(eq_values)
-    #Extract coefficients for linear least squares from input (eq_values) 
+    #Extract coefficients for linear least squares from input (eq_values)
     coeff_up = eq_values[1,:]'                                              #Coefficients for X(T) upper transition line
     coeff_do = eq_values[2,:]'                                              #Coefficients for X(T) lower transition line
     return coeff_up,coeff_do
@@ -137,8 +137,8 @@ function set_inner_bc_stefan!(L_g,R_g,C_left,C_right,nr)
     L_g[nr[1],nr[1]]     = 1.0 * ScF
     R_g[nr[1]]           = C_left[end] * ScF
     #Inner BC2 (KD)------------------------------------------
-    L_g[nr[1]+1,:] .= 0.0                               
-    L_g[nr[1]+1,nr[1]+1] = 1.0 * ScF                
+    L_g[nr[1]+1,:] .= 0.0
+    L_g[nr[1]+1,nr[1]+1] = 1.0 * ScF
     R_g[nr[1]+1]         = C_right[1] * ScF
     return L_g, R_g, ScF
 end
@@ -171,6 +171,6 @@ function values_between_known_indices!(vec1, vec2, val1, val2)
     start_idx = min(idx1, idx2)                                             #Find the minimum index
     end_idx = max(idx1, idx2)                                               #Find the maximum index
     first_val = vec2[start_idx]                                             #First value
-    last_val  = vec2[end_idx]                                               #Last value        
+    last_val  = vec2[end_idx]                                               #Last value
     return first_val,last_val
 end

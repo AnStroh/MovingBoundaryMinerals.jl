@@ -20,7 +20,7 @@ julia> ]
 !!! info "Install from a specific branch"
     However, as the API is changing and not every new feature leads to a new release, one can also clone the main branch of the repository:
     ```julia
-    add Jushttps://github.com/AnStroh/Diffusion-coupled-growth.git#main
+    add https://github.com/AnStroh/Diffusion-coupled-growth.git#main
     ```
 
 After installation, you can test the package by running the following commands:

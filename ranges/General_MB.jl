@@ -1,5 +1,5 @@
 using Diff_Coupled
-using Plots, LinearAlgebra, Revise, LaTeXStrings,SparseArrays, DataFrames,CSV
+using Plots, LinearAlgebra, Revise, LaTeXStrings,SparseArrays, DataFrames,CSV,Serialization
 #Main function----------------------------------------------------
 function main(plot_sim,verbose,Di,D0,rho,Ri,Cl_i,Cr_i,V_ip,R,Ea1,Ea2,Myr2Sec,t_tot,n)
     #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])
@@ -163,8 +163,11 @@ if run_and_plot
     #results[("Di1", "Di2", "Ri1", "Ri2", "V_ip")] = ("D_l"," D_r", "Ri", "V_ip")
     #errors[("Di1", "Di2", "Ri1", "Ri2", "V_ip")]  = ("error type")
 
+    global count = 0
     # Nested loop with error handling
     for Di1 in Di1_values, Di2 in Di2_values, Ri1 in Ri1_values, Ri2 in Ri2_values, V_ip in V_ip_values
+        global count = count + 1
+        println("Running simulation $count of $(numb^5)")
         try
             Di = [Di1   Di2]
             Ri = [Ri1   Ri2]
@@ -177,5 +180,8 @@ if run_and_plot
         end
         
     end
+    # Save dictionary to file
+    serialize("./ranges/results_flux.jls", results)
+    serialize("./ranges/erorrs_flux.jls", results)
     return results, errors
 end

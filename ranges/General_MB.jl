@@ -163,11 +163,11 @@ if run_and_plot
     #results[("Di1", "Di2", "Ri1", "Ri2", "V_ip")] = ("D_l"," D_r", "Ri", "V_ip")
     #errors[("Di1", "Di2", "Ri1", "Ri2", "V_ip")]  = ("error type")
 
-    global count = 0
+    counts = 0
     # Nested loop with error handling
     for Di1 in Di1_values, Di2 in Di2_values, Ri1 in Ri1_values, Ri2 in Ri2_values, V_ip in V_ip_values
-        global count = count + 1
-        println("Running simulation $count of $(numb^5)")
+        global counts = counts + 1
+        println("Running simulation $counts of $(numb^5)")
         try
             Di = [Di1   Di2]
             Ri = [Ri1   Ri2]

@@ -181,7 +181,7 @@ if run_and_plot
         
     end
     # Save dictionary to file
-    serialize("./ranges/results_flux.jls", results)
-    serialize("./ranges/erorrs_flux.jls", results)
+    serialize("./ranges/results_MB.jls", results)
+    serialize("./ranges/erorrs_MB.jls", results)
     return results, errors
 end

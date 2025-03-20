@@ -1,6 +1,6 @@
 name = "Diff_Coupled"
 uuid = "ede1ac2d-c776-4409-bf2f-c421e41a2d87"
-authors = ["anstroh "]
+authors = ["Annalena Stroh <anstroh@uni-mainz.de>, Evangelos Moulas <evmoulas@uni-mainz.de>, Pascal Aellig <paellig@uni-mainz.de>"]
 version = "0.1.0"
 
 [deps]

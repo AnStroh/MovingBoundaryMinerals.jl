@@ -232,7 +232,7 @@ if run_and_plot
                       grid=:on, label=L"Model",xlims=(Tp_min, Tp_max), ylims=(first_val-0.01,last_val+0.01),legendfontsize = 6)
         #ln(KD) vs 1/T
         p4 = plot(1.0 ./ T_sim,log.(KD_sim),xlabel = L"1/T", ylabel = L"ln(K_{D})", title = L"Arrhenius\ plot", lw=1.5,
-                grid=:on, label=L"Model", color=:teal, ticks=:auto, xrotation=1,legendfontsize = 6)
+                grid=:on, label=L"Model", color=:teal, ticks=:auto, xrotation=10,legendfontsize = 6)
         plot(p2,p3,p4,p1,suptitle = L"Thermodynamical\ constrained\ Stefan\ condition", dpi = 300)
         save_path = "figures"
         save_name = "D1"

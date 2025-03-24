@@ -226,13 +226,13 @@ if run_and_plot
         p2 = plot!([Tstop*0.3; Tstart*1.5],[Mass01; Mass01],color=:grey,linestyle=:dashdot,lw=1.5, label=L"Initial\ mass",
                     xlabel = L"Temperature", ylabel = L"X", title = L"Phase\ diagram",grid=:on,legendfontsize = 6,legend = :bottomright)
         #Evolution of KD(T)
-        p3 = plot(Tlin, KDlin, lw=2, label="", color=:teal)
+        p3 = plot(Tlin, KDlin, lw=2, label="Thermo-dynamic data", color=:teal)
         p3 = scatter!([T_sim[end]],[KD_sim[end]],marker=:circle, markersize=2.5, markercolor=:black,markerstrokecolor=:black,
                       xlabel = L"Temperature", ylabel = L"K_{D}", title = L"K_{D}(T)\ evolution", lw=1.5,
-                      grid=:on, label="",xlims=(Tp_min, Tp_max), ylims=(first_val-0.01,last_val+0.01),legendfontsize = 4)
+                      grid=:on, label="Model",xlims=(Tp_min, Tp_max), ylims=(first_val-0.01,last_val+0.01),legendfontsize = 6)
         #ln(KD) vs 1/T
         p4 = plot(1.0 ./ T_sim,log.(KD_sim),xlabel = L"1/T", ylabel = L"ln(K_{D})", title = L"Arrhenius\ plot", lw=1.5,
-                grid=:on, label="", color=:teal, ticks=:auto, xrotation=10)
+                grid=:on, label="Model", color=:teal, ticks=:auto, xrotation=10)
         plot(p2,p3,p4,p1,suptitle = L"Thermodynamical\ constrained\ Stefan\ condition", dpi = 300)
         save_path = "figures"
         save_name = "D1"

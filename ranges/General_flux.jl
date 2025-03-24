@@ -1,5 +1,5 @@
 using Diff_Coupled
-using Plots, LinearAlgebra, Revise, LaTeXStrings,SparseArrays, DataFrames,Tables,CSV, Serialization
+using Plots, LinearAlgebra, Revise, LaTeXStrings,SparseArrays, DataFrames,Tables,CSV, Serialization, Dates
 #Main function----------------------------------------------------
 function main(plot_sim,verbose,Di,D0,rho,Ri,Cl_i,Cr_i,V_ip,R,Ea1,Ea2,Myr2Sec,t_tot,n)
     #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])
@@ -147,12 +147,12 @@ if run_and_plot
     n       = 3                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
 
 
-    numb = 1000
-    global Di1_values = LinRange(1e-19, 1e-19, numb)
-    global Di2_values = LinRange(1e-19, 1e-19, numb)
-    global V_ip_values = LinRange(-1e-4, 1e-4, numb)
-    global Ri1_values = LinRange(1e-5, 1.0, numb)
-    global Ri2_values = LinRange(5e-5, 10.0, numb)
+    numb = 10
+    global Di1_values = LinRange(1e-12, 1e-8, numb)
+    global Di2_values = LinRange(1e-12, 1e-8, numb)
+    global V_ip_values = LinRange(1e-5, 1e-2, numb)
+    global Ri1_values = LinRange(1e-3, 1.0, numb)
+    global Ri2_values = LinRange(0.5, 10.0, numb)
 
 
     
@@ -175,6 +175,14 @@ if run_and_plot
         catch e
             println("Error for Di = $([Di1 Di2]) , Ri = $([Ri1 Ri2]) and V_ip = $V_ip")
             errors[(Di1, Di2, Ri1, Ri2, V_ip)] = e  # Store the error for this input pair
+        end
+        # Save every 1000 iterations
+        if counts % 500 == 0
+            current_time = Dates.format(now(), "yyyy-mm-dd_HH-MM-SS")
+            results_filename = "./ranges/results_flux_$counts_$current_time.jls"
+            errors_filename = "./ranges/errors_flux_$counts_$current_time.jls"
+            serialize(results_filename, results)
+            serialize(errors_filename, errors)
         end
     end
 

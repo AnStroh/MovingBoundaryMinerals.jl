@@ -23,24 +23,24 @@ function main(plot_sim,verbose)
     beta        = 90.0                                                                                  #Ideal angle between [001] and [100] (a-c-plane)
     gamma       = 90.0                                                                                  #Ideal angle between [010] and [100] (a-b-plane)
     deltaV      = 7*10^-6                                                                               #Volume change in [m^3/mol]
-    Ri          = 2.0                                                                                   #Position of the interface -> initial radius of the left phase
-    Tstart      = 1400.0 + 273.0                                                                        #Starting temperature in [K]
-    Tstop       = 1300.0 + 273.0                                                                        #End temperature in [K]
+    Ri          = 0.3                                                                                   #Position of the interface -> initial radius of the left phase
+    Tstart      = 1450.0 + 273.0                                                                        #Starting temperature in [K]
+    Tstop       = 1350.0 + 273.0                                                                        #End temperature in [K]
     P           = 10^6                                                                                  #Pressure in [Pa]
     R           = 8.314472                                                                              #Universal gas constant in [J/(mol*K)]              
     Myr2Sec     = 60*60*24*365.25*1e6                                                                   #Conversion factor from Myr to s
     t_tot       = 1e-3*Myr2Sec                                                                          #Total time [s]
     n           = 1                                                                                     #Geometry; 1: planar, 2: cylindrical, 3: spherical
-    CompInt     = 0.3                                                                                   #Composition of interest of the solid solution (Mg number)
+    CompInt     = 0.25                                                                                   #Composition of interest of the solid solution (Mg number)
     coeff       = readdlm("examples/Examples_phase_diagram/Coefficients_Reaction_lines.csv")            #Reads the coefficients for the linear least squares
     eq_values   = [coeff[1,1]  coeff[2,1]  coeff[3,1];	                                                #Coefficients for composition calculation of component B (stable at higher T) X2 = a2 + b2*T + c2*T²
                    coeff[1,2]  coeff[2,2]  coeff[3,2]]                                                  #Coefficients for composition calculation of component A (stable at lower T) X1 = a1 + b1*T + c1*T²
     rho_phases  = readdlm("./examples/Examples_phase_diagram/density_phases copy.tab")                  #Reads the density values for the phases
     #Numerics---------------------------------------------------------------
-    CFL                 = 0.8                                                                           #CFL condition
-    res                 = [15 25;]                                                                      #Number of grid points
+    CFL                 = 20.0                                                                           #CFL condition
+    res                 = [45 50;]                                                                      #Number of grid points
     resmin              = copy(res)                                                                     #Minimum number of grid points
-    MRefin              = 5.0                                                                           #Refinement factor
+    MRefin              = 10.0                                                                           #Refinement factor
     BCout               = [0 0]                                                                         #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
                                                                                                         #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Create data set--------------------------------------------------------

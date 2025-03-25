@@ -16,7 +16,7 @@ using Plots, LinearAlgebra, DelimitedFiles, SparseArrays, LaTeXStrings
 function main(plot_sim,verbose)
     #If you find a [] with two entries this belong to the respective side of
     #the diffusion couple ([left right])
-    #Phyics-----------------------------------------------------------------
+    #Physics-----------------------------------------------------------------
     Di          = [0.002   0.0004;]                                                                     #Initial diffusion coefficient in [m^2/s]
                                                                                                         #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     Ri          = 2.0                                                                                   #Position of the interface -> initial radius of the left phase

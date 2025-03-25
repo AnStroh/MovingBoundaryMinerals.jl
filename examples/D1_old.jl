@@ -17,13 +17,13 @@ function main(plot_sim,verbose)
     #If you find a [] with two entries this belong to the respective side of
     #the diffusion couple ([left right])
     #Physics-----------------------------------------------------------------
-    Di          = [0.002   0.0004;]                                                                     #Initial diffusion coefficient in [m^2/s]; Approximated after Zhang & Cherniak (2010) p. 332 EQ. 19
+    Di          = [0.002   0.0004;]                                                                     #Initial diffusion coefficient in [m^2/s]
                                                                                                         #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     Ri          = 2.0                                                                                   #Position of the interface -> initial radius of the left phase
     Tstart      = 1400.0 + 273.0                                                                        #Starting temperature in [K]
     Tstop       = 1300.0 + 273.0                                                                        #End temperature in [K]
     Myr2Sec     = 60*60*24*365.25*1e6                                                                   #Conversion factor from Myr to s
-    t_tot       = 60*60*24                                                                                  #Total time [s]
+    t_tot       = 1e4                                                                                   #Total time [s]
     n           = 1                                                                                     #Geometry; 1: planar, 2: cylindrical, 3: spherical
     CompInt     = 0.3                                                                                   #Composition of interest of the solid solution
     coeff       = readdlm("examples/Examples_phase_diagram/Coefficients_Reaction_lines.csv")            #Reads the coefficients for the linear least squares

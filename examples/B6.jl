@@ -16,7 +16,7 @@ function main(plot_sim,verbose)
     Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]     -> NOT USED
     Ea2     = 360660.4018                                       #Activation energy for the right side in [J/mol]    -> NOT USED
     Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s                    -> NOT USED
-    t_tot   = 0.2                                               #Total time [s]                                     -> in [L]/[V]
+    t_tot   = 0.4                                               #Total time [s]                                     -> in [L]/[V]
     n       = 1                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
     KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i,1000)                #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
@@ -112,11 +112,18 @@ function main(plot_sim,verbose)
         if plot_sim
             #Plotting---------------------------------------------
             maxC = maximum([maximum(C_left),maximum(C_right)])
-            p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
-            p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
-            p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", lw=1.5,
-                       grid=:on, label=L"Initial\ condition",legendfontsize = 6,title = L"Diffusion\ couple\ (flux)\ -\ Rayleigh\ fractionation")
-            p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC,title = L"Concentration\ profile", color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
+            fs = 12.0
+            p1 = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
+            p1 = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
+            p1 = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
+                        ylabel = L"C\ \mathrm{[mole\ fraction]}", lw=1.5, grid=:on)
+            p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
+            p1 = scatter!([xan[1:2:end].+Ri[1]],[Can[1:2:end]], marker=:circle, markersize=2.0, label=L"\mathrm{Analytical\ solution}",
+                            markerstrokecolor=:crimson, markercolor=:crimson)
+            p1 = scatter!([xan[end].+Ri[1]],[Can[end]], marker=:circle, markersize=2.0, label="",
+                            markerstrokecolor=:crimson, markercolor=:crimson,dpi = 300,
+                            legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+                            legend_foreground_color = :transparent)
             display(p1)
         end
     end
@@ -138,21 +145,25 @@ if run_and_plot
     x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, KD0, n, maxC, Di, V_ip, t_tot = main(plot_sim,verbose)
     xan, Can = smith(x_right,C_right,Ri,Di,t_tot,KD0,V_ip,n)
     if plot_end
+        #Title: Diffusion couple (flux) - Smith (1955)
         #Plotting------------------------------------------------------
-        p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
-        p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
-        p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance\ [m]", ylabel = L"Concentration", title = L"Concentration\ profile", lw=1.5,
-              grid=:on, label=L"Initial\ condition",legendfontsize = 6)
-        p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
-        p1 = scatter!([xan[1:2:end].+Ri[1]],[Can[1:2:end]], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
-                 markerstrokecolor=:crimson, markercolor=:crimson, dpi = 300)
-        p1 = scatter!([xan[end].+Ri[1]],[Can[end]], marker=:circle, markersize=2.0,markerstrokecolor=:crimson, markercolor=:crimson, label="")
-        p2 = plot(x_right,C_right, lw=2, label=L"Liquid",legendfontsize = 6, color = palette(:auto)[2])
-        p2 = scatter!([xan[1:5:end].+Ri[1]],[Can[1:5:end]], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
-                 markerstrokecolor=:crimson, markercolor=:crimson, dpi = 300, ylims = (99,118),
-                 xlabel = L"Distance\ [m]", ylabel = L"Concentration", title=L"Detailed\ view")
+        fs = 12.0
+        p1 = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
+        p1 = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
+        p1 = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
+                    ylabel = L"C\ \mathrm{[mole\ fraction]}", lw=1.5, grid=:on)
+        p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
+        p1 = scatter!([xan[1:2:end].+Ri[1]],[Can[1:2:end]], marker=:circle, markersize=2.0, label=L"\mathrm{Analytical\ solution}",
+                        markerstrokecolor=:crimson, markercolor=:crimson)
+        p1 = scatter!([xan[end].+Ri[1]],[Can[end]], marker=:circle, markersize=2.0, label="",
+                        markerstrokecolor=:crimson, markercolor=:crimson)
+        p2 = plot(x_right,C_right, lw=2, label=L"\mathrm{Liquid}", color = palette(:auto)[2])
+        p2 = scatter!([xan[1:5:end].+Ri[1]],[Can[1:5:end]], marker=:circle, markersize=2.0, label=L"\mathrm{Analytical\ solution}",
+                 markerstrokecolor=:crimson, markercolor=:crimson, dpi = 300,
+                 xlabel = L"x\ \mathrm{[m]}", ylabel = L"C\ \mathrm{[mole\ fraction]}")
         p2 = scatter!([xan[end].+Ri[1]],[Can[end]], marker=:circle, markersize=2.0,markerstrokecolor=:crimson, markercolor=:crimson, label="")
-        plot(p1,p2,suptitle = L"Diffusion\ couple\ (flux)\ -\ Smith\ {(1955)}")
+        plot(p1,p2,dpi = 300, legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+              legend_foreground_color = :transparent)
         #save_path = "figures"
         #save_name = "B6"
         #save_figure(save_name,save_path,save_file)

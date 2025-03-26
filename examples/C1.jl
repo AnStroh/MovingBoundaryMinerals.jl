@@ -114,11 +114,14 @@ function main(plot_sim,verbose)
         if plot_sim
             #Plotting---------------------------------------------
             maxC = maximum([maximum(C_left),maximum(C_right)])
-            p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
-            p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
-            p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", lw=1.5,
-                       grid=:on, label=L"Initial\ condition",legendfontsize = 4,title = L"Diffusion\ couple\ (MB)\ -\ Rayleigh\ fractionation")
-            p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC,title = L"Concentration\ profile", color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
+            fs = 12
+            p1 = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
+            p1 = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
+            p1 = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
+                  ylabel = L"C\ \mathrm{[mole\ fraction]}", lw=1.5, grid=:on)
+            p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}",
+                        dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+                        legend_foreground_color = :transparent)
             display(p1)
         end
     end
@@ -140,24 +143,25 @@ if run_and_plot
     x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, n, maxC, KD0 = main(plot_sim,verbose)
     Ray_Fs, Ray_Fl, Ray_Cl, Ray_Cs, Cl_p, phi_solid = rayleigh_fractionation(x_left,C_left,Ri0,Ri,C0_r,KD0,n)
     if plot_end
+        #Title: Diffusion couple (MB) - Rayleigh fractionation
         #Plotting-------------------------------------------------
-        p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
-        p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
-        p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance\ [m]", ylabel = L"Concentration", lw=1.5,
-                   grid=:on, label=L"Initial\ condition",legendfontsize = 6)
-        p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC,title = L"Concentration\ profile", color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
-        p2 = plot((x_left/Ri0[2]).^(n),C_left, lw=2, label=L"Solid")
-        p2 = plot!((x_right/Ri0[2]).^(n),C_right, lw=2, label=L"Liquid")
-        p2 = scatter!([Ray_Fs[1:100:end]],[Ray_Cs[1:100:end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue,label=L"Solid\ Rayleigh",
-                      xlabel = L"Fraction", ylabel = L"Concentration", grid=:on,legendfontsize = 6,
-                      title = L"Fractions")
+        fs = 12.0
+        p1 = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
+        p1 = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
+        p1 = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
+              ylabel = L"C\ \mathrm{[mole\ fraction]}", lw=1.5, grid=:on)
+        p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
+        p2 = plot((x_left/Ri0[2]).^(n),C_left, lw=2, label=L"\mathrm{Solid}")
+        p2 = plot!((x_right/Ri0[2]).^(n),C_right, lw=2, label=L"\mathrm{Liquid}")
+        p2 = scatter!([Ray_Fs[1:100:end]],[Ray_Cs[1:100:end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue,label=L"\mathrm{Solid\ Rayleigh}",
+                      xlabel = L"\mathrm{Fraction}", ylabel = L"C\ \mathrm{[mole\ fraction]}", grid=:on)
         p2 = scatter!([Ray_Fs[end]],[Ray_Cs[end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue, label="",xlim=(x_left[1]-0.0001*Ri[2], Ri[1]+0.0001*Ri[2]))
-        p3 = plot((phi_solid.^n)', Cl_p', lw=2, label=L"Mass\ fraction\ solid")
-        p3 = scatter!([Ray_Fs[1:100:end]],[Ray_Cs[1:100:end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue,label=L"Solid\ Rayleigh",
-                      xlabel = L"Fraction", ylabel = L"Concentration", grid=:on,legendfontsize = 6,
-                      title = L"Concentration\ profile\ solid")
+        p3 = plot((phi_solid.^n)', Cl_p', lw=2, label=L"\mathrm{Model}")
+        p3 = scatter!([Ray_Fs[1:100:end]],[Ray_Cs[1:100:end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue,label=L"\mathrm{Rayleigh}",
+                      xlabel = L"\mathrm{Solid\ fraction}", ylabel = L"C\ \mathrm{[mole\ fraction]}", grid=:on)
         p3 = scatter!([Ray_Fs[end]],[Ray_Cs[end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue, label="")
-        plot(p1,p2,p3,suptitle = L"Diffusion\ couple\ (MB)\ -\ Rayleigh\ fractionation", dpi = 300)
+        plot(p1,p3, dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+                    legend_foreground_color = :transparent)        
         #save_path = "figures"
         #save_name = "C1"
         #save_figure(save_name,save_path,save_file)

@@ -85,7 +85,7 @@ function main(plot_sim)
             fs = 12
             p = plot(x,C, lw=2, label=L"\mathrm{Current\ composition}")
             p = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
-                    ylabel = L"C\ \mathrm{[mol\ fraction]}", lw=1.5, grid=:on,dpi = 300,
+                    ylabel = L"C\ \mathrm{[mole\ fraction]}", lw=1.5, grid=:on,dpi = 300,
                         legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                         legend_foreground_color = :transparent)      
             display(p)
@@ -110,7 +110,7 @@ if run_and_plot
         fs = 12.0
         plot(x*1000,C, lw=2, label=L"\mathrm{Current\ composition}")
         plot!(x0*1000,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
-              ylabel = L"C\ \mathrm{[mol\ fraction]}", lw=1.5, grid=:on)
+              ylabel = L"C\ \mathrm{[mole\ fraction]}", lw=1.5, grid=:on)
         scatter!([xan[1:5:end]]*1000,[Can[1:5:end]], marker=:circle, markersize=2.0, label=L"\mathrm{Analytical\ solution}",
                     markerstrokecolor=:crimson, markercolor=:crimson)
         scatter!([xan[end]]*1000,[Can[end]], marker=:circle, markersize=2.0, label="",

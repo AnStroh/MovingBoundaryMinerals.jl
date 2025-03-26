@@ -183,6 +183,7 @@ Calculate the mass error between the final mass `Mass[end]` and the initial mass
 function calc_mass_err(Mass,Mass0)
     ErrM = (Mass[end] - Mass0) * inv(Mass0)
     println("The total mass difference is $(ErrM[end]*100)% (relevant for closed systems).")
+    return ErrM
 end
 
 """

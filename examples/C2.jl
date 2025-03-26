@@ -4,14 +4,13 @@ using Plots, LinearAlgebra, LaTeXStrings,SparseArrays
 function main(plot_sim,verbose)
     #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])
     #Physics-------------------------------------------------------
-
-    Di      = [0.04   0.005]                                    #Initial diffusion coefficient in [m^2/s]           -> in [L*V]
+    Di      = [0.001   0.005]                                   #Initial diffusion coefficient in [m^2/s]           -> in [L*V]
                                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     D0      = [1e-4   5e-4;]                                    #Pre-exponential factor in [m^2/s]                  -> NOT USED
     rho     = [1.0      1.0;]                                   #Normalized densities in [-]                   -> NOT USED
     Ri      = [2.0       10;]                                   #Initial radii [interface    total length] in [m]   -> in [L]
-    Cl_i    = 0.5                                               #Initial concentration left side in [mol]           -> in [C]
-    Cr_i    = Cl_i/10                                           #Initial concentration right side in [mol]          -> -//-
+    Cl_i    = 0.1                                               #Initial concentration left side in [mol]           -> in [C]
+    Cr_i    = Cl_i*10.0                                         #Initial concentration right side in [mol]          -> -//-
     V_ip    = -1e-3                                             #Interface velocity in [m/s]                        -> in [V]
     R       = 8.314472                                          #Universal gas constant in [J/(mol*K)]              -> NOT USED
     Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]     -> NOT USED
@@ -19,7 +18,7 @@ function main(plot_sim,verbose)
     Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s                    -> NOT USED
     t_tot   = 5e2                                               #Total time [s]                                     -> in [L]/[V]
     n       = 3                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
-    #History dependent parameters---------------------------------
+#History dependent parameters---------------------------------
     KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i*0.5,1000)            #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
                                                                 #The last value must be equal to the partition coefficient at t = t_tot.
     t_ar    = LinRange(0.0,t_tot,1000)                          #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
@@ -114,12 +113,15 @@ function main(plot_sim,verbose)
         if plot_sim
             #Plotting---------------------------------------------
             maxC = maximum([maximum(C_left),maximum(C_right)])
-            p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
-            p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
-            p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", lw=1.5,
-                       grid=:on, label=L"Initial\ condition",legendfontsize = 4,title = L"Diffusion\ couple\ (MB)\ -\ Rayleigh\ fractionation")
-            p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC,title = L"Concentration\ profile", color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
-            display(p1)
+            fs = 12.0
+            p = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
+            p = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
+            p = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
+                    ylabel = L"C\ \mathrm{[mol\ fraction}", lw=1.5, grid=:on,dpi = 300,
+                        legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+                        legend_foreground_color = :transparent)
+            p = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
+            display(p)
         end
     end
     #Rescaling---------------------------------------------------
@@ -139,12 +141,16 @@ if run_and_plot
     save_file = false
     x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, n, maxC, KD0 = main(plot_sim,verbose)
     if plot_end
+        #Title: Diffusion couple (MB) - resorption + diffusion in a sphere
         #Plotting-------------------------------------------------
-        p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
-        p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
-        p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance\ [m]", ylabel = L"Concentration", lw=1.5,
-                   grid=:on, label=L"Initial\ condition",legendfontsize = 6, dpi = 300)
-        p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC,title = L"Diffusion\ couple\ (MB)\ -\ Concentration\ profile", color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
+        fs = 12.0
+        plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
+        plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
+        plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
+              ylabel = L"C\ \mathrm{[mole\ fraction]}", lw=1.5, grid=:on,dpi = 300,
+                    legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+                    legend_foreground_color = :transparent)
+        plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
         #save_path = "figures"
         #save_name = "C2"
         #save_figure(save_name,save_path,save_file)

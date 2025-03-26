@@ -149,7 +149,7 @@ if run_and_plot
         p1 = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
               ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on)
         p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
-        p1 = annotate!(0.01, 0.575, L"\mathrm{(a)}")
+        p1 = annotate!(0.25, 0.49, L"\mathrm{(a)}")
         p2 = plot((x_left/Ri0[2]).^(n),C_left, lw=2, label=L"\mathrm{Solid}")
         p2 = plot!((x_right/Ri0[2]).^(n),C_right, lw=2, label=L"\mathrm{Liquid}")
         p2 = scatter!([Ray_Fs[1:100:end]],[Ray_Cs[1:100:end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue,label=L"\mathrm{Solid\ Rayleigh}",
@@ -159,7 +159,7 @@ if run_and_plot
         p3 = scatter!([Ray_Fs[1:100:end]],[Ray_Cs[1:100:end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue,label=L"\mathrm{an.\ Rayleigh\ solution}",
                       xlabel = L"\mathrm{Solid\ fraction}", ylabel = L"C\ \mathrm{[-]}", grid=:on)
         p3 = scatter!([Ray_Fs[end]],[Ray_Cs[end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue, label="")
-        p3 = annotate!(0.01, 0.575, L"\mathrm{(b)}")
+        p3 = annotate!(0.01, 0.49, L"\mathrm{(b)}")
         plot(p1,p3, dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                     legend_foreground_color = :transparent)
         #save_path = "figures"

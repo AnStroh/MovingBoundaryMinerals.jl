@@ -3,7 +3,7 @@ using Plots, LinearAlgebra, Revise, LaTeXStrings,SparseArrays, DataFrames,CSV,Se
 #Main function----------------------------------------------------
 function main(plot_sim,verbose,Di,D0,rho,Ri,Cl_i,Cr_i,V_ip,R,Ea1,Ea2,Myr2Sec,t_tot,n)
     #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])
-    #Phyics-------------------------------------------------------
+    #Physics-------------------------------------------------------
     #=Di      = [4e-8   5e-8]                                     #Initial diffusion coefficient in [m^2/s]           -> in [L*V]
                                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     D0      = [1e-4   5e-4;]                                    #Pre-exponential factor in [m^2/s]                  -> NOT USED
@@ -149,7 +149,7 @@ if run_and_plot
     n       = 3                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
 
 
-    numb = 10
+    numb = 5
     global Di1_values = LinRange(1e-19, 1e-5, numb)
     global Di2_values = LinRange(1e-19, 1e-5, numb)
     global V_ip_values = LinRange(-1e-9, -1e-2, numb)
@@ -178,7 +178,14 @@ if run_and_plot
             println("Error for Di = $([Di1 Di2]) , Ri = $([Ri1 Ri2]) and V_ip = $V_ip")
             errors[(Di1, Di2, Ri1, Ri2, V_ip)] = e  # Store the error for this input pair
         end
-        
+        # Save every 1000 iterations
+        if counts % 1000 == 0
+            current_time = Dates.format(now(), "yyyy-mm-dd_HH-MM-SS")
+            results_filename = "./ranges/results_MB_$counts.jls"
+            errors_filename = "./ranges/errors_MB_$counts.jls"
+            serialize(results_filename, results)
+            serialize(errors_filename, errors)
+        end
     end
     # Save dictionary to file
     serialize("./ranges/results_MB.jls", results)

@@ -264,9 +264,9 @@ if run_and_plot
         p2 = plot!([T-273.0; T-273.0],[0; maximum([C_left[end],C_right[1]])],lw=1.5, label="",color=:black,linestyle=:dash)
         p2 = plot!([T-273.0; 0],[C_left[end];C_left[end]],lw=1.5, label="",color=:royalblue,linestyle =:dot)
         p2 = plot!([T-273.0; 0],[C_right[1];C_right[1]],lw=1.5, label="",xlims=(Tp_min, Tp_max), ylims=(0, 1),color=:crimson,linestyle =:dot)
-        p2 = plot!([Tstop*0.3; Tstart*1.5],[Mass2[end]; Mass2[end]],color=:dimgrey,linestyle=:dashdot,lw=1.5, label=L"\mathrm{Final\ mass}")
-        p2 = plot!([Tstop*0.3; Tstart*1.5],[Mass01; Mass01],color=:grey,linestyle=:dashdot,lw=1.5, label=L"\mathrm{Initial\ mass}",
-                    xlabel = L"T\ \mathrm{[°C]}", ylabel = L"X_{Mg}",grid=:on,legend = :topright)
+        #p2 = plot!([Tstop*0.3; Tstart*1.5],[Mass2[end]; Mass2[end]],color=:dimgrey,linestyle=:dashdot,lw=1.5, label=L"\mathrm{Final\ mass}")
+        #p2 = plot!([Tstop*0.3; Tstart*1.5],[Mass01; Mass01],color=:grey,linestyle=:dashdot,lw=1.5, label=L"\mathrm{Initial\ mass}",
+        #            xlabel = L"T\ \mathrm{[°C]}", ylabel = L"X_{Mg}",grid=:on,legend = :topright)
         #p2 = scatter!([T_check],[C_left_check],marker=:circle, markersize=2, markercolor=:black,
         #              markerstrokecolor=:black,label = "Model")
         #p2 = scatter!([T_check],[C_right_check],marker=:circle, markersize=2, markercolor=:black,

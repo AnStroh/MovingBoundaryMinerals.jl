@@ -125,10 +125,15 @@ function main(plot_sim,verbose)
         end
         if plot_sim
             #Plotting---------------------------------------------
-            p = plot(x_left,C_left, lw=2, label=L"Left\ side")
-            p = plot!(x_right,C_right, lw=2, label=L"Right\ side")
-            p = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ (no\ interaction)", lw=1.5,
-                      grid=:on, label=L"Initial condition")
+            fs = 12.0
+            maxC = maximum([maximum(C_left),maximum(C_right)])
+            p = plot(x_left*1000,C_left, lw=2, label=L"\mathrm{Left\ side}")
+            p = plot!(x_right*1000,C_right, lw=2, label=L"\mathrm{Right\ side}")
+            p = plot!(x0*1000,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
+                    ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on,dpi = 300,
+                    legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+                    legend_foreground_color = :transparent)
+            p = plot!([Ri[1]; Ri[1]]*1000, [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
             display(p)
         end
     end
@@ -150,13 +155,17 @@ if run_and_plot
     Can_r = sinusoid_profile(Cini_r,nmodes_r,Ri[2]-Ri[1],Di[2],t,Amp_r,x_right)
     if plot_end
         #Plotting-------------------------------------------------
-        plot(x_left,C_left, lw=2, label=L"Left\ side")
-        plot!(x_right,C_right, lw=2, label=L"Right\ side")
-        plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ (no\ interaction)", lw=1.5,
-              grid=:on, label=L"Initial condition")
-        scatter!([xan_l],[Can_l], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
-                 markerstrokecolor=:crimson, markercolor=:crimson)
-        scatter!([xan_r],[Can_r], marker=:circle, markersize=2.0, label="",
-                 markerstrokecolor=:crimson, markercolor=:crimson,dpi = 300)
+        fs = 12.0
+        plot(x_left*1000,C_left, lw=2, label=L"\mathrm{Left\ side}")
+        plot!(x_right*1000,C_right, lw=2, label=L"\mathrm{Right\ side}")
+        plot!(x0*1000,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
+              ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on)
+        plot!([Ri[1]; Ri[1]]*1000, [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
+        scatter!([xan[1:2:end]]*1000,[Can[1:2:end]], marker=:circle, markersize=2.0, label=L"\mathrm{Analytical\ solution}",
+                    markerstrokecolor=:crimson, markercolor=:crimson)
+        scatter!([xan[end]]*1000,[Can[end]], marker=:circle, markersize=2.0, label="",
+                    markerstrokecolor=:crimson, markercolor=:crimson,dpi = 300,
+                    legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+                    legend_foreground_color = :transparent)
     end
 end

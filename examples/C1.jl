@@ -118,7 +118,7 @@ function main(plot_sim,verbose)
             p1 = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
             p1 = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
             p1 = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
-                  ylabel = L"C\ \mathrm{[mole\ fraction]}", lw=1.5, grid=:on)
+                  ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on)
             p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}",
                         dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                         legend_foreground_color = :transparent)
@@ -149,16 +149,16 @@ if run_and_plot
         p1 = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
         p1 = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
         p1 = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
-              ylabel = L"C\ \mathrm{[mole\ fraction]}", lw=1.5, grid=:on)
+              ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on)
         p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
         p2 = plot((x_left/Ri0[2]).^(n),C_left, lw=2, label=L"\mathrm{Solid}")
         p2 = plot!((x_right/Ri0[2]).^(n),C_right, lw=2, label=L"\mathrm{Liquid}")
         p2 = scatter!([Ray_Fs[1:100:end]],[Ray_Cs[1:100:end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue,label=L"\mathrm{Solid\ Rayleigh}",
-                      xlabel = L"\mathrm{Fraction}", ylabel = L"C\ \mathrm{[mole\ fraction]}", grid=:on)
+                      xlabel = L"\mathrm{Fraction}", ylabel = L"C\ \mathrm{[-]}", grid=:on)
         p2 = scatter!([Ray_Fs[end]],[Ray_Cs[end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue, label="",xlim=(x_left[1]-0.0001*Ri[2], Ri[1]+0.0001*Ri[2]))
         p3 = plot((phi_solid.^n)', Cl_p', lw=2, label=L"\mathrm{Model}")
         p3 = scatter!([Ray_Fs[1:100:end]],[Ray_Cs[1:100:end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue,label=L"\mathrm{Rayleigh}",
-                      xlabel = L"\mathrm{Solid\ fraction}", ylabel = L"C\ \mathrm{[mole\ fraction]}", grid=:on)
+                      xlabel = L"\mathrm{Solid\ fraction}", ylabel = L"C\ \mathrm{[-]}", grid=:on)
         p3 = scatter!([Ray_Fs[end]],[Ray_Cs[end]], marker=:circle, markersize=2, markercolor=:midnightblue, markerstrokecolor=:midnightblue, label="")
         plot(p1,p3, dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                     legend_foreground_color = :transparent)        

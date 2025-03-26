@@ -147,7 +147,7 @@ if run_and_plot
         plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
         plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
         plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
-              ylabel = L"C\ \mathrm{[mole\ fraction]}", lw=1.5, grid=:on,dpi = 300,
+              ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on,dpi = 300,
                     legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                     legend_foreground_color = :transparent)
         plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")

@@ -153,7 +153,7 @@ function main(adapt_dt,plot_sim,verbose)
                 p1 = plot(x_left*1000,C_left, lw=2, label=L"\mathrm{Left\ side}")
                 p1 = plot!(x_right*1000,C_right, lw=2, label=L"\mathrm{Right\ side}")
                 p1 = plot!(x0*1000,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
-                      ylabel = L"C\ \mathrm{[mole\ fraction]}", lw=1.5, grid=:on,
+                      ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on,
                       ylims=(minC-minC*0.1,maxC+maxC*0.05))
                 p1 = plot!([Ri[1]; Ri[1]]*1000, [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
                 p2 = plot(t_pl/Myr2Sec,T_pl .- 273.0,color=:black,xlabel = L"t\ \mathrm{[Myr]}", ylabel = L"T\ \mathrm{[°C]}", lw=2, grid=:on, label="")
@@ -187,19 +187,21 @@ if run_and_plot
         p1 = plot(x_left*1000,C_left, lw=2, label=L"\mathrm{Left\ side}")
         p1 = plot!(x_right*1000,C_right, lw=2, label=L"\mathrm{Right\ side}")
         p1 = plot!(x0*1000,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
-              ylabel = L"C\ \mathrm{[mole\ fraction]}", lw=1.5, grid=:on,
+              ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on,
               ylims=(minC-minC*0.1,maxC+maxC*0.05),aspect_ratio=:equal)
         p1 = plot!([Ri[1]; Ri[1]]*1000, [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}",
                     legend=(0.15, 0.7))
+        p1 = annotate!(0.01, 0.575, L"\mathrm{(a)}")
         p2 = plot(t_pl,T_pl .- 273.0,color=:black,xlabel = L"t\ \mathrm{[Myr]}", ylabel = L"T\ \mathrm{[°C]}", lw=2, grid=:on, label="")
         p3 = plot(T_pl .- 273.0,last.(Sols_left), lw=2, label=L"\mathrm{Left\ side}")
         p3 = plot!(T_pl .- 273.0,last.(Sols_right), lw=2, label=L"\mathrm{Right\ side}",
-                  xlabel = L"T\ \mathrm{[°C]}", ylabel = L"C\ \mathrm{[mole\ fraction]}", grid=:on)
+                  xlabel = L"T\ \mathrm{[°C]}", ylabel = L"C\ \mathrm{[-]}", grid=:on)
         p3 = scatter!(T_pl .- 273.0,Can1[:,1], marker=:circle, markersize=2.0, label=L"\mathrm{Semi-an.\ solution\ left}",
                       markerstrokecolor=:midnightblue, markercolor=:midnightblue,
                       legend=(0.15, 0.7))
         p3 = scatter!(T_pl .- 273.0,Can2[:,1], marker=:circle, markersize=2.0, label=L"\mathrm{Semi-an.\ solution\ right}",
                       markerstrokecolor=:crimson, markercolor=:crimson)
+        p3 = annotate!(710, 0.563, L"\mathrm{(b)}")
         plot(p1,p3, dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
              legend_foreground_color = :transparent)
         #save_path = "figures"

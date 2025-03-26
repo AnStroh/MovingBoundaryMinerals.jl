@@ -109,10 +109,14 @@ function main(plot_sim,verbose)
         end
         if plot_sim
             #Plotting------------------------------------------------------
-            p = plot(x_left,C_left, lw=2, label=L"Left\ side")
-            p = plot!(x_right,C_right, lw=2, label=L"Right\ side")
-            p = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ (flux)", lw=1.5,
-                  grid=:on, label=L"Initial\ condition")
+            fs = 12.0
+            p = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
+            p = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
+            p = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
+                    ylabel = L"C\ \mathrm{[mol\ fraction]}", lw=1.5, grid=:on,dpi = 300,
+                        legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+                        legend_foreground_color = :transparent)
+            plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
             display(p)
         end
     end
@@ -132,14 +136,20 @@ if run_and_plot
     nterms  = 1000                              #Number of terms within the analytical solution (degree of the polynomial)
     xan,Can = calc_sinus_sphere(x0,C0,D[1],t,nterms)
     if plot_end
+        #Title: Diffusion couple (flux) - sphere
         #Plotting------------------------------------------------------
-        plot(x_left,C_left, lw=2, label=L"Left\ side")
-        plot!(x_right,C_right, lw=2, label=L"Right\ side")
-        plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance\ [m]", ylabel = L"Concentration", title = L"Diffusion\ couple\ (flux)", lw=1.5,
-              grid=:on, label=L"Initial\ condition")
-        plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
-        scatter!([xan[1:2:end]],[Can[1:2:end]], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
-                 markerstrokecolor=:crimson, markercolor=:crimson, dpi = 300)
+        fs = 12.0
+        plot(x_left*1000,C_left, lw=2, label=L"\mathrm{Left\ side}")
+        plot!(x_right*1000,C_right, lw=2, label=L"\mathrm{Right\ side}")
+        plot!(x0*1000,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
+              ylabel = L"C\ \mathrm{[mol\ fraction]}", lw=1.5, grid=:on)
+        plot!([Ri[1]; Ri[1]]*1000, [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
+        scatter!([xan[1:2:end]]*1000,[Can[1:2:end]], marker=:circle, markersize=2.0, label=L"\mathrm{Analytical\ solution}",
+                    markerstrokecolor=:crimson, markercolor=:crimson)
+        scatter!([xan[end]]*1000,[Can[end]], marker=:circle, markersize=2.0, label="",
+                    markerstrokecolor=:crimson, markercolor=:crimson,dpi = 300,
+                    legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+                    legend_foreground_color = :transparent)
         #save_path = "figures"
         #save_name = "B1"
         #save_figure(save_name,save_path,save_file)

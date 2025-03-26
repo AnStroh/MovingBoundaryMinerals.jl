@@ -82,9 +82,12 @@ function main(plot_sim)
         C = L_g \ R_g
         if plot_sim
             # Plotting ------------------------------------------------
-            p = plot(x,C, lw=2, label=L"Current\ concentration")
-            p = plot!(x0,C0, label=L"Initial\ concentration",color=:black,linestyle=:dash,xlabel = L"Distance",
-                      ylabel = L"Concentration", title = L"Simple\ diffusion\ sphere\ (1D)", lw=1.5, grid=:on)
+            fs = 12
+            p = plot(x,C, lw=2, label=L"\mathrm{Current\ composition}")
+            p = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
+                    ylabel = L"C\ \mathrm{[mol\ fraction]}", lw=1.5, grid=:on,dpi = 300,
+                        legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+                        legend_foreground_color = :transparent)      
             display(p)
         end
     end
@@ -102,12 +105,18 @@ if run_and_plot
     nterms  = 1000                          #Number of terms within the analytical solution (degree of the polynomial)
     xan,Can = calc_sinus_sphere(x0,C0,Di,t_tot,nterms)
     if plot_end
+        # Title: Simple diffusion - sphere
         # Plotting ----------------------------------------------------
-        plot(x,C, lw=2, label=L"Current\ concentration")
-        plot!(x0,C0, label=L"Initial\ concentration",color=:black,linestyle=:dash,xlabel = L"Distance\ [m]",
-              ylabel = L"Concentration", title = L"Simple\ diffusion\ -\ sphere", lw=1.5, grid=:on)
-        scatter!([xan[1:5:end]],[Can[1:5:end]], marker=:circle, markersize=2.0, label=L"Analytical\ solution",
-                    markerstrokecolor=:crimson, markercolor=:crimson,dpi = 300)
+        fs = 12.0
+        plot(x*1000,C, lw=2, label=L"\mathrm{Current\ composition}")
+        plot!(x0*1000,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
+              ylabel = L"C\ \mathrm{[mol\ fraction]}", lw=1.5, grid=:on)
+        scatter!([xan[1:5:end]]*1000,[Can[1:5:end]], marker=:circle, markersize=2.0, label=L"\mathrm{Analytical\ solution}",
+                    markerstrokecolor=:crimson, markercolor=:crimson)
+        scatter!([xan[end]]*1000,[Can[end]], marker=:circle, markersize=2.0, label="",
+                    markerstrokecolor=:crimson, markercolor=:crimson,dpi = 300,
+                    legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+                    legend_foreground_color = :transparent)
         #save_path = "figures"
         #save_name = "A2"
         #save_figure(save_name,save_path,save_file)

@@ -18,7 +18,7 @@ function main(adapt_dt,plot_sim,verbose)
     dH0     = 5 * 4184.0                                                    #Standard enthalpy of reaction in [J/mol]
     Myr2Sec = 60*60*24*365.25*1e6                                           #Conversion factor from Myr to s
     t_tot   = 30.0 * Myr2Sec                                                #Total time [s]
-    T0      = 1200.00                                                       #Initial maximal temperature in [K]
+    T0      = 927.00 +273.0                                                 #Initial maximal temperature in [K]
     s       = 10.0 * inv(Myr2Sec)                                           #Cooling rate in [K/s]
     n       = 1                                                             #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
@@ -147,18 +147,19 @@ function main(adapt_dt,plot_sim,verbose)
             CheckBC    = push!(CheckBC,[Check1, Check2])                    #For benchmarking
             if plot_sim
                 #Plotting-----------------------------------------
-                p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
-                p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
-                p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration",
-                           title = L"Concentration\ profile", lw=1.5, grid=:on, label=L"Initial\ condition",
-                           legendfontsize = 4)
-                p2 = plot(t_pl/Myr2Sec,T_pl,color=:black,xlabel = L"Time\ [Myr]", ylabel = L"Temperature\ [K]",
-                          title = L"t-T\ path", lw=2, grid=:on, label="")
-                p3 = plot(T_pl,last.(Sols_left), lw=2, label=L"Left\ side\ num.\ solution")
-                p3 = plot!(T_pl,last.(Sols_right), lw=2, label=L"Right\ side\ num.\ solution",
-                          xlabel = L"Temperature\ [K]", ylabel = L"Concentration",
-                          title = L"Boundary\ concentrations", grid=:on)
-                p = plot(p2,p1,suptitle = L"Diffusion\ couple\ (Lasaga)")
+                maxC = maximum([maximum(C_left),maximum(C_right)])
+                minC = minimum([minimum(C_left),minimum(C_right)])
+                fs = 12.0
+                p1 = plot(x_left*1000,C_left, lw=2, label=L"\mathrm{Left\ side}")
+                p1 = plot!(x_right*1000,C_right, lw=2, label=L"\mathrm{Right\ side}")
+                p1 = plot!(x0*1000,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
+                      ylabel = L"C\ \mathrm{[mol\ fraction]}", lw=1.5, grid=:on,
+                      ylims=(minC-minC*0.1,maxC+maxC*0.05),aspect_ratio=:equal)
+                p1 = plot!([Ri[1]; Ri[1]]*1000, [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}",
+                            legend=(0.15, 0.7))
+                p2 = plot(t_pl/Myr2Sec,T_pl .- 273.0,color=:black,xlabel = L"t\ \mathrm{[Myr]}", ylabel = L"T\ \mathrm{[°C]}", lw=2, grid=:on, label="")
+                p = plot(p1,p2, dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+                        legend_foreground_color = :transparent)
                 display(p)
             end
         end
@@ -173,7 +174,7 @@ end
 run_and_plot = true
 if run_and_plot
     adapt_dt  = true
-    plot_sim  = false
+    plot_sim  = true
     plot_end  = true
     verbose   = false
     save_file = false
@@ -181,24 +182,27 @@ if run_and_plot
     Can1 = first.(Sols_left)
     Can2 = first.(Sols_right)
     if plot_end
+        #Title: Diffusion couple (flux) - Lasaga (1983)
         #Plotting-------------------------------------------------
-        p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
-        p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
-        p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance\ [m]", ylabel = L"Concentration",
-                   title = L"Concentration\ profile", lw=1.5, grid=:on, label=L"Initial\ condition",
-                   legendfontsize = 6,ylims=(minC-minC*0.1,maxC+maxC*0.1))
-        p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"Interface")
-        p2 = plot(t_pl,T_pl,color=:black,xlabel = L"Time\ [Myr]", ylabel = L"Temperature\ [K]",
-                  title = L"t-T\ path", lw=2, grid=:on, label="")
-        p3 = plot(T_pl,last.(Sols_left), lw=2, label=L"Left\ side\ num.\ solution")
-        p3 = plot!(T_pl,last.(Sols_right), lw=2, label=L"Right\ side\ num.\ solution",
-                  xlabel = L"Temperature\ [K]", ylabel = L"Concentration",
-                  title = L"Boundary\ concentrations", grid=:on)
-        p3 = scatter!(T_pl,Can1[:,1], marker=:circle, markersize=2.0, label=L"Left\ side\ semi-ana.\ solution",
-                      markerstrokecolor=:midnightblue, markercolor=:midnightblue)
-        p3 = scatter!(T_pl,Can2[:,1], marker=:circle, markersize=2.0, label=L"Right\ side\ semi-ana.\ solution",
-                      markerstrokecolor=:crimson, markercolor=:crimson,legendfontsize = 6, legend =:right)
-        plot(p2,p1,p3,suptitle = L"Diffusion\ couple\ (flux)\ -\ Lasaga\ {(1983)}", dpi = 300)
+        fs = 12.0
+        p1 = plot(x_left*1000,C_left, lw=2, label=L"\mathrm{Left\ side}")
+        p1 = plot!(x_right*1000,C_right, lw=2, label=L"\mathrm{Right\ side}")
+        p1 = plot!(x0*1000,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
+              ylabel = L"C\ \mathrm{[mol\ fraction]}", lw=1.5, grid=:on,
+              ylims=(minC-minC*0.1,maxC+maxC*0.05),aspect_ratio=:equal)
+        p1 = plot!([Ri[1]; Ri[1]]*1000, [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}",
+                    legend=(0.15, 0.7))
+        p2 = plot(t_pl,T_pl .- 273.0,color=:black,xlabel = L"t\ \mathrm{[Myr]}", ylabel = L"T\ \mathrm{[°C]}", lw=2, grid=:on, label="")
+        p3 = plot(T_pl .- 273.0,last.(Sols_left), lw=2, label=L"\mathrm{Left\ side}")
+        p3 = plot!(T_pl .- 273.0,last.(Sols_right), lw=2, label=L"\mathrm{Right\ side}",
+                  xlabel = L"T\ \mathrm{[°C]}", ylabel = L"C\ \mathrm{[mol\ fraction]}", grid=:on)
+        p3 = scatter!(T_pl .- 273.0,Can1[:,1], marker=:circle, markersize=2.0, label=L"\mathrm{Semi-an.\ solution\ left}",
+                      markerstrokecolor=:midnightblue, markercolor=:midnightblue,
+                      legend=(0.15, 0.7))
+        p3 = scatter!(T_pl .- 273.0,Can2[:,1], marker=:circle, markersize=2.0, label=L"\mathrm{Semi-an.\ solution\ right}",
+                      markerstrokecolor=:crimson, markercolor=:crimson)
+        plot(p1,p3, dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+             legend_foreground_color = :transparent)
         #save_path = "figures"
         #save_name = "B2"
         #save_figure(save_name,save_path,save_file)

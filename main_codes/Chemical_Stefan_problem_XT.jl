@@ -102,7 +102,11 @@ function main(plot_sim,verbose)
     R_right_sim = Float64[]                                                                             #Array to store the concentration ratio right side (interface)
     R_g         = zeros(length(x0),1)                                                                   #Global RHS vector
     #Checks-----------------------------------------------------------------
-    MB_Error = Float64[]                                                                                #Array to store the mass error 
+    C_left_check        = [C_left[end]]                                                                 #Check composition left side
+    C_right_check       = [C_right[1]]                                                                  #Check composition right side           
+    T_check             = [Tstart]                                                                      #Check temperature
+    Residual            = Float64[]                                                                     #Residual of the velocity
+    MB_Error            = Float64[]                                                                     #Mass error
     #-----------------------------------------------------------------------
     #Solving the moving boundary problem------------------------------------
     while t < t_tot
@@ -130,6 +134,10 @@ function main(plot_sim,verbose)
         L_g, R_g = set_outer_bc!(BCout,L_g,R_g,Co_l[1],Co_r[end],ScF)
         #Solve system-------------------------------------------------------
         C_left, C_right = solve_soe(L_g,R_g,res)
+        #Debugging composition-----------------------------------------------
+        push!(C_left_check,C_left[end])
+        push!(C_right_check,C_right[1])
+        push!(T_check, T)
         #Regrid-------------------------------------------------------------
         x_left, x_right, C_left, C_right, dx1, dx2, res = regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, res, resmin, MRefin,verbose)
         #Post-Preprocessing-------------------------------------------------

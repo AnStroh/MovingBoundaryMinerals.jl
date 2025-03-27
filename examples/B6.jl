@@ -157,11 +157,13 @@ if run_and_plot
                         markerstrokecolor=:crimson, markercolor=:crimson)
         p1 = scatter!([xan[end].+Ri[1]],[Can[end]], marker=:circle, markersize=2.0, label="",
                         markerstrokecolor=:crimson, markercolor=:crimson)
-        p2 = plot(x_right,C_right, lw=2, label=L"\mathrm{Liquid}", color = palette(:auto)[2])
+        p1 = annotate!(2.0, 121, L"\mathrm{(a)}")
+        p2 = plot(x_right,C_right, lw=2, label=L"\mathrm{Numerical\ solution}", color = palette(:auto)[2])
         p2 = scatter!([xan[1:5:end].+Ri[1]],[Can[1:5:end]], marker=:circle, markersize=2.0, label=L"\mathrm{Analytical\ solution}",
                  markerstrokecolor=:crimson, markercolor=:crimson, dpi = 300,
                  xlabel = L"x\ \mathrm{[m]}", ylabel = L"C\ \mathrm{[-]}")
         p2 = scatter!([xan[end].+Ri[1]],[Can[end]], marker=:circle, markersize=2.0,markerstrokecolor=:crimson, markercolor=:crimson, label="")
+        p2 = annotate!(1.5, 124, L"\mathrm{(b)}")
         plot(p1,p2,dpi = 300, legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
               legend_foreground_color = :transparent)
         #save_path = "figures"

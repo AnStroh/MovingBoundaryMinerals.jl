@@ -111,10 +111,15 @@ function main(plot_sim,verbose)
         end
         if plot_sim
             #Plotting---------------------------------------------
-            p = plot(x_left,C_left, lw=2, label=L"Left\ side")
-            p = plot!(x_right,C_right, lw=2, label=L"Right\ side")
-            p = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ 1D\ MB\ condition", lw=1.5,
-                      grid=:on, label=L"Initial\ condition")
+            fs = 12.0
+            maxC = maximum([maximum(C_left),maximum(C_right)])
+            p = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
+            p = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
+            p = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
+                  ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on,dpi = 300,
+                        legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+                        legend_foreground_color = :transparent, legend=:bottomright)
+            p = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
             display(p)
         end
     end
@@ -135,9 +140,14 @@ if run_and_plot
     x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0 = main(plot_sim,verbose)
     if plot_end
         #Plotting-------------------------------------------------
-        plot(x_left,C_left, lw=2, label=L"Left\ side")
-        plot!(x_right,C_right, lw=2, label=L"Right\ side")
-        plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Diffusion\ couple\ (MB)", lw=1.5,
-              grid=:on, label=L"Initial\ condition")
+        fs = 12.0
+        maxC = maximum([maximum(C_left),maximum(C_right)])
+        plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
+        plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
+        plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
+              ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on,dpi = 300,
+                    legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+                    legend_foreground_color = :transparent, legend=:bottomright)
+        plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
     end
 end

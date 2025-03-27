@@ -187,38 +187,47 @@ function main(plot_sim,verbose)
         if plot_sim
             #Plotting-------------------------------------------------------
             maxC = maximum([maximum(C_left),maximum(C_right)])
-            Tp_min = Tstop * 0.95
-            Tp_max = Tstart * 1.05
-            first_val, last_val = values_between_known_indices!(Tlin,KDlin,Tstart,Tstop)                #CAUTION: Works just for constantly dropping temperature
+            Tp_min = (Tstop - 273.0) * 0.95
+            Tp_max = (Tstart - 273.0)* 1.05
+            first_val, last_val = values_between_known_indices!(Tlin.-273.0,KDlin,Tstart,Tstop)                    #CAUTION: works just for constantly dropping temperature
+            fs = 12.0
             #Concentration profile
-        p1 = plot(x_left,C_left, lw=2, label=L"Left\ side")
-        p1 = plot!(x_right,C_right, lw=2, label=L"Right\ side")
-        p1 = plot!([x_left[end]; x_left[end]],[0; 1]*maxC,color=:grey,linestyle=:dash, lw=2, label=L"Interface")
-        p1 = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Concentration", title = L"Concentration\ profile", lw=1.5,
-              grid=:on, label=L"Initial\ condition",legendfontsize = 6,legend =:bottomright)
-        #Phase diagram
-        p2 = plot(Tlin,XC_left, lw=2, label=L"Left\ side")
-        p2 = plot!(Tlin,XC_right, lw=2, label=L"Right\ side")
-        p2 = scatter!([T],[C_left[end]],marker=:circle, markersize=2, markercolor=:black,
-                      markerstrokecolor=:black,label = "")
-        p2 = scatter!([T],[C_right[1]],marker=:circle, markersize=2, markercolor=:black,
-                      markerstrokecolor=:black,label = "")
-        p2 = plot!([T; T],[0; maximum([C_left[end],C_right[1]])],lw=1.5, label="",color=:black,linestyle=:dash)
-        p2 = plot!([T; 0],[C_left[end];C_left[end]],lw=1.5, label="",color=:royalblue,linestyle =:dot)
-        p2 = plot!([T; 0],[C_right[1];C_right[1]],lw=1.5, label="",xlims=(Tp_min, Tp_max), ylims=(0, 1),color=:crimson,linestyle =:dot)
-        p2 = plot!([Tstop*0.3; Tstart*1.5],[Mass2[end]; Mass2[end]],color=:dimgrey,linestyle=:dashdot,lw=1.5, label=L"Final\ mass")
-        p2 = plot!([Tstop*0.3; Tstart*1.5],[Mass01; Mass01],color=:grey,linestyle=:dashdot,lw=1.5, label=L"Initial\ mass",
-                    xlabel = L"Temperature", ylabel = L"X", title = L"Phase\ diagram",grid=:on,legendfontsize = 6,legend = :bottomright)
-        #Evolution of KD(T)
-        p3 = plot(Tlin, KDlin, lw=2, label=L"Thermo-dynamic\ data", color=:teal)
-        p3 = scatter!([T_sim[end]],[KD_sim[end]],marker=:circle, markersize=2.5, markercolor=:black,markerstrokecolor=:black,
-                      xlabel = L"Temperature", ylabel = L"K_{D}", title = L"K_{D}(T)\ evolution", lw=1.5,
-                      grid=:on, label=L"Model",xlims=(Tp_min, Tp_max), ylims=(first_val-0.01,last_val+0.01))
-        #ln(KD) vs 1/T
-        p4 = plot(1.0 ./ T_sim,log.(KD_sim),xlabel = L"1/T", ylabel = L"ln(K_{D})", title = L"Arrhenius\ plot", lw=1.5,
-                grid=:on, label=L"Model", color=:teal, ticks=:auto, xrotation=0)
-        plot(p2,p3,p4,p1,suptitle = L"Thermodynamical\ constrained\ Stefan\ condition", dpi = 300)
+            p1 = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
+            p1 = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
+            p1 = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
+                  ylabel = L"X_{Mg}", lw=1.5, grid=:on, legend = :right)
+            #Phase diagram
+            p2 = plot(Tlin .- 273.0,XC_left, lw=2, label=L"\mathrm{Left\ side}")
+            p2 = plot!(Tlin .- 273.0,XC_right, lw=2, label=L"\mathrm{Right\ side}")
+            p2 = scatter!([T-273.0],[C_left[end]],marker=:circle, markersize=2, markercolor=:black,
+                          markerstrokecolor=:black,label = "")
+            p2 = scatter!([T-273.0],[C_right[1]],marker=:circle, markersize=2, markercolor=:black,
+                          markerstrokecolor=:black,label = "")
+            p2 = plot!([T-273.0; T-273.0],[0; maximum([C_left[end],C_right[1]])],lw=1.5, label="",color=:black,linestyle=:dash)
+            p2 = plot!([T-273.0; 0],[C_left[end];C_left[end]],lw=1.5, label="",color=:royalblue,linestyle =:dot)
+            p2 = plot!([T-273.0; 0],[C_right[1];C_right[1]],lw=1.5, label="",xlims=(Tp_min, Tp_max), ylims=(0, 1),color=:crimson,linestyle =:dot)
+            #p2 = plot!([Tstop*0.3; Tstart*1.5],[Mass2[end]; Mass2[end]],color=:dimgrey,linestyle=:dashdot,lw=1.5, label=L"\mathrm{Final\ mass}")
+            #p2 = plot!([Tstop*0.3; Tstart*1.5],[Mass01; Mass01],color=:grey,linestyle=:dashdot,lw=1.5, label=L"\mathrm{Initial\ mass}",
+            #            xlabel = L"T\ \mathrm{[°C]}", ylabel = L"X_{Mg}",grid=:on,legend = :topright)
+            #p2 = scatter!([T_check],[C_left_check],marker=:circle, markersize=2, markercolor=:black,
+            #              markerstrokecolor=:black,label = "Model")
+            #p2 = scatter!([T_check],[C_right_check],marker=:circle, markersize=2, markercolor=:black,
+            #              markerstrokecolor=:black,label = "mODEL")
+            #Evolution of KD(T)
+            p3 = plot(Tlin .- 273.0, KDlin, lw=1.5, label=L"\mathrm{Thermodynamic\ data}", color=:black)
+            p3 = scatter!([T_sim[end]-273.0],[KD_sim[end]],marker=:circle, markersize=3.0, markercolor=:black,markerstrokecolor=:black,
+                          xlabel = L"T\ \mathrm{[°C]}", ylabel = L"K_{D}", lw=1.5,legend = :bottomleft,
+                          grid=:on, label=L"\mathrm{Model}",xlims=(Tp_min, Tp_max), ylims=(first_val-0.01,last_val+0.01))
+            #ln(KD) vs 1/T
+            p4 = plot(10000.0 ./ (T_sim),log.(KD_sim),xlabel = L"10,000/T\ \mathrm{[K^{-1}]}", ylabel = L"ln(K_{D})", lw=1.5,
+                    grid=:on, label="", color=:black, ticks=:auto, xrotation=0)
+            #Figure 1
+            p = plot(p1,p2,dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+                    legend_foreground_color = :transparent)
             display(p)
+            #Figure 2
+            #plot(p3,p4,dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+            #        legend_foreground_color = :transparent)
         end
         # Suppress output of calc_mass_err
         redirect_stdout(devnull) do
@@ -273,12 +282,12 @@ if run_and_plot
         #              markerstrokecolor=:black,label = "mODEL")
         #Evolution of KD(T)
         p3 = plot(Tlin .- 273.0, KDlin, lw=1.5, label=L"\mathrm{Thermodynamic\ data}", color=:black)
-        p3 = scatter!([T_sim[end]-273.0],[KD_sim[end]],marker=:circle, markersize=2.5, markercolor=:black,markerstrokecolor=:black,
+        p3 = scatter!([T_sim[end]-273.0],[KD_sim[end]],marker=:circle, markersize=3.0, markercolor=:black,markerstrokecolor=:black,
                       xlabel = L"T\ \mathrm{[°C]}", ylabel = L"K_{D}", lw=1.5,legend = :bottomleft,
                       grid=:on, label=L"\mathrm{Model}",xlims=(Tp_min, Tp_max), ylims=(first_val-0.01,last_val+0.01))
         #ln(KD) vs 1/T
         p4 = plot(10000.0 ./ (T_sim),log.(KD_sim),xlabel = L"10,000/T\ \mathrm{[K^{-1}]}", ylabel = L"ln(K_{D})", lw=1.5,
-                grid=:on, label="", color=:black, ticks=:auto, xrotation=10)
+                grid=:on, label="", color=:black, ticks=:auto, xrotation=0)
         #Figure 1
         plot(p1,p2,dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                 legend_foreground_color = :transparent)

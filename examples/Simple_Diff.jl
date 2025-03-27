@@ -86,9 +86,11 @@ function main()
         C = L_g \ R_g
         if plot_sim
             # Plotting ------------------------------------------------
-            p = plot(x,C, lw=2, label=L"Current\ concentration")
-            p = plot!(x0,C0, label=L"Initial\ concentration",color=:black,linestyle=:dash,xlabel = L"Distance",
-                    ylabel = L"Concentration", title = L"Simple\ diffusion\ (planar)", lw=1.5, grid=:on)
+            p = plot(x*1000,C, lw=2, label=L"\mathrm{Current\ composition}")
+            p = plot!(x0*1000,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
+                    ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on,dpi = 300,
+                    legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+                    legend_foreground_color = :transparent)
             display(p)
         end
     end

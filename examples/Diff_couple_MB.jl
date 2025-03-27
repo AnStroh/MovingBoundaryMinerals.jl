@@ -135,12 +135,12 @@ x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0, Mass, Mass0 = main(
         #Plotting-------------------------------------------------
         maxC = maximum([maximum(C_left),maximum(C_right)])
         fs = 12.0
-        plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
-        plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
-        plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
+        plot(x_left*1000,C_left, lw=2, label=L"\mathrm{Left\ side}")
+        plot!(x_right*1000,C_right, lw=2, label=L"\mathrm{Right\ side}")
+        plot!(x0*1000,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
               ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on,dpi = 300,
                     legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                     legend_foreground_color = :transparent)
-        plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
+        plot!([Ri[1]; Ri[1]]*1000, [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
     end
 end

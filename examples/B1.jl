@@ -64,14 +64,16 @@ function main(plot_sim,verbose)
     #Total mass---------------------------------------------------
     Mass0   = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
     #Preallocate variables----------------------------------------
-    Co_l    = zeros(size(C_left))               #Matrix to store old concentrations of left side
-    Co_r    = zeros(size(C_right))              #Matrix to store old concentrations of right side
-    dt      = 0.0                               #Initial time step
-    L_g     = spzeros(length(x),length(x))      #Global left hand side matrix
-    Mass    = Float64[]                         #Array to store the mass of the system
-    R_g     = zeros(length(x),1)                #Global right hand side vector    #Calculate initial Ds, KD, T---------------------------------------------
+    Co_l     = zeros(size(C_left))              #Matrix to store old concentrations of left side
+    Co_r     = zeros(size(C_right))             #Matrix to store old concentrations of right side
+    dt       = 0.0                              #Initial time step
+    L_g      = spzeros(length(x),length(x))     #Global left hand side matrix
+    Mass     = Float64[]                        #Array to store the mass of the system
+    R_g      = zeros(length(x),1)               #Global right hand side vector    #Calculate initial Ds, KD, T---------------------------------------------
     D_l, D_r, KD, T = update_t_dependent_param!(D0,Di,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
-    #First check for correct setup-----------------------------------------
+    #Checks------------------------------------------------------------
+    MB_Error = Float64[]                        #Array to store the mass error   
+    #First check for correct setup-------------------------------------
     if BCout[1] != 0 && (n == 3 || n == 2)
         error("The code is only valid for cylindrical/spherical geometry, where the left outer BC has Neumann conditions (0).")
     elseif t != 0.0
@@ -118,6 +120,11 @@ function main(plot_sim,verbose)
                         legend_foreground_color = :transparent)
             p = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
             display(p)
+        end
+        # Suppress output of calc_mass_err
+        redirect_stdout(devnull) do
+            ErrM = calc_mass_err(Mass, Mass0)
+            push!(MB_Error,ErrM)
         end
     end
     maxC = maximum([maximum(C_left),maximum(C_right)])

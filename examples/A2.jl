@@ -38,13 +38,15 @@ function main(plot_sim)
     dt_diff = zeros(length(t_ar)-1)
     dt_diff = t_ar[2:end] .- t_ar[1:end-1]
     #Preallocate variables --------------------------------------------
-    Co      = zeros(size(C))                #Old concentration
-    dt      = 0.0                           #Initial time step
-    dx      = zeros(length(x) - 1,1)        #Grid spacing
-    L_g     = spzeros(length(x),length(x))  #Global matrix
-    Mass    = Float64[]                     #Mass array
-    nels    = length(x) - 1                 #Number of elements
-    R_g     = zeros(length(x),1)            #Global vector
+    Co       = zeros(size(C))               #Old concentration
+    dt       = 0.0                          #Initial time step
+    dx       = zeros(length(x) - 1,1)       #Grid spacing
+    L_g      = spzeros(length(x),length(x)) #Global matrix
+    Mass     = Float64[]                    #Mass array
+    nels     = length(x) - 1                #Number of elements
+    R_g      = zeros(length(x),1)           #Global vector
+    #Checks------------------------------------------------------------
+    MB_Error = Float64[]                    #Array to store the mass error     
     #Calculate grid ---------------------------------------------------
     dx    = L * inv(res - 1.0)
     #Calculate initial Ds, KD, T---------------------------------------
@@ -89,6 +91,11 @@ function main(plot_sim)
                         legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                         legend_foreground_color = :transparent)      
             display(p)
+        end
+        # Suppress output of calc_mass_err
+        redirect_stdout(devnull) do
+            ErrM = calc_mass_vol_simple_diff(x,C,n,rho)
+            push!(MB_Error,ErrM)
         end
     end
     Mass = calc_mass_vol_simple_diff(x,C,n,rho)

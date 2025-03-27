@@ -73,7 +73,9 @@ function main(adapt_dt,plot_sim,verbose)
     T_pl       = []                                                         #Temperature for plotting
     t_pl       = []                                                         #Time for plotting
     Sols_left  = []                                                         #Array to store solutions for the left side
-    Sols_right = []                                                         #Array to store solutions for the right side
+    Sols_right = []                                                         #Array to store solutions for the right side    
+    #Checks-------------------------------------------------------
+    MB_Error   = Float64[]                                                  #Array to store mass error
     Checks     = []                                                         #Array to store checks
     CheckBC    = []                                                         #Array to store checks for boundary conditions
     #Calculate initial D, KD, T-----------------------------------
@@ -161,6 +163,11 @@ function main(adapt_dt,plot_sim,verbose)
                         legend_foreground_color = :transparent)
                 display(p)
             end
+        end
+        # Suppress output of calc_mass_err
+        redirect_stdout(devnull) do
+            ErrM = calc_mass_err(Mass, Mass0)
+            push!(MB_Error,ErrM)
         end
         println("Time: ", t/Myr2Sec, " Myr")
     end

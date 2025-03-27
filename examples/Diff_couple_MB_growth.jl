@@ -69,6 +69,8 @@ function main(plot_sim,verbose)
     L_g     = spzeros(length(x),length(x))                      #Global left hand side matrix
     Mass    = Float64[]                                         #Array to store the mass of the system
     R_g     = zeros(length(x),1)                                #Global right hand side vector
+    #Checks-------------------------------------------------------
+    MB_Error = Float64[]                                        #Array to store the mass error
     #Calculate initial Ds, KD, T----------------------------------
     D_l, D_r, KD, T = update_t_dependent_param!(D0,Di,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
     #First check for correct setup--------------------------------
@@ -121,6 +123,11 @@ function main(plot_sim,verbose)
                     legend_foreground_color = :transparent)
             p = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
             display(p)
+        end
+        # Suppress output of calc_mass_err
+        redirect_stdout(devnull) do
+            ErrM = calc_mass_err(Mass, Mass0)
+            push!(MB_Error,ErrM)
         end
     end
     #Rescaling---------------------------------------------------

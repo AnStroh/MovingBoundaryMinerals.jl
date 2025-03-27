@@ -116,11 +116,11 @@ function main(plot_sim,verbose)
     R_right_sim         = Float64[]                                                                     #Array to store the concentration ratio right side (interface)
     R_g                 = zeros(length(x0),1)                                                           #Global RHS vector
     #Checks-----------------------------------------------------------------
-    C_left_check        = [C_left[end]]
-    C_right_check       = [C_right[1]]
-    T_check             = [Tstart]
-    Residual            = Float64[]
-    MB_Error            = Float64[]
+    C_left_check        = [C_left[end]]                                                                 #Check composition left side
+    C_right_check       = [C_right[1]]                                                                  #Check composition right side           
+    T_check             = [Tstart]                                                                      #Check temperature
+    Residual            = Float64[]                                                                     #Residual of the velocity
+    MB_Error            = Float64[]                                                                     #Mass error
     #-----------------------------------------------------------------------
     #Solving the moving boundary problem------------------------------------
     while t < t_tot

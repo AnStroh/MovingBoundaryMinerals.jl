@@ -49,6 +49,8 @@ function main()
     Mass    = Float64[]                         #Mass array
     nels    = length(x) - 1                     #Number of elements
     R_g     = zeros(length(x),1)                #Global vector
+    #Checks------------------------------------------------------------
+    MB_Error = Float64[]                        #Array to store the mass error     
     #Calculate grid ---------------------------------------------------
     dx    = L * inv(nx - 1.0)
     #Calculate initial Ds, KD, T---------------------------------------
@@ -92,6 +94,11 @@ function main()
                     legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                     legend_foreground_color = :transparent)
             display(p)
+        end
+        # Suppress output of calc_mass_err
+        redirect_stdout(devnull) do
+            ErrM = calc_mass_vol_simple_diff(x,C,n,rho)
+            push!(MB_Error,ErrM)
         end
     end
     Mass = calc_mass_vol_simple_diff(x,C,n,rho)

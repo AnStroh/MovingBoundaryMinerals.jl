@@ -171,7 +171,7 @@ function main(plot_sim,verbose)
             #Concentration profile
             p1 = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
             p1 = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
-            p1 = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
+            p1 = plot!(x0,C0', label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
                   ylabel = L"X_{Mg}", lw=1.5, grid=:on, legend = :right)
             #Phase diagram
             p2 = plot(Tlin .- 273.0,XC_left, lw=2, label=L"\mathrm{Left\ side}")

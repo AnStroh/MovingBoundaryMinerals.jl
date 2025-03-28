@@ -65,6 +65,7 @@ function main(plot_sim)
         error("Initial temperature must be equal to the first value in the temperature array.")
     end
     #Time loop --------------------------------------------------------
+    #anim = Animation()
     while t < t_tot
         #Store old values
         Co = copy(C)
@@ -92,6 +93,7 @@ function main(plot_sim)
                         legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                         legend_foreground_color = :transparent)      
             display(p)
+            #frame(anim)
         end
         # Suppress output of calc_mass_err
         redirect_stdout(devnull) do
@@ -99,10 +101,12 @@ function main(plot_sim)
             push!(MB_Error,ErrM)
         end
     end
+    #gif(anim, "figures/A1.gif", fps=50)  # Save with 10 frames per second
     Mass = calc_mass_vol_simple_diff(x,C,n,rho)
     calc_mass_err(Mass,Mass0)
     return x, C, x0, C0, D, t, t_tot, Cini, nmodes, Amp, L
 end
+
 #Run main function-----------------------------------------------------
 run_and_plot = true
 if run_and_plot

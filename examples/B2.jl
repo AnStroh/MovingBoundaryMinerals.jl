@@ -102,6 +102,7 @@ function main(adapt_dt,plot_sim,verbose)
         error("Initial temperature must be equal to the first value in the temperature array.")
     end
     #Time loop----------------------------------------------------
+    anim = Animation()
     while t < t_tot
         #Calculate dt---------------------------------------------
         if adapt_dt
@@ -162,6 +163,7 @@ function main(adapt_dt,plot_sim,verbose)
                 p = plot(p1, dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                         legend_foreground_color = :transparent)
                 display(p)
+                frame(anim)
             end
         end
         # Suppress output of calc_mass_err
@@ -171,6 +173,7 @@ function main(adapt_dt,plot_sim,verbose)
         end
         println("Time: ", t/Myr2Sec, " Myr")
     end
+    gif(anim, "figures/B2.gif", fps=50)  # Save with 10 frames per second
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
     calc_mass_err(Mass,Mass0)

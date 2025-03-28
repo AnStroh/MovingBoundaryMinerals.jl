@@ -128,14 +128,15 @@ function main(plot_sim,verbose)
         if plot_sim
             #Plotting---------------------------------------------
             fs = 12.0
-            maxC = maximum([maximum(C_left),maximum(C_right)])
+            maxC = maximum(C0)
+            minC = minimum(C0)
             p = plot(x_left*1000,C_left, lw=2, label=L"\mathrm{Left\ side}")
             p = plot!(x_right*1000,C_right, lw=2, label=L"\mathrm{Right\ side}")
             p = plot!(x0*1000,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
-                    ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on,dpi = 300,
-                    legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
-                    legend_foreground_color = :transparent)
-            p = plot!([Ri[1]; Ri[1]]*1000, [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
+                        ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on)
+            p = plot!([Ri[1]; Ri[1]]*1000, [minC; maxC], color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}",dpi = 300,
+                        legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+                        legend_foreground_color = :transparent)
             display(p)
         end
         # Suppress output of calc_mass_err
@@ -163,14 +164,22 @@ if run_and_plot
     if plot_end
         #Plotting-------------------------------------------------
         fs = 12.0
+        maxC = maximum(C0)
+        minC = minimum(C0)
         plot(x_left*1000,C_left, lw=2, label=L"\mathrm{Left\ side}")
         plot!(x_right*1000,C_right, lw=2, label=L"\mathrm{Right\ side}")
         plot!(x0*1000,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
               ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on)
-        plot!([Ri[1]; Ri[1]]*1000, [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
-        scatter!([xan[1:2:end]]*1000,[Can[1:2:end]], marker=:circle, markersize=2.0, label=L"\mathrm{Analytical\ solution}",
+        plot!([Ri[1]; Ri[1]]*1000, [minC; maxC], color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
+        scatter!([xan_l[1:8:end]]*1000,[Can_l[1:8:end]], marker=:circle, markersize=2.0, label=L"\mathrm{Analytical\ solution}",
+                    markerstrokecolor=:midnightblue, markercolor=:midnightblue)
+        scatter!([xan_l[end]]*1000,[Can_l[end]], marker=:circle, markersize=2.0, label="",
+                    markerstrokecolor=:midnightblue, markercolor=:midnightblue,dpi = 300,
+                    legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+                    legend_foreground_color = :transparent)
+        scatter!([xan_r[1:8:end]]*1000,[Can_r[1:8:end]], marker=:circle, markersize=2.0, label=L"\mathrm{Analytical\ solution}",
                     markerstrokecolor=:crimson, markercolor=:crimson)
-        scatter!([xan[end]]*1000,[Can[end]], marker=:circle, markersize=2.0, label="",
+        scatter!([xan_r[end]]*1000,[Can_r[end]], marker=:circle, markersize=2.0, label="",
                     markerstrokecolor=:crimson, markercolor=:crimson,dpi = 300,
                     legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                     legend_foreground_color = :transparent)

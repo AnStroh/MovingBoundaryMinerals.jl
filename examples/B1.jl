@@ -84,6 +84,7 @@ function main(plot_sim,verbose)
         error("Initial temperature must be equal to the first value in the temperature array.")
     end
     #Time loop----------------------------------------------------
+    anim = Animation()
     while t < t_tot
         #Calculate dt-------------------------------------------------
         dt = find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
@@ -120,6 +121,7 @@ function main(plot_sim,verbose)
                         legend_foreground_color = :transparent)
             p = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
             display(p)
+            frame(anim)
         end
         # Suppress output of calc_mass_err
         redirect_stdout(devnull) do
@@ -127,6 +129,7 @@ function main(plot_sim,verbose)
             push!(MB_Error,ErrM)
         end
     end
+    gif(anim, "figures/B1.gif", fps=50)  # Save with 10 frames per second
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
     calc_mass_err(Mass,Mass0)
@@ -135,7 +138,7 @@ end
 #Call main function------------------------------------------------------------
 run_and_plot = true
 if run_and_plot
-    plot_sim  = false
+    plot_sim  = true
     plot_end  = true
     verbose   = false
     save_file = false

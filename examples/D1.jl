@@ -123,6 +123,7 @@ function main(plot_sim,verbose)
     MB_Error            = Float64[]                                                                     #Mass error
     #-----------------------------------------------------------------------
     #Solving the moving boundary problem------------------------------------
+    anim = Animation()
     while t < t_tot
         #Update time--------------------------------------------------------
         t, dt, it = update_time!(t,dt,it,t_tot)
@@ -194,7 +195,7 @@ function main(plot_sim,verbose)
             #Concentration profile
             p1 = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
             p1 = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
-            p1 = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
+            p1 = plot!(x0,C0', label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
                   ylabel = L"X_{Mg}", lw=1.5, grid=:on, legend = :right)
             #Phase diagram
             p2 = plot(Tlin .- 273.0,XC_left, lw=2, label=L"\mathrm{Left\ side}")
@@ -225,6 +226,7 @@ function main(plot_sim,verbose)
             p = plot(p1,p2,dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                     legend_foreground_color = :transparent)
             display(p)
+            frame(anim)
             #Figure 2
             #plot(p3,p4,dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
             #        legend_foreground_color = :transparent)
@@ -236,6 +238,7 @@ function main(plot_sim,verbose)
         end
     end
     #Post-process-----------------------------------------------------------
+    gif(anim, "figures/D1.gif", fps=50)  # Save with 10 frames per second
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
     calc_mass_err(Mass,Mass0)
@@ -244,7 +247,7 @@ end
 #Run calculation------------------------------------------------------------
 run_and_plot = true
 if run_and_plot
-    plot_sim  = false
+    plot_sim  = true
     plot_end  = true
     verbose   = false
     save_file = false

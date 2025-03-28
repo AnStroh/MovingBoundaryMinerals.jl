@@ -84,11 +84,11 @@ function main(plot_sim)
         L_g, R_g = set_outer_bc!(BCout,L_g,R_g,Co[1],Co[end],ScF)
         #Solve system -------------------------------------------------
         C = L_g \ R_g
-        if plot_sim
+        if plot_sim && it % 15 == 0
             # Plotting ------------------------------------------------
             fs = 12.0
-            p = plot(x,C, lw=2, label=L"\mathrm{Current\ composition}")
-            p = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
+            p = plot(x*1000,C, lw=2, label=L"\mathrm{Current\ composition}")
+            p = plot!(x0*1000,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
                     ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on,dpi = 300,
                         legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                         legend_foreground_color = :transparent)      
@@ -101,7 +101,7 @@ function main(plot_sim)
             push!(MB_Error,ErrM)
         end
     end
-    #gif(anim, "figures/A1.gif", fps=50)  # Save with 10 frames per second
+    #gif(anim, "figures/A1.gif", fps=10)  # Save with 10 frames per second
     Mass = calc_mass_vol_simple_diff(x,C,n,rho)
     calc_mass_err(Mass,Mass0)
     return x, C, x0, C0, D, t, t_tot, Cini, nmodes, Amp, L

@@ -86,7 +86,7 @@ function main(plot_sim,verbose)
         error("Initial temperature must be equal to the first value in the temperature array.")
     end
     #Time loop----------------------------------------------------------
-    anim = Animation()
+    #anim = Animation()
     while t < t_tot
         #Calculate dt---------------------------------------------------
         dt = find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
@@ -112,18 +112,19 @@ function main(plot_sim,verbose)
             Massnow = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
             push!(Mass, Massnow)                        #Stores the mass of the system
         end
-        if plot_sim
+        if plot_sim && it % 500 == 0
             #Plotting----------------------------------------------------
             fs = 12.0
-            p = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
-            p = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
-            p = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
+            maxC = maximum([maximum(C_left),maximum(C_right)])
+            p = plot(x_left*1000,C_left, lw=2, label=L"\mathrm{Left\ side}")
+            p = plot!(x_right*1000,C_right, lw=2, label=L"\mathrm{Right\ side}")
+            p = plot!(x0*1000,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
                     ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on,dpi = 300,
                         legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
-                        legend_foreground_color = :transparent)
-            p = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
+                        legend_foreground_color = :transparent,)
+            p = plot!([Ri[1]; Ri[1]]*1000, [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
             display(p)
-            frame(anim)
+            #frame(anim)
         end
         # Suppress output of calc_mass_err
         redirect_stdout(devnull) do
@@ -131,20 +132,20 @@ function main(plot_sim,verbose)
             push!(MB_Error,ErrM)
         end
     end
-    gif(anim, "figures/B3.gif", fps=50)  # Save with 10 frames per second
+    #gif(anim, "figures/B3.gif", fps=10)  # Save with 10 frames per second
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
     calc_mass_err(Mass,Mass0)
-    return x_left, x_right, x0, C_left, C_right, C0, t, Di, D0, T_ar[1], T, Ea1, R, Ri, maxC
+    return x_left, x_right, x0, C_left, C_right, C0, t, Di, D0, T_ar[1], T, Ea1, R, Ri, maxC, anim
 end
 #Call main function----------------------------------------------------
 run_and_plot = true
 if run_and_plot
-    plot_sim  = true
+    plot_sim  = false
     plot_end  = true
     verbose   = false
     save_file = false
-    x_left, x_right, x0, C_left, C_right, C0, t, D, D0, T0, T, Ea, R, Ri, maxC = main(plot_sim,verbose)
+    x_left, x_right, x0, C_left, C_right, C0, t, D, D0, T0, T, Ea, R, Ri, maxC,anim = main(plot_sim,verbose)
     nterms  = 1000                                      #Number of terms within the analytical solution (degree of the polynomial)
     Can,xan = crank_time_transformation3(C0,x0,T0,T,Ea,R,D0[1],t,nterms)
     if plot_end

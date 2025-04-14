@@ -86,4 +86,10 @@ makedocs(;
     ],
 )
 
-deploydocs(; repo="https://github.com/AnStroh/Diffusion-coupled-growth", devbranch="main")
+withenv("GITHUB_REPOSITORY" => "AnStroh/Diffusion-coupled-growth.jl") do
+     deploydocs(
+         repo = repo="https://github.com/AnStroh/Diffusion-coupled-growth.jl",
+         devbranch = "main",
+         push_preview = true
+     )
+ end

@@ -150,18 +150,43 @@ if run_and_plot
     numb = 5
     global Di1_values = LinRange(1e-15, 1e-5, numb)
     global Di2_values = LinRange(1e-15, 1e-5, numb)
-    global V_ip_values = LinRange(1e-9, 1e-2, numb)
+    global V_ip_values = LinRange(1e-6, 1e-2, numb)
     global Ri1_values = LinRange(1e-3, 1.0, numb)
     global Ri2_values = LinRange(0.05, 10.0, numb)
 
 
+    results = DataFrame(Di1 = Float64[], Di2 = Float64[], V_ip = Float64[], Ri1 = Float64[],
+                        Ri2 = Float64[],  success = String[])
+
+    
+    counts = 0
+    for Di1 in Di1_values,Di2 in Di2_values, V_ip in V_ip_values, Ri1 in Ri1_values, Ri2 in Ri2_values
+        global counts = counts + 1
+        println("Running simulation $counts of $(numb^5)") 
+        try
+            Di = [Di1 Di2]
+            Ri = [Ri1 Ri2]
+            D_l, D_r, Ri, V_ip = main(plot_sim,verbose,Di,D0,rho,Ri,Cl_i,Cr_i,V_ip,R,Ea1,Ea2,Myr2Sec,t_tot,n)
+            success = true
+        catch e
+            success = false
+        end
+
+        push!(results, (Di1,Di2,V_ip,Ri1,Ri2, string("$success"))) # Push `Bool` value
+    end
+
+    # Save results to CSV
+    CSV.write("ranges/raparameter_study_results_Flux.csv", results)
+
     
     # Dictionary to store results and errors
-    results = Dict()
-    errors = Dict()
+    #results = Dict()
+    #errors = Dict()
     #results[("Di1", "Di2", "Ri1", "Ri2", "V_ip")] = ("D_l"," D_r", "Ri", "V_ip")
     #errors[("Di1", "Di2", "Ri1", "Ri2", "V_ip")]  = ("error type")
 
+
+    #=
     counts = 0
     for Di1 in Di1_values, Di2 in Di2_values, Ri1 in Ri1_values, Ri2 in Ri2_values, V_ip in V_ip_values
         global counts = counts + 1
@@ -208,6 +233,11 @@ if run_and_plot
 
     # Convert back to Dict
     #loaded_results = Dict((row.D1, row.D2) => (row.res1, row.res2, row.res3) for row in eachrow(df_loaded))
+
+
+    =#
+
+
 
     return results, errors
 end

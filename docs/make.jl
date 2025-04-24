@@ -1,6 +1,5 @@
 using Documenter
-push!(LOAD_PATH, "../src/")
-using .Diff_Coupled
+using Diff_Coupled
 
 # Get Diff_Coupled.jl root directory
 DC_root_dir = dirname(@__DIR__)
@@ -86,4 +85,10 @@ makedocs(;
     ],
 )
 
-deploydocs(; repo="https://github.com/AnStroh/Diffusion-coupled-growth", devbranch="main")
+withenv("GITHUB_REPOSITORY" => "AnStroh/Diffusion-coupled-growth.jl") do
+     deploydocs(
+         repo = repo="https://github.com/AnStroh/Diffusion-coupled-growth.jl",
+         devbranch = "main",
+         push_preview = true
+     )
+ end

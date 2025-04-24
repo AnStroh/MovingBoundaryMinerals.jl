@@ -85,6 +85,7 @@ function main(plot_sim,verbose)
         error("Initial temperature must be equal to the first value in the temperature array.")
     end
     #Time loop----------------------------------------------------
+    #anim = Animation()
     while t < t_tot
         #Calculate dt---------------------------------------------
         dt = find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
@@ -110,7 +111,7 @@ function main(plot_sim,verbose)
             Massnow = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
             push!(Mass, Massnow)                                #Stores the mass of the system
         end
-        if plot_sim
+        if plot_sim && it % 5 == 0 
             #Plotting---------------------------------------------
             maxC = maximum([maximum(C_left),maximum(C_right)])
             fs = 12.0
@@ -119,9 +120,10 @@ function main(plot_sim,verbose)
             p = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
                     ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on,dpi = 300,
                         legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
-                        legend_foreground_color = :transparent)
+                        legend_foreground_color = :transparent,ylim=(-0.01,1.25))
             p = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
             display(p)
+            #frame(anim)
         end
         # Suppress output of calc_mass_err
         redirect_stdout(devnull) do
@@ -132,6 +134,7 @@ function main(plot_sim,verbose)
     #Rescaling---------------------------------------------------
     Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar = rescale(Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar, Lsc, Dsc, Vsc, tsc)
     #Post-process------------------------------------------------
+    #gif(anim, "figures/B5.gif", fps=5)  # Save with 10 frames per second
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
     calc_mass_err(Mass,Mass0)
@@ -140,7 +143,7 @@ end
 #Call main function-----------------------------------------------
 run_and_plot = true
 if run_and_plot
-    plot_sim  = true
+    plot_sim  = false
     plot_end  = true
     verbose   = false
     save_file = false

@@ -102,6 +102,7 @@ function main(adapt_dt,plot_sim,verbose)
         error("Initial temperature must be equal to the first value in the temperature array.")
     end
     #Time loop----------------------------------------------------
+    #anim = Animation()
     while t < t_tot
         #Calculate dt---------------------------------------------
         if adapt_dt
@@ -136,7 +137,7 @@ function main(adapt_dt,plot_sim,verbose)
             Massnow = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
             push!(Mass, Massnow)                                            #Stores the mass of the system
         end
-        if mod(it,15000) == 0 || it == 1
+        if mod(it,1500) == 0 || it == 1
             #-----------------------------------------------------
             Check1 = (C_left[end] * inv((1 - C_left[end]))) * inv((C_right[1] * inv((1 - C_right[1])))) - KD
             Check2 = D_l * inv(D_r) * (C_left[end] - C_left[end-1]) - dx1 * inv(dx2) * (C_right[2] - C_right[1])
@@ -156,12 +157,13 @@ function main(adapt_dt,plot_sim,verbose)
                 p1 = plot!(x_right*1000,C_right, lw=2, label=L"\mathrm{Right\ side}")
                 p1 = plot!(x0*1000,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
                       ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on,
-                      ylims=(minC-minC*0.1,maxC+maxC*0.05))
+                      ylims=(minC-minC*0.1,maxC+maxC*0.05),ylim=(0.25,0.65))
                 p1 = plot!([Ri[1]; Ri[1]]*1000, [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
                 p2 = plot(t_pl/Myr2Sec,T_pl .- 273.0,color=:black,xlabel = L"t\ \mathrm{[Myr]}", ylabel = L"T\ \mathrm{[°C]}", lw=2, grid=:on, label="")
                 p = plot(p1, dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                         legend_foreground_color = :transparent)
                 display(p)
+                #frame(anim)
             end
         end
         # Suppress output of calc_mass_err
@@ -171,6 +173,7 @@ function main(adapt_dt,plot_sim,verbose)
         end
         println("Time: ", t/Myr2Sec, " Myr")
     end
+    #gif(anim, "figures/B2.gif", fps=10)  # Save with 10 frames per second
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
     calc_mass_err(Mass,Mass0)

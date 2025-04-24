@@ -152,11 +152,39 @@ if run_and_plot
     numb = 5
     global Di1_values = LinRange(1e-19, 1e-5, numb)
     global Di2_values = LinRange(1e-19, 1e-5, numb)
-    global V_ip_values = LinRange(-1e-9, -1e-2, numb)
+    global V_ip_values = LinRange(1e-6, 1e-2, numb)
     global Ri1_values = LinRange(1e-3, 0.5, numb)
     global Ri2_values = LinRange(0.05, 1.0, numb)
 
+    results = DataFrame(Di1 = Float64[], Di2 = Float64[], V_ip = Float64[], Ri1 = Float64[],
+                        Ri2 = Float64[],  success = String[])
+    results2 = DataFrame(Di1 = Float64[], Di2 = Float64[], V_ip = Float64[], Ri1 = Float64[],
+                        Ri2 = Float64[],  success = String[])
+
     
+    counts = 0
+    for Di1 in Di1_values,Di2 in Di2_values, V_ip in V_ip_values, Ri1 in Ri1_values, Ri2 in Ri2_values
+        global counts = counts + 1
+        println("Running simulation $counts of $(numb^5)") 
+        try
+            Di = [Di1 Di2]
+            Ri = [Ri1 Ri2]
+            D_l, D_r, Ri, V_ip = main(plot_sim,verbose,Di,D0,rho,Ri,Cl_i,Cr_i,V_ip,R,Ea1,Ea2,Myr2Sec,t_tot,n)
+            success = true
+        catch e
+            success = false
+        end
+
+        push!(results, (Di1,Di2,V_ip,Ri1,Ri2, string(success))) # Push `Bool` value
+        #push!(results2, (Di1,Di2,V_ip,Ri1,Ri2, success)) # Push `Bool` value
+    end
+
+    # Save results to CSV
+    CSV.write("ranges/raparameter_study_results_MB.csv", results)
+    CSV.write("ranges/raparameter_study_results_MB_test.csv", results2)
+
+
+    #=
     # Dictionary to store results and errors
     results = Dict()
     errors = Dict()
@@ -190,5 +218,6 @@ if run_and_plot
     # Save dictionary to file
     serialize("./ranges/results_MB.jls", results)
     serialize("./ranges/erorrs_MB.jls", results)
-    return results, errors
+    =#
+    return results
 end

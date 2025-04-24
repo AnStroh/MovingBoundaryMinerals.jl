@@ -152,7 +152,7 @@ if run_and_plot
     numb = 5
     global Di1_values = LinRange(1e-19, 1e-5, numb)
     global Di2_values = LinRange(1e-19, 1e-5, numb)
-    global V_ip_values = LinRange(1e-9, 1e-2, numb)
+    global V_ip_values = LinRange(1e-6, 1e-2, numb)
     global Ri1_values = LinRange(1e-3, 0.5, numb)
     global Ri2_values = LinRange(0.05, 1.0, numb)
 

@@ -1,5 +1,5 @@
 using Diff_Coupled
-using Plots, LinearAlgebra, Revise, LaTeXStrings,SparseArrays, DataFrames,Tables,CSV, Serialization, Dates
+using Plots, LinearAlgebra, Revise, LaTeXStrings,SparseArrays, DataFrames,Tables,CSV, Dates
 #Main function----------------------------------------------------
 function main(plot_sim,verbose,Di,D0,rho,Ri,Cl_i,Cr_i,V_ip,R,Ea1,Ea2,Myr2Sec,t_tot,n)
     #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])
@@ -168,79 +168,20 @@ if run_and_plot
             Ri = [Ri1 Ri2]
             D_l, D_r, Ri, V_ip = main(plot_sim, verbose, Di, D0, rho, Ri, Cl_i, Cr_i, V_ip, R, Ea1, Ea2, Myr2Sec, t_tot, n)
             success = true
-            success_ = "Success"
+            global success_ = "Success"
         catch e
             success = false
-            success_ = "Failure"
+            global success_ = "Failure"
             @warn "Error for Di = $([Di1 Di2]) , Ri = $([Ri1 Ri2]) and V_ip = $V_ip"
         end
     
         # Push results into the DataFrame
         push!(results, (Di1, Di2, V_ip, Ri1, Ri2, success_))
+        if counts % 100 == 0
+            CSV.write("ranges/raparameter_study_results_Flux.csv", results)
+        end
     end
     # Save results to CSV
     CSV.write("ranges/raparameter_study_results_Flux.csv", results)
-
-    
-    # Dictionary to store results and errors
-    #results = Dict()
-    #errors = Dict()
-    #results[("Di1", "Di2", "Ri1", "Ri2", "V_ip")] = ("D_l"," D_r", "Ri", "V_ip")
-    #errors[("Di1", "Di2", "Ri1", "Ri2", "V_ip")]  = ("error type")
-
-
-    #=
-    counts = 0
-    for Di1 in Di1_values, Di2 in Di2_values, Ri1 in Ri1_values, Ri2 in Ri2_values, V_ip in V_ip_values
-        global counts = counts + 1
-        println("Running simulation $counts of $(numb^5)") 
-        println("Di1 = $Di1, Di2 = $Di2, Ri1 = $Ri1, Ri2 = $Ri2, V_ip = $V_ip")
-        try
-            Di = [Di1   Di2]
-            Ri = [Ri1   Ri2]
-            D_l, D_r, Ri, V_ip = main(plot_sim, verbose, Di, D0, rho, Ri, Cl_i, Cr_i, V_ip, R, Ea1, Ea2, Myr2Sec, t_tot, n)
-            # Unpack multiple outputs
-            results[(Di1, Di2, Ri1, Ri2, V_ip)] = (D_l, D_r, Ri, V_ip)  # Store results
-        catch e
-            println("Error for Di = $([Di1 Di2]) , Ri = $([Ri1 Ri2]) and V_ip = $V_ip")
-            errors[(Di1, Di2, Ri1, Ri2, V_ip)] = e  # Store the error for this input pair
-        end
-        # Save every 1000 iterations
-        if counts % 1000 == 0
-            current_time = Dates.format(now(), "yyyy-mm-dd_HH-MM-SS")
-            results_filename = "./ranges/results_flux_$counts.jls"
-            errors_filename = "./ranges/errors_flux_$counts.jls"
-            serialize(results_filename, results)
-            serialize(errors_filename, errors)
-        end
-    end
-
-    # Save dictionary to file
-    serialize("./ranges/results_flux.jls", results)
-    serialize("./ranges/erorrs_flux.jls", results)
-
-    # Load dictionary from file
-    #loaded_results = deserialize("./ranges/results_flux.jls")
-
-    # Convert dictionary to DataFrame
-    # Convert results and errors to DataFrames
-    #results_df = DataFrame([(k..., v...) for (k, v) in results], [:Di1, :Di2, :Ri1, :Ri2, :V_ip, :D_l, :D_r, :Ri_result, :V_ip_result])
-    #errors_df  = DataFrame([(k..., string(v)) for (k, v) in errors], [:Di1, :Di2, :Ri1, :Ri2, :V_ip, :Error])
-
-    # Save the DataFrames as .csv files
-    #CSV.write("./ranges/results_flux.csv", results_df)
-    #CSV.write("../ranges/errors_flux.csv", errors_df)
-
-    # Load from CSV
-    #df_loaded = CSV.read("./ranges/results_flux.csv", DataFrame)
-
-    # Convert back to Dict
-    #loaded_results = Dict((row.D1, row.D2) => (row.res1, row.res2, row.res3) for row in eachrow(df_loaded))
-
-
-    =#
-
-
-
-    return results, errors
+    return results
 end

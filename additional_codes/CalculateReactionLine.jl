@@ -53,7 +53,7 @@ function CalculateReactionLine(data1,data2)
     println("c2 = $(coeff_do[3])");println()
     #Exporting data---------------------------------------
     folder_path = "examples/Examples_phase_diagram/"
-    writedlm(folder_path * "Coefficients_Reaction_lines.csv", [coeff_up coeff_do ])
+    writedlm(folder_path * "Coefficients_Reaction_lines_test.csv", [coeff_up coeff_do ])
 
     return coeff_up, coeff_do
 end
@@ -78,5 +78,12 @@ println("CAUTION: Be careful, that limits are captured correctly. Sometimes fewe
 T  = LinRange(1273.0,1873.0,100)                                        #Choose the temperature range of the phase diagram
 y  = coeff_do[1] .+ coeff_do[2] .* T .+ coeff_do[3] * T .^ 2.0
 y2 = coeff_up[1] .+ coeff_up[2] .* T .+ coeff_up[3] * T .^ 2.0
-plot(y,T)
-plot!(y2,T)
+plot(T,y)
+plot!(T,y2)
+
+T_data_up = data2[:,2]	                                            #Extract coordinates for linear least squares
+T_data_do = data1[:,2]                                              #Extract coordinates for linear least squares
+X_data_up = data2[:,1]                                              #Extract coordinates for linear least squares
+X_data_do = data1[:,1]                                              #Extract coordinates for linear least squares
+plot!(T_data_do,X_data_do,seriestype = :scatter, label = "Lower Line", color = :blue)
+plot!(T_data_up,X_data_up,seriestype = :scatter, label = "Upper Line", color = :red)

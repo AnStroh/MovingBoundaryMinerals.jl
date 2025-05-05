@@ -123,7 +123,7 @@ function main(plot_sim,verbose)
     MB_Error            = Float64[]                                                                     #Mass error
     #-----------------------------------------------------------------------
     #Solving the moving boundary problem------------------------------------
-    anim = Animation()
+    #anim = Animation()
     while t < t_tot
         #Update time--------------------------------------------------------
         t, dt, it = update_time!(t,dt,it,t_tot)
@@ -227,7 +227,7 @@ function main(plot_sim,verbose)
             p = plot(p1,p2,dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                     legend_foreground_color = :transparent)
             display(p)
-            frame(anim)
+            #frame(anim)
             #Figure 2
             #plot(p3,p4,dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
             #        legend_foreground_color = :transparent)
@@ -239,7 +239,7 @@ function main(plot_sim,verbose)
         end
     end
     #Post-process-----------------------------------------------------------
-    gif(anim, "figures/D1.gif", fps=5)  # Save with 10 frames per second
+    #gif(anim, "figures/D1.gif", fps=5)  # Save with 10 frames per second
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
     calc_mass_err(Mass,Mass0)
@@ -248,7 +248,7 @@ end
 #Run calculation------------------------------------------------------------
 run_and_plot = true
 if run_and_plot
-    plot_sim  = true
+    plot_sim  = false
     plot_end  = true
     verbose   = false
     save_file = false
@@ -299,8 +299,8 @@ if run_and_plot
         #save_name = "D1"
         #save_figure(save_name,save_path,save_file)
         #Figure 2
-        #plot(p3,p4,dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
-        #        legend_foreground_color = :transparent)
+        plot(p3,p4,dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+                legend_foreground_color = :transparent)
         #save_name = "D1_KD"
         #save_figure(save_name,save_path,save_file)
     end

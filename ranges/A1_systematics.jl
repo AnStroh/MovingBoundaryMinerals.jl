@@ -33,7 +33,7 @@ using Plots, LinearAlgebra, LaTeXStrings, SparseArrays
 #     #History dependent parameters--------------------------------------
 #     T_ar    = LinRange(1273.15,1273.15,1000)    #Temperature array in [K] to calculate temperature history; T changes with respect to time;
 #                                                 #The last value must be equal to the temperature at t = t_tot.
-#     t_ar    = LinRange(0.0,t_tot,1000)          #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
+#     t_ar    = LinRange(0.0,t_tot,1000)          #Time array (in [s]) to calculate history over time. The last value must be equal to t_tot.
 #                                                 #The user is prompted to specify suitable time intervals in relation to the respective destination.
 #     #Calculate values for t check--------------------------------------
 #     dt_diff = zeros(length(t_ar)-1)
@@ -144,7 +144,7 @@ function main(Di, D0, L, rho, Ea1, t_tot, n, res, CFL, plot_sim)
     #History dependent parameters--------------------------------------
     T_ar    = LinRange(1273.15,1273.15,1000)    #Temperature array in [K] to calculate temperature history; T changes with respect to time;
                                                 #The last value must be equal to the temperature at t = t_tot.
-    t_ar    = LinRange(0.0,t_tot,1000)          #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
+    t_ar    = LinRange(0.0,t_tot,1000)          #Time array (in [s]) to calculate history over time. The last value must be equal to t_tot.
                                                 #The user is prompted to specify suitable time intervals in relation to the respective destination.
     #Calculate values for t check--------------------------------------
     dt_diff = zeros(length(t_ar)-1)

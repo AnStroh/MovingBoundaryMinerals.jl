@@ -22,7 +22,7 @@ function main(adapt_dt,plot_sim,verbose)
     s       = 10.0 * inv(Myr2Sec)                                           #Cooling rate in [K/s]
     n       = 1                                                             #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
-    t_ar    = LinRange(0.0,t_tot,10000)                                     #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
+    t_ar    = LinRange(0.0,t_tot,10000)                                     #Time array (in [s]) to calculate history over time. The last value must be equal to t_tot.
                                                                             #The user is prompted to specify suitable time intervals in relation to the respective destination.
     T_ar    = T0 .* inv.( 1.0 .+ (s .* t_ar .* inv(T0)))                    #Temperature array in [K] to calculate temperature history; T changes with respect to time;
                                                                             #The last value must be equal to the temperature at t = t_tot.

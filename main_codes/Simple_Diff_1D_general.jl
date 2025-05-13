@@ -3,37 +3,37 @@ using Plots, LinearAlgebra,LaTeXStrings, SparseArrays
 # Main function -------------------------------------------------------
 function main(plot_sim)
     # Physics ---------------------------------------------------------
-    Di      = 2.65*1e-18                    #Diffusion coefficient in [m^2/s]
-                                            #If you want to calculate D with the Arrhenius equation, set Di = [-1.0]
-    D0      = 2.75*1e-6                     #Pre-exponential factor in [m^2/s]
-    L       = 0.001                         #Length of the domain in [m]
-    Cinf    = 0.0                           #Concentration at infinity in [mol]
-    Cstart  = 4.0                           #Initial concentration in [mol]
-    rho     = 2700.0                        #Density in [kg/m^3]
-    R       = 8.314472                      #Universal gas constant in [J/(mol*K)]
-    Ea1     = 292880.0                      #Activation energy for the left side in [J/mol]
-    Myr2Sec = 60*60*24*365.25*1e6           #Conversion factor from Myr to s
-    t_tot   = 1e-4 * Myr2Sec                #Total time [s]
-    n       = 1                             #Geometry; 1: planar, 2: cylindrical, 3: spherical
+    Di      = 2.65*1e-18                        #Diffusion coefficient in [m^2/s]
+                                                #If you want to calculate D with the Arrhenius equation, set Di = [-1.0]
+    D0      = 2.75*1e-6                         #Pre-exponential factor in [m^2/s]
+    L       = 0.001                             #Length of the domain in [m]
+    Cinf    = 0.0                               #Concentration at infinity in [mol]
+    Cstart  = 4.0                               #Initial concentration in [mol]
+    rho     = 2700.0                            #Density in [kg/m^3]
+    R       = 8.314472                          #Universal gas constant in [J/(mol*K)]
+    Ea1     = 292880.0                          #Activation energy for the left side in [J/mol]
+    Myr2Sec = 60*60*24*365.25*1e6               #Conversion factor from Myr to s
+    t_tot   = 1e-4 * Myr2Sec                    #Total time [s]
+    n       = 1                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
     # Numerics --------------------------------------------------------
-    res   = 100                             #Number of grid points
-    CFL   = 0.99                            #CFL number for time step calculation
+    res   = 100                                 #Number of grid points
+    CFL   = 0.99                                #CFL number for time step calculation
     # Domain ----------------------------------------------------------
-    dx    = L*inv(res-1)                    #Grid spacing
-    x     = [0:dx:L;]                       #Grid points
-    BCout = [1, 1]                          #Boundary condition; 0: Neumann, 1: Dirichlet
+    dx    = L*inv(res-1)                        #Grid spacing
+    x     = [0:dx:L;]                           #Grid points
+    BCout = [1, 1]                              #Boundary condition; 0: Neumann, 1: Dirichlet
     # Initial condition -----------------------------------------------
-    t     = 0.0                             #Initial time in [s]
-    it    = 0                               #Time iterations
-    C     = Cinf * ones(res,1)              #Concentration array in [mol]
-    C[1]  = Cstart                          #Set initial concentration at the first grid point
-    C0    = copy(C)                         #Store initial concentration
-    x0    = copy(x)                         #Store initial grid points
+    t     = 0.0                                 #Initial time in [s]
+    it    = 0                                   #Time iterations
+    C     = Cinf * ones(res,1)                  #Concentration array in [mol]
+    C[1]  = Cstart                              #Set initial concentration at the first grid point
+    C0    = copy(C)                             #Store initial concentration
+    x0    = copy(x)                             #Store initial grid points
     #History dependent parameters--------------------------------------
-    T_ar    = LinRange(1273.15,923.15,1000) #Temperature array in [K] to calculate temperature history; T changes with respect to time;
-                                            #The last value must be equal to the temperature at t = t_tot.
-    t_ar    = LinRange(0.0,t_tot,1000)      #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
-                                            #The user is prompted to specify suitable time intervals in relation to the respective destination.
+    T_ar    = LinRange(1273.15,923.15,1000)     #Temperature array in [K] to calculate temperature history; T changes with respect to time;
+                                                #The last value must be equal to the temperature at t = t_tot.
+    t_ar    = LinRange(0.0,t_tot,1000)          #Time array (in s) to calculate history over time. The last value must be equal to t_tot.
+                                                #The user is prompted to specify suitable time intervals in relation to the respective destination.
     #Calculate values for t check--------------------------------------
     dt_diff = zeros(length(t_ar)-1)
     dt_diff = t_ar[2:end] .- t_ar[1:end-1]

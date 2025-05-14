@@ -29,7 +29,7 @@ function main(plot_sim,verbose)
     CFL    = 0.4                                                #CFL condition
     res    = [80 120;]                                          #Number of grid points
     resmin = copy(res)                                          #Minimum number of grid points
-    MRefin = 50.0                                               #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
+    MRefin = 10.0                                               #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     BCout  = [0 0]                                              #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
                                                                 #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Non-dimensionslization---------------------------------------

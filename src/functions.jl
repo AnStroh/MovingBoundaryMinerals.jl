@@ -466,15 +466,26 @@ function find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
     dt_drop = 0.99
     #Find the important dt------------------------------------
     dtV   = minimum([dx1,dx2]) ^1 * inv(abs(V_ip))                                                  #Advection time
-    dtD   = minimum([dx1,dx2]) ^2 * inv(maximum([D_l,D_r]))                                         #Diffusion time
-    dtV1  = dtV * dt_drop                                                                           #Dropped advection time
-    dtV2  = dtV * CFL * 5.0                                                                         #Advection time with CFL
-    dt    = minimum([dtV1,dtV2])                                                                    #Calculate dt
+    dtD   = minimum([dx1,dx2]) ^2 * inv(maximum([D_l,D_r]))*50                                      #Diffusion time
+    dtV   = dtV * dt_drop                                                                           #Dropped advection time
+    
     if V_ip == 0.0                                                                                  #dt for pure diffusion
-        dt   = dtD * CFL
-    elseif dt > dtD                                                                                 #Dumping of dt, if advection and diffusion occur
-        dt   = dtD * CFL *1e4
+        dt = dtD * CFL;
+    else
+        if dtV < dtD                                                                                #dt for pure diffusion
+            dt = dtV * CFL;                                                                         #Advection time with CFL
+        else
+            dt = dtD *CFL                                                                         #Advection time with CFL
+        end
     end
+    
+    #dtV2  = dtV * CFL * 5.0                                                                         #Advection time with CFL
+    #dt    = minimum([dtV1,dtV2])                                                                    #Calculate dt
+    #if V_ip == 0.0                                                                                  #dt for pure diffusion
+    #    dt   = dtD * CFL
+    #elseif dt > dtD                                                                                 #Dumping of dt, if advection and diffusion occur
+    #    dt   = dtD * CFL *1e4
+    #end
     return dt
 end
 

@@ -1055,17 +1055,17 @@ function set_inner_bc_flux!(L_g,R_g,KD,D_l,D_r,x_left,x_right,V_ip,rho,nr)
     ScF = 1.0
     #Inner BC1------------------------------------------------
     #KD = C_left/C_right
-    L_g[nr[1],:] .= 0.0
+    L_g[nr[1],:]        .= 0.0
     L_g[nr[1],nr[1]]     = 1.0 * ScF
     L_g[nr[1],nr[1]+1]   = - KD * ScF
     R_g[nr[1]]           = 0.0
     #Inner BC2------------------------------------------------
-    #J_left = J_tight
+    #J_left = J_right
     L_g[nr[1]+1,:]      .= 0.0
-    L_g[nr[1]+1,nr[1]+1] = (-V_ip + rho[2] * D_r * inv(x_right[2]  - x_right[1]))    * ScF
-    L_g[nr[1]+1,nr[1]+2] =       (- rho[2] * D_r * inv(x_right[2]  - x_right[1]))    * ScF
-    L_g[nr[1]+1,nr[1]+0] = (+V_ip + rho[1] * D_l * inv(x_left[end] - x_left[end-1])) * ScF
-    L_g[nr[1]+1,nr[1]-1] =       (- rho[1] * D_l * inv(x_left[end] - x_left[end-1])) * ScF
+    L_g[nr[1]+1,nr[1]+1] = (-V_ip*rho[2] + rho[2] * D_r * inv(x_right[2]  - x_right[1]))    * ScF
+    L_g[nr[1]+1,nr[1]+2] =              (- rho[2] * D_r * inv(x_right[2]  - x_right[1]))    * ScF
+    L_g[nr[1]+1,nr[1]+0] = (+V_ip*rho[1] + rho[1] * D_l * inv(x_left[end] - x_left[end-1])) * ScF
+    L_g[nr[1]+1,nr[1]-1] =              (- rho[1] * D_l * inv(x_left[end] - x_left[end-1])) * ScF
     R_g[nr[1]+1]         = 0.0
     return L_g, R_g, ScF
 end

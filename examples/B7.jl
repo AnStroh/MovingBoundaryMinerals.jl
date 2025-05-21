@@ -6,17 +6,17 @@ function main(plot_sim,verbose)
     #Physics-------------------------------------------------------
     Di      = [0.001   0.005]                                   #Initial diffusion coefficient in [m^2/s]           -> in [L*V]
                                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
-    D0      = [1e-4   5e-4;]                                    #Pre-exponential factor in [m^2/s]                  -> NOT USED
+    D0      = [9999    9999;]                                    #Pre-exponential factor in [m^2/s]                  -> NOT USED
     rho     = [1.0      1.0;]                                   #Normalized densities in [-]                   -> NOT USED
-    Ri      = [2.0       10;]                                   #Initial radii [interface    total length] in [m]   -> in [L]
+    Ri      = [5.0       10;]                                   #Initial radii [interface    total length] in [m]   -> in [L]
     Cl_i    = 0.1                                               #Initial concentration left side in [mol]           -> in [C]
-    Cr_i    = Cl_i*10.0                                         #Initial concentration right side in [mol]          -> -//-
-    V_ip    = -1e-3                                             #Interface velocity in [m/s]                        -> in [V]
+    Cr_i    = Cl_i/50.0                                         #Initial concentration right side in [mol]          -> -//-
+    V_ip    = -5e-3                                             #Interface velocity in [m/s]                        -> in [V]
     R       = 8.314472                                          #Universal gas constant in [J/(mol*K)]              -> NOT USED
     Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]     -> NOT USED
     Ea2     = 300660.4018                                       #Activation energy for the right side in [J/mol]    -> NOT USED
     Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s                    -> NOT USED
-    t_tot   = 5e2                                               #Total time [s]                                     -> in [L]/[V]
+    t_tot   = 3e2                                               #Total time [s]                                     -> in [L]/[V]
     n       = 3                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
     KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i*0.5,1000)            #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;

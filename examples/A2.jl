@@ -100,7 +100,7 @@ function main(plot_sim)
             push!(MB_Error,ErrM)
         end
     end
-    gif(anim, "figures/A2.gif", fps=15)  # Save with 10 frames per second
+    #gif(anim, "figures/A2.gif", fps=15)  # Save with 10 frames per second
     Mass = calc_mass_vol_simple_diff(x,C,n,rho)
     calc_mass_err(Mass,Mass0)
     return x, C, x0, C0, D, t, t_tot

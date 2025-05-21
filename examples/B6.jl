@@ -4,32 +4,32 @@ using Plots, LinearAlgebra, Revise, LaTeXStrings, SparseArrays
 function main(plot_sim,verbose)
     #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])
     #Physics-------------------------------------------------------
-    Di      = [1e-5   1e1;]                                     #Initial diffusion coefficient in [m^2/s]           -> in [L*V]
+    Di      = [0.001   0.005]                                   #Initial diffusion coefficient in [m^2/s]           -> in [L*V]
                                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
-    D0      = [9999   99999;]                                   #Pre-exponential factor in [m^2/s]                  -> NOT USED
+    D0      = [9999   9999;]                                    #Pre-exponential factor in [m^2/s]                  -> NOT USED
     rho     = [1.0      1.0;]                                   #Normalized densities in [-]                   -> NOT USED
-    Ri      = [1e-2      10;]                                   #Initial radii [interface    total length] in [m]   -> in [L]
+    Ri      = [1.0       10;]                                   #Initial radii [interface    total length] in [m]   -> in [L]
     Cl_i    = 0.1                                               #Initial concentration left side in [mol]           -> in [C]
-    Cr_i    = Cl_i/1e-3                                         #Initial concentration right side in [mol]          -> -//-
-    V_ip    = 1.0                                               #Interface velocity in [m/s]                        -> in [V]
+    Cr_i    = Cl_i/50.0                                         #Initial concentration right side in [mol]          -> -//-
+    V_ip    = 5e-3                                              #Interface velocity in [m/s]                        -> in [V]
     R       = 8.314472                                          #Universal gas constant in [J/(mol*K)]              -> NOT USED
     Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]     -> NOT USED
-    Ea2     = 360660.4018                                       #Activation energy for the right side in [J/mol]    -> NOT USED
+    Ea2     = 300660.4018                                       #Activation energy for the right side in [J/mol]    -> NOT USED
     Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s                    -> NOT USED
-    t_tot   = 0.4                                               #Total time [s]                                     -> in [L]/[V]
-    n       = 1                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
+    t_tot   = 3e2                                               #Total time [s]                                     -> in [L]/[V]
+    n       = 3                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
-    KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i,1000)                #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
+    KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i*0.5,1000)            #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
                                                                 #The last value must be equal to the partition coefficient at t = t_tot.
     t_ar    = LinRange(0.0,t_tot,1000)                          #Time array (in [s]) to calculate history over time. The last value must be equal to t_tot.
                                                                 #The user is prompted to specify suitable time intervals in relation to the respective destination.
-    T_ar    = LinRange(1273.15,1273.15,1000)                    #Temperature array in [K] to calculate temperature history; T changes with respect to time;
+    T_ar    = LinRange(1273.15,1073.15,1000)                    #Temperature array in [K] to calculate temperature history; T changes with respect to time;
                                                                 #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
-    CFL    = 0.99                                               #CFL condition
-    res    = [90 140;]                                          #Number of grid points
+    CFL    = 0.4                                                #CFL condition
+    res    = [100 100;]                                          #Number of grid points
     resmin = copy(res)                                          #Minimum number of grid points
-    MRefin = 10.0                                               #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
+    MRefin = 5.0                                               #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     BCout  = [0 0]                                              #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
                                                                 #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Non-dimensionslization---------------------------------------
@@ -88,8 +88,7 @@ function main(plot_sim,verbose)
     #anim = Animation()
     while t < t_tot
         #Calculate dt---------------------------------------------
-        #dt = find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
-        dt  = minimum([dx1,dx2])/V_ip*CFL
+        dt = find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
         #Update time----------------------------------------------
         t, dt, it = update_time!(t,dt,it,t_tot)
         #Update time-dependent parameters-------------------------
@@ -112,34 +111,34 @@ function main(plot_sim,verbose)
             Massnow = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
             push!(Mass, Massnow)                                #Stores the mass of the system
         end
-        if plot_sim && it % 10 == 0 
+        if plot_sim && it % 5 == 0 
             #Plotting---------------------------------------------
             maxC = maximum([maximum(C_left),maximum(C_right)])
             fs = 12.0
-            p1 = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
-            p1 = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
-            p1 = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
-                        ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on,dpi = 300,
-                            legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
-                            legend_foreground_color = :transparent,ylim=(-3.0,125))
-            p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
-            display(p1)
+            p = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
+            p = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
+            p = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
+                    ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on,dpi = 300,
+                        legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+                        legend_foreground_color = :transparent,ylim=(-0.01,1.25))
+            p = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
+            display(p)
             #frame(anim)
         end
         # Suppress output of calc_mass_err
         redirect_stdout(devnull) do
             ErrM = calc_mass_err(Mass, Mass0)
             push!(MB_Error,ErrM)
-        end 
+        end
     end
     #Rescaling---------------------------------------------------
     Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar = rescale(Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar, Lsc, Dsc, Vsc, tsc)
     #Post-process------------------------------------------------
-    #gif(anim, "figures/B6.gif", fps=10)  # Save with 10 frames per second
+    #gif(anim, "figures/B5.gif", fps=5)  # Save with 10 frames per second
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
     calc_mass_err(Mass,Mass0)
-    return x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, KD0, n, maxC, Di, V_ip, t_tot
+    return x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, KD0, n, maxC
 end
 #Call main function-----------------------------------------------
 run_and_plot = true
@@ -148,32 +147,20 @@ if run_and_plot
     plot_end  = true
     verbose   = false
     save_file = false
-    x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, KD0, n, maxC, Di, V_ip, t_tot = main(plot_sim,verbose)
-    xan, Can = smith(x_right,C_right,Ri,Di,t_tot,KD0,V_ip,n)
-    if plot_end
-        #Title: Diffusion couple (flux) - Smith (1955)
-        #Plotting------------------------------------------------------
+    x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, KD0, n, maxC = main(plot_sim,verbose)
+        if plot_end
+        #Title: Diffusion couple (flux) - growth + diffusion in a sphere
+        #Plotting-------------------------------------------------
         fs = 12.0
-        p1 = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
-        p1 = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
-        p1 = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
-                    ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on)
-        p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
-        p1 = scatter!([xan[1:2:end].+Ri[1]],[Can[1:2:end]], marker=:circle, markersize=2.0, label=L"\mathrm{Analytical\ solution}",
-                        markerstrokecolor=:crimson, markercolor=:crimson)
-        p1 = scatter!([xan[end].+Ri[1]],[Can[end]], marker=:circle, markersize=2.0, label="",
-                        markerstrokecolor=:crimson, markercolor=:crimson)
-        p1 = annotate!(2.0, 121, L"\mathrm{(a)}")
-        p2 = plot(x_right,C_right, lw=2, label=L"\mathrm{Numerical\ solution}", color = palette(:auto)[2])
-        p2 = scatter!([xan[1:5:end].+Ri[1]],[Can[1:5:end]], marker=:circle, markersize=2.0, label=L"\mathrm{Analytical\ solution}",
-                 markerstrokecolor=:crimson, markercolor=:crimson, dpi = 300,
-                 xlabel = L"x\ \mathrm{[m]}", ylabel = L"C\ \mathrm{[-]}")
-        p2 = scatter!([xan[end].+Ri[1]],[Can[end]], marker=:circle, markersize=2.0,markerstrokecolor=:crimson, markercolor=:crimson, label="")
-        p2 = annotate!(1.5, 124, L"\mathrm{(b)}")
-        plot(p1,p2,dpi = 300, legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
-              legend_foreground_color = :transparent)
+        plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
+        plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
+        plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
+              ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on,dpi = 300,
+                    legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+                    legend_foreground_color = :transparent)
+        plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
         #save_path = "figures"
-        #save_name = "B6"
+        #save_name = "B5"
         #save_figure(save_name,save_path,save_file)
     end
 end

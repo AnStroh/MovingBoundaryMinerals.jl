@@ -8,12 +8,12 @@ export calculate_density, coeff_trans_line, composition, ndgrid, set_inner_bc_st
 Calculate the density of the phases at a given temperature `T` using interpolation in 2D.
 
 ## Arguments
-- `X_A`: X-axis values for interpolation (composition X in [mol])
+- `X_A`: X-axis values for interpolation (composition X in [-])
 - `Y_A`: Y-axis values for interpolation (temperature T in [K])
 - `rho_left`: Left density values for interpolation in [kg/m^3]
 - `rho_right`: Right density values for interpolation in [kg/m^3]
-- `C_leftB`: Left concentration values for interpolation in [mol]
-- `C_rightB`: Right concentration values for interpolation in [mol]
+- `C_leftB`: Left composition values for interpolation in [-]
+- `C_rightB`: Right composition values for interpolation in [-]
 - `T`: Temperature at which to calculate the density in [K]
 
 ## Returns
@@ -61,8 +61,8 @@ Compute the composition of two components A and B at a given temperature.
 - `T::Float64`: Temperature at which to compute the composition in [K].
 
 # Returns
-- `C_left::Float64`: Composition of component A in [mol].
-- `C_right::Float64`: Composition of component B in [mol].
+- `C_left::Float64`: Composition of component A in [-].
+- `C_right::Float64`: Composition of component B in [-].
 """
 function composition(coeff_up,coeff_do,T)
     C_left  = coeff_do[1] .+ coeff_do[2] .* T .+ coeff_do[3] .* (T) .^ 2    #Composition of A
@@ -119,8 +119,8 @@ Uses the Stefan boundary conditions to set the inner boundary conditions of the 
 # Arguments
 - `L_g::Matrix`: The matrix representing the left-hand side of the system of equations.
 - `R_g::Vector`: The vector representing the right-hand side of the system of equations.
-- `C_left::Vector`: Concentration of the left phase in [mol].
-- `C_right::Vector`: Concentration of the right phase in [mol].
+- `C_left::Vector`: Composition of the left phase in [-].
+- `C_right::Vector`: Composition of the right phase in [-].
 - `nr::Vector`: Resolution of the model.
 
 # Returns

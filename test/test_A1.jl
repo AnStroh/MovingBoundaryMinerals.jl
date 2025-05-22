@@ -15,22 +15,22 @@ function main()
     t_tot   = 1e-3 * Myr2Sec                    #Total time [s]
     n       = 1                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
     # Numerics --------------------------------------------------------
-    res   = 500                                 #Number of grid points
+    res   = 500                                 #Number of nodes
     CFL   = 0.99                                #CFL number for time step calculation
     # Domain ----------------------------------------------------------
     dx    = L*inv(res-1)                        #Grid spacing
-    x     = [0:dx:L;]                           #Grid points
+    x     = [0:dx:L;]                           #Nodes
     BCout = [1, 1]                              #Boundary condition; 0: Neumann, 1: Dirichlet
     #Create initial profile--------------------------------------------
-    Cini   = zeros(length(res))                 #Initial background concentration
+    Cini   = zeros(length(res))                 #Initial background composition
     nmodes = [1; 2; 5; 7; 12] .* 1.0            #Modes of the sinusoids
     Amp    = [12; 0.5; 3; -2; 1] .* 1.0         #Initial amplitudes of the sinusoids
     C      = sinusoid_profile(Cini,nmodes,L,Di,0.0,Amp,x)
     # Initial condition -----------------------------------------------
     t     = 0.0                                 #Initial time in [s]
     it    = 0                                   #Time iterations
-    C0    = copy(C)                             #Store initial concentration
-    x0    = copy(x)                             #Store initial grid points
+    C0    = copy(C)                             #Store initial composition
+    x0    = copy(x)                             #Store initial nodes
     #History dependent parameters--------------------------------------
     T_ar    = LinRange(1273.15,1273.15,1000)    #Temperature array in [K] to calculate temperature history; T changes with respect to time;
                                                 #The last value must be equal to the temperature at t = t_tot.
@@ -40,7 +40,7 @@ function main()
     dt_diff = zeros(length(t_ar)-1)
     dt_diff = t_ar[2:end] .- t_ar[1:end-1]
     #Preallocate variables --------------------------------------------
-    Co      = zeros(size(C))                    #Old concentration
+    Co      = zeros(size(C))                    #Old composition
     dt      = 0.0                               #Initial time step
     dx      = zeros(length(x) - 1,1)            #Grid spacing
     L_g     = spzeros(length(x),length(x))      #Global matrix

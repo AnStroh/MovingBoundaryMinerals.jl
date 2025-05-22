@@ -9,8 +9,8 @@ function main(adapt_dt,plot_sim,verbose)
     D0      = [2.75*1e-6    3.9*1e-7;]                                      #Pre-exponential factor in [m^2/s]
     rho     = [1.0      1.0;]                                               #Normalized densities in [-]
     Ri      = [0.0001    0.0002;]                                           #Initial radii [interface    total length] in [m]
-    Cl_i    = 0.6                                                           #Initial concentration left side in [mol fraction]
-    Cr_i    = 0.3                                                           #Initial concentration right side in [mol fraction]
+    Cl_i    = 0.6                                                           #Initial composition left side in [mol fraction]
+    Cr_i    = 0.3                                                           #Initial composition right side in [mol fraction]
     V_ip    = 0.0                                                           #Interface velocity in [m/s]
     R       = 8.3144626182                                                  #Universal gas constant in [J/(mol*K)]
     Ea1     = 70 * 4184.0                                                   #Activation energy for the left side in [J/mol]
@@ -28,8 +28,8 @@ function main(adapt_dt,plot_sim,verbose)
                                                                             #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
     CFL    = 2e-6                                                           #CFL condition
-    res    = [80 100;]                                                      #Number of grid points
-    resmin = copy(res)                                                      #Minimum number of grid points
+    res    = [80 100;]                                                      #Number of nodes
+    resmin = copy(res)                                                      #Minimum number of nodes
     MRefin = 50.0                                                           #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     BCout  = [0 0]                                                          #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
                                                                             #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
@@ -52,15 +52,15 @@ function main(adapt_dt,plot_sim,verbose)
     L       = Ri[end]                                                       #Length of the domain in [m]
     t       = 0.0                                                           #Initial time in [s]
     it      = 0                                                             #Initial number of time iterations
-    C_left  = Cl_i*ones(res[1],1)                                           #Initial concentration left side in [mol fraction]
-    C_right = Cr_i*ones(res[2],1)                                           #Initial concentration right side in [mol fraction]
-    C0      = [copy(C_left); copy(C_right)]                                 #Store initial concentration
+    C_left  = Cl_i*ones(res[1],1)                                           #Initial composition left side in [mol fraction]
+    C_right = Cr_i*ones(res[2],1)                                           #Initial composition right side in [mol fraction]
+    C0      = [copy(C_left); copy(C_right)]                                 #Store initial composition
     C       = copy(C0)                                                      #Create 1 array with all concentrations
-    C0_l    = copy(C_left)                                                  #Store initial concentration left side
-    C0_r    = copy(C_right)                                                 #Store initial concentration right side
+    C0_l    = copy(C_left)                                                  #Store initial composition left side
+    C0_r    = copy(C_right)                                                 #Store initial composition right side
     x       = copy(x0)                                                      #Create 1 array containing all x-values
     Ri0     = copy(Ri)                                                      #Store initial radii
-    KD0     = (Cl_i * inv(1 - Cl_i)) * inv((Cr_i * inv(1 - Cr_i)))          #Initial partition coefficient, just for pre-processing
+    KD0     = (Cl_i * inv(1 - Cl_i)) * inv((Cr_i * inv(1 - Cr_i)))          #Initial distribution coefficient, just for pre-processing
     #Total mass---------------------------------------------------
     Mass0   = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
     #Preallocate variables----------------------------------------
@@ -87,8 +87,8 @@ function main(adapt_dt,plot_sim,verbose)
     #doi: 10.1007/978-1-4612-5587-1-------------------------------
     betap = dH0 * s * inv(R) .* inv.(T0) .^ 2
     beta  = (dH0 * s * sqrt.(D_r .* inv.(D_l))) .* inv.((R .* T0 .^ 2 .* (sqrt.(D_r .* inv.(D_l)) .* (1 + Cl_i .* inv(1 - Cl_i)) + (Cl_i .* inv(Cr_i) + Cl_i * inv(1 - Cr_i)))))
-    KD_ar = KD0 * exp.(-betap .* t_ar)                                      #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
-                                                                            #The last value must be equal to the partition coefficient at t = t_tot.
+    KD_ar = KD0 * exp.(-betap .* t_ar)                                      #Partition coefficient array to calculate distribution coefficient history; KD changes with respect to time;
+                                                                            #The last value must be equal to the distribution coefficient at t = t_tot.
     #First check for correct setup--------------------------------
     if n != 1
         error("For this setup, you have to choose a planar geometry. Please set n = 1.")
@@ -173,7 +173,7 @@ function main(adapt_dt,plot_sim,verbose)
         end
         println("Time: ", t/Myr2Sec, " Myr")
     end
-    #gif(anim, "figures/B2.gif", fps=10)  # Save with 10 frames per second
+    #gif(anim, "figures/B3.gif", fps=10)  # Save with 10 frames per second
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
     calc_mass_err(Mass,Mass0)
@@ -186,7 +186,7 @@ if run_and_plot
     plot_sim  = false
     plot_end  = true
     verbose   = false
-    save_file = false
+    save_file = true
     x_left, x_right, x0, C_left, C_right, C0, Sols_left, Sols_right,Checks, CheckBC, T_pl, t_pl, Ri, maxC, minC = main(adapt_dt,plot_sim,verbose)
     Can1 = first.(Sols_left)
     Can2 = first.(Sols_right)
@@ -216,8 +216,8 @@ if run_and_plot
              legend_foreground_color = :transparent)
         #plot(p2,p1, dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
         #     legend_foreground_color = :transparent)
-        #save_path = "figures"
-        #save_name = "B2"
-        #save_figure(save_name,save_path,save_file)
+        save_path = "figures"
+        save_name = "B3"
+        save_figure(save_name,save_path,save_file)
     end
 end

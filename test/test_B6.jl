@@ -10,8 +10,8 @@ function main(plot_sim,verbose)
     D0      = [9999   99999;]                                   #Pre-exponential factor in [m^2/s]                  -> NOT USED
     rho     = [1.0      1.0;]                                   #Normalized densities in [-]                   -> NOT USED
     Ri      = [1e-2      10;]                                   #Initial radii [interface    total length] in [m]   -> in [L]
-    Cl_i    = 0.1                                               #Initial concentration left side in [mol]           -> in [C]
-    Cr_i    = Cl_i/1e-3                                         #Initial concentration right side in [mol]          -> -//-
+    Cl_i    = 0.1                                               #Initial composition left side in [-]           -> in [C]
+    Cr_i    = Cl_i/1e-3                                         #Initial composition right side in [-]          -> -//-
     V_ip    = 1.0                                               #Interface velocity in [m/s]                        -> in [V]
     R       = 8.314472                                          #Universal gas constant in [J/(mol*K)]              -> NOT USED
     Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]     -> NOT USED
@@ -20,16 +20,16 @@ function main(plot_sim,verbose)
     t_tot   = 0.2                                              #Total time [s]                                     -> in [L]/[V]
     n       = 1                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
-    KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i,1000)                          #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
-                                                                #The last value must be equal to the partition coefficient at t = t_tot.
+    KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i,1000)                          #Partition coefficient array to calculate distribution coefficient history; KD changes with respect to time;
+                                                                #The last value must be equal to the distribution coefficient at t = t_tot.
     t_ar    = LinRange(0.0,t_tot,1000)                          #Time array (in [s]) to calculate history over time. The last value must be equal to t_tot.
                                                                 #The user is prompted to specify suitable time intervals in relation to the respective destination.
     T_ar    = LinRange(1273.15,1273.15,1000)                    #Temperature array in [K] to calculate temperature history; T changes with respect to time;
                                                                 #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
     CFL    = 0.99                                               #CFL condition
-    res    = [90 140;]                                          #Number of grid points
-    resmin = copy(res)                                          #Minimum number of grid points
+    res    = [90 140;]                                          #Number of nodes
+    resmin = copy(res)                                          #Minimum number of nodes
     MRefin = 10.0                                               #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     BCout  = [0 0]                                              #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
                                                                 #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
@@ -52,15 +52,15 @@ function main(plot_sim,verbose)
     L       = Ri[end]                                           #Length of the domain in [m]
     t       = 0.0                                               #Initial time in [s]
     it      = 0                                                 #Initial number of time iterations
-    C_left  = Cl_i*ones(res[1],1)                               #Initial concentration left side in [mol]
-    C_right = Cr_i*ones(res[2],1)                               #Initial concentration right side in [mol]
-    C0      = [copy(C_left); copy(C_right)]                     #Store initial concentration
+    C_left  = Cl_i*ones(res[1],1)                               #Initial composition left side in [-]
+    C_right = Cr_i*ones(res[2],1)                               #Initial composition right side in [-]
+    C0      = [copy(C_left); copy(C_right)]                     #Store initial composition
     C       = copy(C0)                                          #Create 1 array with all concentrations
-    C0_l    = copy(C_left)                                      #Store initial concentration left side
-    C0_r    = copy(C_right)                                     #Store initial concentration right side
+    C0_l    = copy(C_left)                                      #Store initial composition left side
+    C0_r    = copy(C_right)                                     #Store initial composition right side
     x       = copy(x0)                                          #Create 1 array containing all x-values
     Ri0     = copy(Ri)                                          #Store initial radii
-    KD      = copy(KD_ar[1])                                    #Initial partition coefficient, just for pre-processing
+    KD      = copy(KD_ar[1])                                    #Initial distribution coefficient, just for pre-processing
     #Total mass---------------------------------------------------
     Mass0   = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
     #Preallocate variables----------------------------------------

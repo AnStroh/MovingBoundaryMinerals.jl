@@ -11,18 +11,18 @@ non-dimensionalisation has been performed.
 - `Ri::Float64`: Radii [interface    total length in [m].
 - `V_ip::Float64`: Advection velocity in [m/s].
 - `dt::Float64`: Time step in [s].
-- `x_left::Vector{Float64}`: Left distance grid points in [m].
-- `x_right::Vector{Float64}`: Right distance grid points in [m].
-- `C_left::Vector{Float64}`: Concentration values on the left grid points in [mol].
-- `C_right::Vector{Float64}`: Concentration values on the right grid points in [mol].
+- `x_left::Vector{Float64}`: Left distance nodes in [m].
+- `x_right::Vector{Float64}`: Right distance nodes in [m].
+- `C_left::Vector{Float64}`: Composition values on the left nodes in [-].
+- `C_right::Vector{Float64}`: Composition values on the right nodes in [-].
 - `nr::Vector{Int}`: Resolution of the left and the right grid.
 
 # Returns
 - `Fl_regrid::Int`: Flag indicating if regridding was performed (1) or not (0).
-- `x_left::Vector{Float64}`: Updated left distance grid points.
-- `x_right::Vector{Float64}`: Updated right distance grid points.
-- `C_left::Vector{Float64}`: Updated concentration values on the left grid points.
-- `C_right::Vector{Float64}`: Updated concentration values on the right grid points.
+- `x_left::Vector{Float64}`: Updated left distance nodes.
+- `x_right::Vector{Float64}`: Updated right distance nodes.
+- `C_left::Vector{Float64}`: Updated composition values on the left nodes.
+- `C_right::Vector{Float64}`: Updated composition values on the right nodes.
 - `nr::Vector{Int}`: Updated resolution.
 - `Ri::Float64`: Updated radii [interface    total length].
 """
@@ -31,7 +31,7 @@ function advect_interface_regrid!(Ri,V_ip,dt,x_left,x_right,C_left,C_right,nr)
     Ri[1] = Rio[1] + V_ip * dt                                                                      #Update interface position
     if V_ip > 0                                                                                     #Calculate new grid for positive velocity
         x_left      = [x_left; x_left[end]]                                                         #Add new grid point
-        C_left      = [C_left; C_left[end]]                                                         #Add new concentration value
+        C_left      = [C_left; C_left[end]]                                                         #Add new composition value
         x_left[end] = copy(Ri[1])                                                                   #Update grid point
         dx1         = x_left[end] - x_left[end-1]                                                   #Calculate new dx on the left side of interface
         if Ri[1] > x_right[2]                                                                       #Check if Ri moved to fast
@@ -44,7 +44,7 @@ function advect_interface_regrid!(Ri,V_ip,dt,x_left,x_right,C_left,C_right,nr)
         nr[1]       = nr[1] + 1                                                                     #Update resolution
     elseif V_ip < 0                                                                                 #Calculate new grid for negative velocity
         x_right     = [x_right[1];x_right]                                                          #Add new grid point
-        C_right     = [C_right[1];C_right]                                                          #Add new concentration value
+        C_right     = [C_right[1];C_right]                                                          #Add new composition value
         x_right[1]  = copy(Ri[1])                                                                   #Update grid point
         dx2         = x_right[2] - x_right[1]                                                       #Calculate new dx on the right side of interface
         if Ri[1] < x_left[end-1]                                                                    #Check if Ri moved to fast
@@ -173,8 +173,8 @@ end
 Calculate the mass error between the final mass `Mass[end]` and the initial mass `Mass0`.
 
 # Arguments
-- `Mass::Vector`: A vector containing the mass values in [mol].
-- `Mass0::Number`: The initial mass value in [mol].
+- `Mass::Vector`: A vector containing the mass values in [-].
+- `Mass0::Number`: The initial mass value in [-].
 
 # Output
 - `ErrM::Number`: The calculated mass error.
@@ -192,10 +192,10 @@ end
 Calculate the total mass based on the volume of the phase.
 
 # Arguments
-- `x_left::Float64`: Left grid points in [m].
-- `x_right::Float64`: Right grid points in [m].
-- `C_left::Vector{Float64}`: Concentration values of the left phase in [mol].
-- `C_right::Vector{Float64}`: Concentration values of the right phase in [mol].
+- `x_left::Float64`: Left nodes in [m].
+- `x_right::Float64`: Right nodes in [m].
+- `C_left::Vector{Float64}`: Composition values of the left phase in [-].
+- `C_right::Vector{Float64}`: Composition values of the right phase in [-].
 - `n::Int`: Number which defines the geometry.
 - `rho::Vector{Float64}`: Densities of the left and right phase [kg/m³].
 
@@ -218,7 +218,7 @@ Calculate the total mass based on the volume of a phase. This function is writte
 
 # Arguments
 - `x1::Vector{Float64}`: A vector containing the spatial coordinates.
-- `C1::Vector{Float64}`: A vector containing the concentration values at the spatial coordinates.
+- `C1::Vector{Float64}`: A vector containing the composition values at the spatial coordinates.
 - `ndim::Int`: The number related to the geometry.
 - `rho::Vector{Float64}`: A vector containing the density values.
 
@@ -230,7 +230,7 @@ This function calculates the total mass based on the volume for a simple diffusi
 for volume (`V`) and volume change (`dV`). It then calculates the volumes for each spatial coordinate and the volume changes
 between consecutive coordinates. The total volume change (`dVC`) is computed by averaging the volume changes. Finally, the
 total mass (`Mtot`) is calculated using trapezoidal integration of the product of density and volume with respect to the
-concentration.
+composition.
 
 """
 
@@ -260,8 +260,8 @@ Calculation of all volumes. The density in both phases is constant. Subsequently
 considered.
 
 # Arguments
-- `x1`: Grid points of the left phase.
-- `x2`: Grid points of the right phase.
+- `x1`: Nodes of the left phase.
+- `x2`: Nodes of the right phase.
 - `ndim`: Geometry factor.
 
 # Returns
@@ -306,8 +306,8 @@ non-dimensionalisation has been performed.
 # Arguments
 - `x_left::Vector{Float64}`: Left grid spatial points in [m].
 - `x_right::Vector{Float64}`: Right grid spatial points in [m].
-- `C_left::Vector{Float64}`: Concentration values of the left phase in [mol].
-- `C_right::Vector{Float64}`: Concentration values of the right phase in [mol].
+- `C_left::Vector{Float64}`: Composition values of the left phase in [-].
+- `C_right::Vector{Float64}`: Composition values of the right phase in [-].
 - `D_l::Float64`: Diffusion coefficient on the left side in [m²/s].
 - `D_r::Float64`: Diffusion coefficient on the right side in [m²/s].
 - `dt::Float64`: Time step in [s].
@@ -317,8 +317,8 @@ non-dimensionalisation has been performed.
 # Returns
 - `L_g::SparseMatrixCSC{Float64, Int}`: Global stiffness matrix.
 - `R_g::Vector{Float64}`: Global RHS vector.
-- `Co_l::Vector{Float64}`: Stores left side concentration values before the update.
-- `Co_r::Vector{Float64}`: Stores right side concentration values before the update.
+- `Co_l::Vector{Float64}`: Stores left side composition values before the update.
+- `Co_r::Vector{Float64}`: Stores right side composition values before the update.
 """
 function construct_matrix_fem(x_left,x_right,C_left,C_right,D_l,D_r,dt,n,res)
     #Calculate number of elements-----------------------------
@@ -354,8 +354,8 @@ Create grid with or without variable spacing.Units may differ from SI units if n
 - `verbose::Bool`: A boolean indicating whether to print additional information.
 
 # Returns
-- `x_left::Matrix{Float64}`: Left grid points in [m].
-- `x_right::Matrix{Float64}`: Right grid points in [m].
+- `x_left::Matrix{Float64}`: Left nodes in [m].
+- `x_right::Matrix{Float64}`: Right nodes in [m].
 - `dx1::Float64`: The grid spacing on the left side in [m].
 - `dx2::Float64`: The grid spacing on the right side in [m].
 - `x0::Matrix{Float64}`: Initial grid spacing for the whole domain in [m].
@@ -377,15 +377,15 @@ has been performed.
 
 ## Arguments
 - `Ri`: Radii [interface    total length] in [m].
-- `nr`: Resolution of grid points on the left and right side.
+- `nr`: Resolution of nodes on the left and right side.
 - `Rfact`: Grid refinement factor.
 - `verbose`: A boolean indicating whether to print additional information.
 
 ## Returns
 - `Ri`: Radii [interface    total length] in [m].
-- `nr`: Resolution of grid points on the left and right sides.
-- `x_left`:Left grid points in [m].
-- `x_right`: Right grid points in [m].
+- `nr`: Resolution of nodes on the left and right sides.
+- `x_left`:Left nodes in [m].
+- `x_right`: Right nodes in [m].
 - `dx_left`: Left grid spacing in [m].
 - `dx_right`: Right grid spacing in [m].
 - `Sc_left`: The scaling factor for the left side.
@@ -394,8 +394,8 @@ has been performed.
 """
 function define_new_grid(Ri,nr,Rfact,verbose)
     if Rfact == 1.0                                                                                 #Equally spaced grid
-        x_left   = collect(LinRange(0.0, Ri[1], nr[1]))                                             #Create vector with nr[1] equally spaced grid points
-        x_right  = collect(LinRange(Ri[1],Ri[2], nr[2]))                                            #Create vector with nr[2] equally spaced grid points
+        x_left   = collect(LinRange(0.0, Ri[1], nr[1]))                                             #Create vector with nr[1] equally spaced nodes
+        x_right  = collect(LinRange(Ri[1],Ri[2], nr[2]))                                            #Create vector with nr[2] equally spaced nodes
         dx_left  = diff(x_left)                                                                     #Calculate dx on the left side
         dx_right = diff(x_right)                                                                    #Calculate dx on the right side
     elseif Rfact > 1.0                                                                              #Refine both
@@ -407,18 +407,18 @@ function define_new_grid(Ri,nr,Rfact,verbose)
         d = dx_left[end]                                                                            #Last dx on the left side
         R = newton_solver(S, d, nr[2]-1, 1e-8, 200,verbose)                                         #Apply Newton solver to find the new right grid
         dx_right = make_dx_right(R, d, nr[2]-1)                                                     #Calculate new dx on the right side
-        x_right  = [Ri[1]; Ri[1] .+ cumsum(dx_right)]                                               #Calculate new grid points on the right side
+        x_right  = [Ri[1]; Ri[1] .+ cumsum(dx_right)]                                               #Calculate new nodes on the right side
         dx_right = diff(x_right)                                                                    #Calculate dx on the right side
     else                                                                                            #Refine only right grid
         Rfact    = abs(Rfact)                                                                       #Make sure Rfact is positive
-        x_left   = collect(LinRange(0.0, Ri[1], nr[1]-1))                                           #Create vector with nr[1] equally spaced grid points
+        x_left   = collect(LinRange(0.0, Ri[1], nr[1]-1))                                           #Create vector with nr[1] equally spaced nodes
         dx_left  = diff(x_left)                                                                     #Calculate dx on the left side
         #Set Non-linear Problem
         S = Ri[2] - Ri[1]                                                                           #Length of the right domain
         d = dx_left[end]                                                                            #Last dx on the left side
         R = newton_solver(S, d, nr[2]-1, 1e-8, 200,verbose)                                         #Apply Newton solver to find the new right grid
         dx_right = make_dx_right(R, d, nr[2]-1)                                                     #Calculate new dx on the right side
-        x_right  = [Ri[1]; Ri[1] .+ cumsum(dx_right)]                                               #Calculate new grid points on the right side
+        x_right  = [Ri[1]; Ri[1] .+ cumsum(dx_right)]                                               #Calculate new nodes on the right side
         dx_right = diff(x_right)                                                                    #Calculate dx on the right side
         if verbose == true
             println("MRefin: - $Rfact ; replaced by $Rfact on the right side, kept equal spacing on the left")
@@ -496,7 +496,7 @@ fill_matrix! function fills the global matrices L_g and R_g with the correspondi
 differ from SI units if non-dimensionalisation has been performed.
 
 # Arguments
-- `C`: Concentration matrix in [mol].
+- `C`: Composition matrix in [-].
 - `x`: Spatial grid  points.
 - `D`: Diffusion coefficient in [m²/s].
 - `dt`: Time step in [s].
@@ -515,7 +515,7 @@ function fill_matrix!(C,x,D,dt,ndim,nels)
     #Reset matrices-------------------------------------------
     L_g     = spzeros(length(x),length(x))                                                          #Size changes every iteration
     R_g     = zeros(length(x),1)                                                                    #Size changes every iteration
-    Co      = copy(C)                                                                               #Copy concentration values
+    Co      = copy(C)                                                                               #Copy composition values
     _dt     = inv(dt)                                                                               #Inverse of dt
     #Make global matrices-------------------------------------
     for (iel,_) in enumerate(1:nels)
@@ -595,13 +595,13 @@ Units may differ from SI units if non-dimensionalisation has been performed.
 - `L1`: Length of the left side in [m].
 - `L2`: Length of the right side in [m].
 - `LIP`: Interface position in [m].
-- `nx1`: Number of grid points on the left side.
-- `nx2`: Number of grid points on the right side.
+- `nx1`: Number of nodes on the left side.
+- `nx2`: Number of nodes on the right side.
 - `dX1_dXN`: Ratio of the first grid spacing to the last grid spacing.
 
 ## Returns
-- `x_left`: Array of grid points on the left side in [m].
-- `x_right`: Array of grid points on the right side in [m].
+- `x_left`: Array of nodes on the left side in [m].
+- `x_right`: Array of nodes on the right side in [m].
 
 """
 function linspace_interface(L1,L2,LIP,nx1,nx2,dX1_dXN)
@@ -841,15 +841,15 @@ end
 """
     regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, nr, nmin, MRefin, verbose)
 
-Regrid the grid and interpolate the concentration profiles. Units may differ from SI units if non-dimensionalisation has
+Regrid the grid and interpolate the composition profiles. Units may differ from SI units if non-dimensionalisation has
 been performed.
 
 # Arguments
 - `Fl_regrid::Int`: Flag indicating whether to regrid or not.
-- `x_left::Vector`: Vector of left spatial grid points in [m].
-- `x_right::Vector`: Vector of right spatial grid points in [m].
-- `C_left::Vector`: Vector of left concentration values in [mol].
-- `C_right::Vector`: Vector of right concentration values in [mol].
+- `x_left::Vector`: Vector of left spatial nodes in [m].
+- `x_right::Vector`: Vector of right spatial nodes in [m].
+- `C_left::Vector`: Vector of left composition values in [-].
+- `C_right::Vector`: Vector of right composition values in [-].
 - `Ri::Vector`: Radii [interface    total length] in [m].
 - `V_ip::Float64`: Velocity of the interface in [m/s].
 - `nr::Vector`: Resolution.
@@ -858,10 +858,10 @@ been performed.
 - `verbose::Bool`: Whether to print additional information.
 
 # Returns
-- `x_left::Matrix`: Matrix of left grid points in [m].
-- `x_right::Matrix`: Matrix of right grid points in [m].
-- `C_left::Vector`: Vector of left concentration values in [mol].
-- `C_right::Vector`: Vector of right concentration values in [mol].
+- `x_left::Matrix`: Matrix of left nodes in [m].
+- `x_right::Matrix`: Matrix of right nodes in [m].
+- `C_left::Vector`: Vector of left composition values in [-].
+- `C_right::Vector`: Vector of right composition values in [-].
 - `dx1::Float64`: Grid spacing at the left interface in [m].
 - `dx2::Float64`: Grid spacing at the right interface in [m].
 - `nr::Vector`: Updated resolution.
@@ -892,8 +892,8 @@ function regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, nr, nmin
         Ri, nr, X_left, X_right = define_new_grid(Ri,nr,MRefin,verbose)                             #Use the Newton method (better performance!)
         dx1     = X_left[end] - X_left[end-1]                                                       #Calculate last dx on the left side
         dx2     = X_right[2] - X_right[1]                                                           #Calculate first dx on the right side
-        C_left  = pchip(x_left, C_left, vec(X_left))                                                #Interpolate concentration on the left side
-        C_right = pchip(x_right, C_right, vec(X_right))                                             #Interpolate concentration on the right side
+        C_left  = pchip(x_left, C_left, vec(X_left))                                                #Interpolate composition on the left side
+        C_right = pchip(x_right, C_right, vec(X_right))                                             #Interpolate composition on the right side
         #Update grid
         x_left  = copy(collect(X_left))
         x_right = copy(collect(X_right))
@@ -1035,11 +1035,11 @@ been performed.
 # Arguments
 - `L_g::Matrix`: The global matrix representing the system of equations (LHS).
 - `R_g::Vector`: The global vector representing the right-hand side (RHS) of the system of equations.
-- `KD::Float64`: The partition coefficient.
+- `KD::Float64`: The distribution coefficient.
 - `D_l::Float64`: The diffusion coefficient on the left side in [m²/s].
 - `D_r::Float64`: The diffusion coefficient on the right side in [m²/s].
-- `x_left::Vector`: Left spatial grid points in [m].
-- `x_right::Vector`: Right spatial grid points in [m].
+- `x_left::Vector`: Left spatial nodes in [m].
+- `x_right::Vector`: Right spatial nodes in [m].
 - `V_ip::Float64`: The interface velocity in [m/s].
 - `rho::Vector`: The density value in [kg/m³].
 - `nr::Vector`: Resolution.
@@ -1080,8 +1080,8 @@ been performed.
 - `L_g::Matrix`: The global matrix representing the system of equations (LHS).
 - `R_g::Vector`: The global vector representing the right-hand side (RHS) of the system of equations.
 - `dVolC::Vector`: The volume change vector in [m³].
-- `Mtot::Float64`: The total mass in [mol].
-- `KD::Float64`: The partition coefficient.
+- `Mtot::Float64`: The total mass in [-].
+- `KD::Float64`: The distribution coefficient.
 - `nr::Vector`: Resolution.
 
 # Returns
@@ -1114,15 +1114,15 @@ Set inner boundary conditions for the special case of major element diffusion in
 differ from SI units if non-dimensionalisation has been performed.
 
 # Arguments
-- `Cl_i::Float64`: Initial concentration on the left side in [mol].
+- `Cl_i::Float64`: Initial composition on the left side in [-].
 - `beta::Float64`: Variable from Lasagas semi-analytical solution.
 - `t::Float64`: Time in [s].
 - `KD::Float64`: Partition coefficient.
 - `D_r::Float64`: Diffusion coefficient on the right side in [m²/s].
 - `D_l::Float64`: Diffusion coefficient on the left side in [m²/s].
 - `D0::Array{Float64}`: Pre-exponential factor within the equation for the diffusion coefficient (`D`` at T0).
-- `C_left::Array{Float64}`: Array of concentrations on the left side in [mol].
-- `C_right::Array{Float64}`: Array of concentrations on the right side in [mol].
+- `C_left::Array{Float64}`: Array of concentrations on the left side in [-].
+- `C_right::Array{Float64}`: Array of concentrations on the right side in [-].
 - `dx1::Float64`: Grid spacing on the left side in [m].
 - `dx2::Float64`: Grid spacing on the right side in [m].
 - `rho::Array{Float64}`: Array of densities in [kg/m³].
@@ -1134,10 +1134,10 @@ differ from SI units if non-dimensionalisation has been performed.
 - `L_g::Array{Float64}`: Updated global left-hand side matrix.
 - `R_g::Array{Float64}`: Updated global right-hand side vector.
 - `ScF::Float64`: Scaling factor.
-- `BC_left::Float64`: Modelled left inner boundary condition (interface) in [mol].
-- `BC_right::Float64`: Modelled right inner boundary condition (interface) in [mol].
-- `BC_left_Las::Float64`: Left inner boundary condition following Lasaga (1983) in [mol].
-- `BC_right_Las::Float64`: Right inner boundary condition following Lasaga (1983) in [mol].
+- `BC_left::Float64`: Modelled left inner boundary condition (interface) in [-].
+- `BC_right::Float64`: Modelled right inner boundary condition (interface) in [-].
+- `BC_left_Las::Float64`: Left inner boundary condition following Lasaga (1983) in [-].
+- `BC_right_Las::Float64`: Right inner boundary condition following Lasaga (1983) in [-].
 """
 function set_inner_bc_Lasaga!(Cl_i,beta,t, KD,D_r,D_l,D0,C_left,C_right,dx1,dx2,rho,L_g,R_g,nr)
     #Set inner boundary conditions for major elements following Lasaga (1983)
@@ -1214,8 +1214,8 @@ if non-dimensionalisation has been performed.
 - `BCout`: An array indicating the type of boundary condition at the outer boundaries.
 - `L_g`: The global left-hand side matrix of the diffusion-advection problem.
 - `R_g`: The global right-hand side vector of the diffusion-advection problem.
-- `C_left`: Concentration vector of the left side in [mol].
-- `C_right`: Concentration vector of the right side in [mol].
+- `C_left`: Composition vector of the left side in [-].
+- `C_right`: Composition vector of the right side in [-].
 - `ScF`: A scaling factor.
 
 # Details
@@ -1244,15 +1244,15 @@ end
 """
     sinusoid_profile(C0, n, L, D, t, G)
 
-Calculates a sinusoidal concentration profile.
+Calculates a sinusoidal composition profile.
 
-This function takes the initial concentration `C0`, the number of sinusoidal modes `n`, the length of the system `L`,
-the diffusion coefficient `D`, the time `t`, and the amplitude `G` as input parameters. It calculates the concentration
+This function takes the initial composition `C0`, the number of sinusoidal modes `n`, the length of the system `L`,
+the diffusion coefficient `D`, the time `t`, and the amplitude `G` as input parameters. It calculates the composition
 profile at a given time `t` using the sinusoidal equation. Units may differ from SI units if non-dimensionalisation has
 been performed.
 
 # Arguments
-- `C0`: Initial concentration at position x at `t = 0.0 in [mol].
+- `C0`: Initial composition at position x at `t = 0.0 in [-].
 - `n`: Number of sinusoidal modes.
 - `L`: Length of the modelling domain in [m].
 - `D`: Diffusion coefficient in [m²/s].
@@ -1260,10 +1260,10 @@ been performed.
 - `G`: Amplitude.
 
 # Returns
-- `C`: Concentration profile at time `t` in [mol].
+- `C`: Composition profile at time `t` in [-].
 """
 function sinusoid_profile(C0,n,L,D,t,G,x)
-    #Calculates a sinusoidal concentration profile
+    #Calculates a sinusoidal composition profile
     Sin_temp = zeros(length(x))
     for (i,_) in enumerate(1:length(n))
         Sin_temp = Sin_temp .+ exp.(-((n[i] .* pi .* inv(L)) ^ 2) .* D .* t) .*G[i] .* sin.(n[i] .* pi .* x .* inv(L))
@@ -1283,8 +1283,8 @@ Solves a system of equations.
 - `res`: Resolution.
 
 # Returns
-- `C_left`: The updated concentration vector of the left side in [mol].
-- `C_right`: The updated concentration vector of the right side in [mol].
+- `C_left`: The updated composition vector of the left side in [-].
+- `C_right`: The updated composition vector of the right side in [-].
 """
 function solve_soe(L_g,R_g,res)
     #Solve the system of equations
@@ -1333,7 +1333,7 @@ units if non-dimensionalisation has been performed.
 - `Di::Vector{Float64}`: Diffusion coefficients in [m²/s].
 - `Ea1::Float64`: Activation energy for the left phase in [J/mol].
 - `Ea2::Float64`: Activation energy for the right phase in [J/mol].
-- `KD_ar::Vector{Float64}`: Array of partition coefficients.
+- `KD_ar::Vector{Float64}`: Array of distributioncoefficients.
 - `R::Float64`: Gas constant in [J/(mol*K)].
 - `T_ar::Vector{Float64}`: Array of temperatures in [K].
 - `t_ar::Vector{Float64}`: Array of time in [s].
@@ -1343,12 +1343,12 @@ units if non-dimensionalisation has been performed.
 # Returns
 - `D_l::Float64`: Updated diffusion coefficient for the left side in [m²/s].
 - `D_r::Float64`: Updated diffusion coefficient for the right side in [m²/s].
-- `KD::Float64`: Updated partition coefficient.
+- `KD::Float64`: Updated distribution coefficient.
 - `T::Float64`: Updated temperature in [K].
 """
 function update_t_dependent_param!(D0,Di,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
     #Interpolate KD and T-------------------------------------
-    KD  = linear_interpolation_1D(t_ar,KD_ar,t)                                                     #New partition coefficient
+    KD  = linear_interpolation_1D(t_ar,KD_ar,t)                                                     #New distribution coefficient
     T   = linear_interpolation_1D(t_ar,T_ar,t)                                                      #New temperature
     #Check for boundaries-------------------------------------
     tol = 1e-12

@@ -5,31 +5,31 @@ function main(plot_sim)
     # Physics ---------------------------------------------------------
     Di      = 2.65*1e-18                        #Diffusion coefficient in [m^2/s]
                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0]
-    D0      = 2.75*1e-6                         #Pre-exponential factor in [m^2/s]
+    D0      = NaN                               #Pre-exponential factor in [m^2/s]              -> not used in this example
     L       = 0.005                             #Length of the domain in [m]
-    rho     = 2700.0                            #Density in [kg/m^3]
-    R       = 8.314472                          #Universal gas constant in [J/(mol*K)]
-    Ea1     = 292880.0                          #Activation energy for the left side in [J/mol]
+    rho     = 2700                              #Density in [kg/m^3]                            -> only used for mass calculation
+    R       = NaN                               #Universal gas constant in [J/(mol*K)]          -> not used in this example
+    Ea1     = NaN                               #Activation energy  in [J/mol]                  -> not used in this example
     Myr2Sec = 60*60*24*365.25*1e6               #Conversion factor from Myr to s
     t_tot   = 1e-3 * Myr2Sec                    #Total time [s]
     n       = 1                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
     # Numerics --------------------------------------------------------
-    res   = 500                                 #Number of grid points
+    res   = 500                                 #Number of nodes
     CFL   = 0.99                                #CFL number for time step calculation
     # Domain ----------------------------------------------------------
     dx    = L*inv(res-1)                        #Grid spacing
-    x     = [0:dx:L;]                           #Grid points
+    x     = [0:dx:L;]                           #Nodes
     BCout = [1, 1]                              #Boundary condition; 0: Neumann, 1: Dirichlet
     #Create initial profile--------------------------------------------
-    Cini   = zeros(length(res))                 #Initial background concentration
-    nmodes = [1; 2; 5; 7; 12] .* 1.0            #Modes of the sinusoids
-    Amp    = [12; 0.5; 3; -2; 1] .* 1.0         #Initial amplitudes of the sinusoids
+    Cini   = zeros(length(res))                 #Initial background composition
+    nmodes = [1; 2; 5; 7; 12] .* 1.0            #Number of modes of the eigenfunctions
+    Amp    = [12; 0.5; 3; -2; 1] .* 1.0         #Initial amplitudes of the eigenfunctions (sinosoids)
     C      = sinusoid_profile(Cini,nmodes,L,Di,0.0,Amp,x)
     # Initial condition -----------------------------------------------
     t      = 0.0                                #Initial time in [s]
     it     = 0                                  #Time iterations
-    C0     = copy(C)                            #Store initial concentration
-    x0     = copy(x)                            #Store initial grid points
+    C0     = copy(C)                            #Store initial composition
+    x0     = copy(x)                            #Store initial nodes
     #History dependent parameters--------------------------------------
     T_ar    = LinRange(1273.15,1273.15,1000)    #Temperature array in [K] to calculate temperature history; T changes with respect to time;
                                                 #The last value must be equal to the temperature at t = t_tot.
@@ -39,7 +39,7 @@ function main(plot_sim)
     dt_diff = zeros(length(t_ar)-1)
     dt_diff = t_ar[2:end] .- t_ar[1:end-1]
     #Preallocate variables --------------------------------------------
-    Co      = zeros(size(C))                    #Old concentration
+    Co      = zeros(size(C))                    #Old composition
     dt      = 0.0                               #Initial time step
     dx      = zeros(length(x) - 1,1)            #Grid spacing
     L_g     = spzeros(length(x),length(x))      #Global matrix

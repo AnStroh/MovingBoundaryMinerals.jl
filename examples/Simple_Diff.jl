@@ -11,8 +11,8 @@ function main()
                                             #If you want to calculate D with the Arrhenius equation, set Di = [-1.0]
     D0      = 2.75*1e-6                     #Pre-exponential factor in [m^2/s]
     L       = 0.001                         #Length of the domain in [m]
-    Cinf    = 0.0                           #Concentration at infinity in [mol]
-    Cstart  = 4.0                           #Initial concentration in [mol]
+    Cinf    = 0.0                           #Composition at infinity in [-]
+    Cstart  = 4.0                           #Initial composition in [-]
     rho     = 2700.0                        #Density in [kg/m^3]
     R       = 8.314472                      #Universal gas constant in [J/(mol*K)]
     Ea1     = 292880.0                      #Activation energy for the left side in [J/mol]
@@ -20,19 +20,19 @@ function main()
     t_tot   = 1e-4 * Myr2Sec                #Total time [s]
     n       = 1                             #Geometry; 1: planar, 2: cylindrical, 3: spherical
     # Numerics --------------------------------------------------------
-    nx     = 100                            #Number of grid points
+    nx     = 100                            #Number of nodes
     CFL    = 0.99                           #CFL number for time step calculation
     # Domain ----------------------------------------------------------
     dx    = L*inv(nx-1)                     #Grid spacing
-    x     = [0:dx:L;]                       #Grid points
+    x     = [0:dx:L;]                       #Nodes
     BCout = [1, 1]                          #Boundary condition; 0: Neumann, 1: Dirichlet
     # Initial condition -----------------------------------------------
     t     = 0.0                             #Initial time in [s]
     it    = 0                               #Time iterations
-    C     = Cinf * ones(nx,1)               #Concentration array in [mol]
-    C[1]  = Cstart                          #Set initial concentration at the first grid point
-    C0    = copy(C)                         #Store initial concentration
-    x0    = copy(x)                         #Store initial grid points
+    C     = Cinf * ones(nx,1)               #Composition array in [-]
+    C[1]  = Cstart                          #Set initial composition at the first grid point
+    C0    = copy(C)                         #Store initial composition
+    x0    = copy(x)                         #Store initial nodes
     #History dependent parameters--------------------------------------
     T_ar    = LinRange(1273.15,923.15,1000) #Temperature array in [K] to calculate temperature history; T changes with respect to time;
                                             #The last value must be equal to the temperature at t = t_tot.
@@ -42,7 +42,7 @@ function main()
     dt_diff = zeros(length(t_ar)-1)
     dt_diff = t_ar[2:end] .- t_ar[1:end-1]
     #Preallocate variables --------------------------------------------
-    Co      = zeros(size(C))                    #Old concentration
+    Co      = zeros(size(C))                    #Old composition
     dt      = 0.0                               #Initial time step
     dx      = zeros(length(x) - 1,1)            #Grid spacing
     L_g     = spzeros(length(x),length(x))      #Global matrix

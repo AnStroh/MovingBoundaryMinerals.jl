@@ -9,8 +9,8 @@ function main(plot_sim,verbose)
     D0      = [2.75*1e-6    2.75*1e-6;]                 #Pre-exponential factor in [m^2/s]
     rho     = [1.0      1.0;]                           #Normalized densities in [-]
     Ri      = [0.0002    0.0004;]                       #Initial radii [interface    total length] in [m]
-    Cl_i    = 0.6                                       #Initial concentration left side in [mol]
-    Cr_i    = 0.6                                       #Initial concentration right side in [mol]
+    Cl_i    = 0.6                                       #Initial composition left side in [-]
+    Cr_i    = 0.6                                       #Initial composition right side in [-]
     V_ip    = 0.0                                       #Interface velocity in [m/s]; CAUTION: This code only gives correct results, if V_ip is 0.
     R       = 8.314472                                  #Universal gas constant in [J/(mol*K)]
     Ea1     = 292879.6767                               #Activation energy for the left side in [J/mol]
@@ -19,16 +19,16 @@ function main(plot_sim,verbose)
     t_tot   = 1e-5 * Myr2Sec                            #Total time [s]
     n       = 1                                         #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
-    KD_ar   = LinRange(1.0,1.0,1000)                    #Partition coefficient array to calculate partition coefficient history; KD changes with respect to time;
-                                                        #The last value must be equal to the partition coefficient at t = t_tot.
+    KD_ar   = LinRange(1.0,1.0,1000)                    #Partition coefficient array to calculate distribution coefficient history; KD changes with respect to time;
+                                                        #The last value must be equal to the distribution coefficient at t = t_tot.
     t_ar    = LinRange(0.0,t_tot,1000)                  #Time array (in [s]) to calculate history over time. The last value must be equal to t_tot.
                                                         #The user is prompted to specify suitable time intervals in relation to the respective destination.
     T_ar    = LinRange(1273.15,1273.15,1000)            #Temperature array in [K] to calculate temperature history; T changes with respect to time;
                                                         #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
     CFL    = 0.5                                        #CFL condition
-    res    = [500 500;]                                 #Number of grid points
-    resmin = copy(res)                                  #Minimum number of grid points
+    res    = [500 500;]                                 #Number of nodes
+    resmin = copy(res)                                  #Minimum number of nodes
     MRefin = 1.0                                        #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     Dirichlet = 1                                       #Dirchlet BC at the interface
     BCout  = [1 1]                                      #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
@@ -51,11 +51,11 @@ function main(plot_sim,verbose)
     end
     x_left, x_right, dx1, dx2, x0 = create_grid!(Ri,res,MRefin,verbose)
     #Create initial profile---------------------------------------
-    Cini_l   = zeros(length(x_left))                    #Initial background concentration left
+    Cini_l   = zeros(length(x_left))                    #Initial background composition left
     nmodes_l = [1; 2; 5; 7; 12] .* 1.0                  #Modes of the sinusoids left
     Amp_l    = [12; 0.5; 3; -2; 1] .* 1.0               #Initial amplitudes of the sinusoids left
     C_left   = sinusoid_profile(Cini_l,nmodes_l,Ri[1],Di[1],0.0,Amp_l,x_left)
-    Cini_r   = zeros(length(x_right))                   #Initial background concentration right
+    Cini_r   = zeros(length(x_right))                   #Initial background composition right
     nmodes_r = [1; 2; 3] .* 1.0                         #Modes of the sinusoids right
     Amp_r    = [1; 8.0; 1*inv(3.0)] .* 1.0              #Initial amplitudes of the sinusoids right
     C_right  = sinusoid_profile(Cini_r,nmodes_r,Ri[2]-Ri[1],Di[2],0.0,Amp_r,x_right)
@@ -63,13 +63,13 @@ function main(plot_sim,verbose)
     L       = Ri[end]                                   #Length of the domain in [m]
     t       = 0.0                                       #Initial time in [s]
     it      = 0                                         #Initial number of time iterations
-    C0      = [copy(C_left); copy(C_right)]             #Store initial concentration
+    C0      = [copy(C_left); copy(C_right)]             #Store initial composition
     C       = copy(C0)                                  #Create 1 array with all concentrations
-    C0_l    = copy(C_left)                              #Store initial concentration left side
-    C0_r    = copy(C_right)                             #Store initial concentration right side
+    C0_l    = copy(C_left)                              #Store initial composition left side
+    C0_r    = copy(C_right)                             #Store initial composition right side
     x       = copy(x0)                                  #Create 1 array containing all x-values
     Ri0     = copy(Ri)                                  #Store initial radii
-    KD      = copy(KD_ar[1])                            #Initial partition coefficient, just for pre-processing
+    KD      = copy(KD_ar[1])                            #Initial distribution coefficient, just for pre-processing
     #Total mass---------------------------------------------------
     Mass0   = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
     #Preallocate variables----------------------------------------

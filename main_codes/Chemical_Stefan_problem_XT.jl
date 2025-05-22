@@ -4,9 +4,9 @@
     doi:
     Version: 1.0
     ------------------------------------------------------------------------
-    The software can be used to calculate concentration profiles taking into
+    The software can be used to calculate composition profiles taking into
     account diffusion and a moving boundary. Mass balance describes
-    concentration changes at the interface.'
+    composition changes at the interface.'
     Phase A: left component (stable at lower T), Phase B: right component
     (stable at higher T)
 ============================================================================#
@@ -32,8 +32,8 @@ function main(plot_sim,verbose)
     rho_phases  = readdlm("./examples/Examples_phase_diagram/density_phases copy.tab")                  #Reads the density values for the phases
     #Numerics---------------------------------------------------------------
     CFL                 = 0.8                                                                           #CFL condition
-    res                 = [15 25;]                                                                      #Number of grid points
-    resmin              = copy(res)                                                                     #Minimum number of grid points
+    res                 = [15 25;]                                                                      #Number of nodes
+    resmin              = copy(res)                                                                     #Minimum number of nodes
     MRefin              = 5.0                                                                           #Refinement factor
     BCout               = [0 0]                                                                         #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
                                                                                                         #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
@@ -57,8 +57,8 @@ function main(plot_sim,verbose)
     rho_right           = copy(rho_phases[:,4])
     rho_right           = reshape(rho_right,nd1,nd1)                                                    #Density component B in [kg/m^3]
     #Create other arrays----------------------------------------------------
-    R_left              = C_leftlin .* inv.((1.0 .- C_leftlin))                                         #Concentration rate in phase A
-    R_right             = C_rightlin .* inv.((1.0 .- C_rightlin))                                       #Concentration rate in phase B
+    R_left              = C_leftlin .* inv.((1.0 .- C_leftlin))                                         #Composition rate in phase A
+    R_right             = C_rightlin .* inv.((1.0 .- C_rightlin))                                       #Composition rate in phase B
     KDlin               = R_left .* inv.(R_right)                                                       #Partition coefficient KD
     Tpath               = LinRange(Tstart,Tstop,10000)                                                  #Temperature path in [K]
     tpath               = LinRange(0,t_tot+1e-10,10000)                                                 #Time path in [s]
@@ -85,9 +85,9 @@ function main(plot_sim,verbose)
     #More initial conditions------------------------------------------------
     x_left              = copy(x0_left)                                                                 #Initial x_left
     x_right             = copy(x0_right)                                                                #Initial x_right
-    C_left              = C_leftB * ones(1,res[1])                                                      #Concentration of component B in phase A
-    C_right             = C_rightB * ones(1,res[2])                                                     #Concentration of component B in phase B
-    C0                  = [copy(C_left) copy(C_right)]                                                  #Store initial concentration
+    C_left              = C_leftB * ones(1,res[1])                                                      #Composition of component B in phase A
+    C_right             = C_rightB * ones(1,res[2])                                                     #Composition of component B in phase B
+    C0                  = [copy(C_left) copy(C_right)]                                                  #Store initial composition
     dt                  = minimum([dx1,dx2]) ^ 2 .* inv((maximum([D_l,D_r])))                           #Initial dt
     #Total mass-------------------------------------------------------------
     Mass0               = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)                            #Initial mass
@@ -96,10 +96,10 @@ function main(plot_sim,verbose)
     L_g         = spzeros(length(x0),length(x0))                                                        #Global LHS matrix
     Mass        = Float64[]                                                                             #Array to store the mass of the system
     Mass2       = Float64[]                                                                             #Array to store the mass of the system (plot)
-    KD_sim      = Float64[]                                                                             #Array to store the partition coefficient
+    KD_sim      = Float64[]                                                                             #Array to store the distribution coefficient
     T_sim       = Float64[]                                                                             #Array to store the temperature
-    R_left_sim  = Float64[]                                                                             #Array to store the concentration ratio left side (interface)
-    R_right_sim = Float64[]                                                                             #Array to store the concentration ratio right side (interface)
+    R_left_sim  = Float64[]                                                                             #Array to store the composition ratio left side (interface)
+    R_right_sim = Float64[]                                                                             #Array to store the composition ratio right side (interface)
     R_g         = zeros(length(x0),1)                                                                   #Global RHS vector
     #Checks-----------------------------------------------------------------
     C_left_check        = [C_left[end]]                                                                 #Check composition left side
@@ -150,10 +150,10 @@ function main(plot_sim,verbose)
             T_pl       = copy(T)
             push!(Mass, Massnow)                                                                        #Stores the mass of the system
             push!(Mass2, Massnow2)                                                                      #Stores the mass of the system (plot)
-            push!(KD_sim, KDt)                                                                          #Stores the partition coefficient
+            push!(KD_sim, KDt)                                                                          #Stores the distribution coefficient
             push!(T_sim, T_pl)                                                                          #Stores the temperature
-            push!(R_left_sim, R_left)                                                                   #Concentration ratio left side (interface)
-            push!(R_right_sim, R_right)                                                                 #Concentration ratio right side (interface)
+            push!(R_left_sim, R_left)                                                                   #Composition ratio left side (interface)
+            push!(R_right_sim, R_right)                                                                 #Composition ratio right side (interface)
         end
         #Find the important dt----------------------------------------------
         dtV   = minimum([dx1,dx2]) ^1 .* inv((abs(V_ip)))
@@ -168,7 +168,7 @@ function main(plot_sim,verbose)
             Tp_max = (Tstart - 273.0)* 1.05
             first_val, last_val = values_between_known_indices!(Tlin.-273.0,KDlin,Tstart,Tstop)                    #CAUTION: works just for constantly dropping temperature
             fs = 12.0
-            #Concentration profile
+            #Composition profile
             p1 = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
             p1 = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
             p1 = plot!(x0,C0', label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
@@ -233,7 +233,7 @@ if run_and_plot
         Tp_max = Tstart * 1.05
         first_val, last_val = values_between_known_indices!(Tlin.-273.0,KDlin,Tstart,Tstop)                    #CAUTION: works just for constantly dropping temperature
         fs = 12.0
-        #Concentration profile
+        #Composition profile
         p1 = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
         p1 = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
         p1 = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",

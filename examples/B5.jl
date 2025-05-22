@@ -4,18 +4,19 @@ using Plots, LinearAlgebra, Revise, LaTeXStrings, SparseArrays
 function main(plot_sim,verbose)
     #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])
     #Physics-------------------------------------------------------
+    #Note: this example uses non-dimensional numbers! Given units might not be true!
     Di      = [1e-5   1e1;]                                     #Initial diffusion coefficient in [m^2/s]           -> in [L*V]
                                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
-    D0      = [9999   99999;]                                   #Pre-exponential factor in [m^2/s]                  -> NOT USED
-    rho     = [1.0      1.0;]                                   #Normalized densities in [-]                   -> NOT USED
-    Ri      = [1e-2      10;]                                   #Initial radii [interface    total length] in [m]   -> in [L]
-    Cl_i    = 0.1                                               #Initial composition left side in [-]           -> in [C]
-    Cr_i    = Cl_i/1e-3                                         #Initial composition right side in [-]          -> -//-
+    D0      = [NaN    NaN;]                                     #Pre-exponential factor in [m^2/s]                  -> not used in this example
+    rho     = [1.0    1.0;]                                     #Normalized densities in [-]                        -> not used in this example
+    Ri      = [1e-2   10;]                                      #Initial radii [interface    total length] in [m]   -> in [L]
+    Cl_i    = 0.1                                               #Initial composition left side in [-]               -> in [C]
+    Cr_i    = Cl_i/1e-3                                         #Initial composition right side in [-]              -> -//-
     V_ip    = 1.0                                               #Interface velocity in [m/s]                        -> in [V]
-    R       = 8.314472                                          #Universal gas constant in [J/(mol*K)]              -> NOT USED
-    Ea1     = 292879.6767                                       #Activation energy for the left side in [J/mol]     -> NOT USED
-    Ea2     = 360660.4018                                       #Activation energy for the right side in [J/mol]    -> NOT USED
-    Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s                    -> NOT USED
+    R       = NaN                                               #Universal gas constant in [J/(mol*K)]              -> not used in this example
+    Ea1     = NaN                                               #Activation energy for the left side in [J/mol]     -> not used in this example
+    Ea2     = NaN                                               #Activation energy for the right side in [J/mol]    -> not used in this example
+    Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s                    -> not used in this example
     t_tot   = 0.4                                               #Total time [s]                                     -> in [L]/[V]
     n       = 1                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
@@ -27,7 +28,7 @@ function main(plot_sim,verbose)
                                                                 #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
     CFL    = 0.80                                               #CFL condition
-    res    = [100 160;]                                          #Number of nodes
+    res    = [100 160;]                                         #Number of nodes
     resmin = copy(res)                                          #Minimum number of nodes
     MRefin = 10.0                                               #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     BCout  = [0 0]                                              #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
@@ -135,7 +136,7 @@ function main(plot_sim,verbose)
     #Rescaling---------------------------------------------------
     Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar = rescale(Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar, Lsc, Dsc, Vsc, tsc)
     #Post-process------------------------------------------------
-    #gif(anim, "figures/B6.gif", fps=10)  # Save with 10 frames per second
+    #gif(anim, "figures/B5.gif", fps=10)  # Save with 10 frames per second
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
     calc_mass_err(Mass,Mass0)
@@ -173,7 +174,7 @@ if run_and_plot
         plot(p1,p2,dpi = 300, legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
               legend_foreground_color = :transparent)
         #save_path = "figures"
-        #save_name = "B6"
+        #save_name = "B5"
         #save_figure(save_name,save_path,save_file)
     end
 end

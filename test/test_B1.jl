@@ -7,15 +7,15 @@ function main(plot_sim,verbose)
     #Physics-------------------------------------------------------
     Di      = [2.65*1e-18   2.65*1e-18;]        #Initial diffusion coefficient in [m^2/s]
                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
-    D0      = [2.75*1e-6    2.75*1e-6;]         #Pre-exponential factor in [m^2/s]
-    rho     = [1.0       1.0;]                  #Normalized densities in [-]
-    Ri      = [0.0005    0.001;]                #Initial radii [interface    total length] in [m]
+    D0      = [NaN          NaN;]               #Pre-exponential factor in [m^2/s]                      -> not used in this example
+    rho     = [1.0          1.0;]               #Normalized densities in [-]
+    Ri      = [0.0005       0.001;]             #Initial radii [interface    total length] in [m]
     Cl_i    = 0.0                               #Initial composition left side in [-]
     Cr_i    = 1.0                               #Initial composition right side in [-]
     V_ip    = 0.0                               #Interface velocity in [m/s]
-    R       = 8.314472                          #Universal gas constant in [J/(mol*K)]
-    Ea1     = 292879.6767                       #Activation energy for the left side in [J/mol]
-    Ea2     = 292879.6767                       #Activation energy for the right side in [J/mol]
+    R       = NaN                               #Universal gas constant in [J/(mol*K)]                  -> not used in this example
+    Ea1     = NaN                               #Activation energy for the left side in [J/mol]         -> not used in this example
+    Ea2     = NaN                               #Activation energy for the right side in [J/mol]        -> not used in this example
     Myr2Sec = 60*60*24*365.25*1e6               #Conversion factor from Myr to s
     t_tot   = 1e-3 * Myr2Sec                    #Total time [s]
     n       = 3                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
@@ -65,15 +65,17 @@ function main(plot_sim,verbose)
     #Total mass---------------------------------------------------
     Mass0   = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
     #Preallocate variables----------------------------------------
-    Co_l    = zeros(size(C_left))               #Matrix to store old concentrations of left side
-    Co_r    = zeros(size(C_right))              #Matrix to store old concentrations of right side
-    dt      = 0.0                               #Initial time step
-    L_g     = spzeros(length(x),length(x))      #Global left hand side matrix
-    Mass    = Float64[]                         #Array to store the mass of the system
-    R_g     = zeros(length(x),1)                #Global right hand side vector
+    Co_l     = zeros(size(C_left))              #Matrix to store old concentrations of left side
+    Co_r     = zeros(size(C_right))             #Matrix to store old concentrations of right side
+    dt       = 0.0                              #Initial time step
+    L_g      = spzeros(length(x),length(x))     #Global left hand side matrix
+    Mass     = Float64[]                        #Array to store the mass of the system
+    R_g      = zeros(length(x),1)               #Global right hand side vector    
     #Calculate initial Ds, KD, T---------------------------------------------
     D_l, D_r, KD, T = update_t_dependent_param!(D0,Di,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
-    #First check for correct setup-----------------------------------------
+    #Checks------------------------------------------------------------
+    MB_Error = Float64[]                        #Array to store the mass error   
+    #First check for correct setup-------------------------------------
     if BCout[1] != 0 && (n == 3 || n == 2)
         error("The code is only valid for cylindrical/spherical geometry, where the left outer BC has Neumann conditions (0).")
     elseif t != 0.0
@@ -109,10 +111,15 @@ function main(plot_sim,verbose)
             Massnow = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
             push!(Mass, Massnow)  #Stores the mass of the system
         end
+        # Suppress output of calc_mass_err
+        redirect_stdout(devnull) do
+            ErrM = calc_mass_err(Mass, Mass0)
+            push!(MB_Error,ErrM)
+        end
     end
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
-    #calc_mass_err(Mass,Mass0)
+    calc_mass_err(Mass,Mass0)
     return x_left, x_right, x0, C_left, C_right, C0, t, Di, maxC, Ri
 end
 #Testing-----------------------------------------------------------------------

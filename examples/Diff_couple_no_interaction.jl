@@ -6,15 +6,15 @@ function main(plot_sim,verbose)
     #Physics-------------------------------------------------------
     Di      = [2.65*1e-18   2.65*1e-18;]                #Initial diffusion coefficient in [m^2/s];
                                                         #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
-    D0      = [2.75*1e-6    2.75*1e-6;]                 #Pre-exponential factor in [m^2/s]
-    rho     = [1.0      1.0;]                           #Normalized densities in [-]
-    Ri      = [0.0002    0.0004;]                       #Initial radii [interface    total length] in [m]
+    D0      = [NaN          NaN;]                       #Pre-exponential factor in [m^2/s]
+    rho     = [1.0          1.0;]                       #Normalized densities in [-]
+    Ri      = [0.0002       0.0004;]                    #Initial radii [interface    total length] in [m]
     Cl_i    = 0.6                                       #Initial composition left side in [-]
     Cr_i    = 0.6                                       #Initial composition right side in [-]
     V_ip    = 0.0                                       #Interface velocity in [m/s]; CAUTION: This code only gives correct results, if V_ip is 0.
-    R       = 8.314472                                  #Universal gas constant in [J/(mol*K)]
-    Ea1     = 292879.6767                               #Activation energy for the left side in [J/mol]
-    Ea2     = 292879.6767                               #Activation energy for the right side in [J/mol]
+    R       = NaN                                       #Universal gas constant in [J/(mol*K)]
+    Ea1     = NaN                                       #Activation energy for the left side in [J/mol]
+    Ea2     = NaN                                       #Activation energy for the right side in [J/mol]
     Myr2Sec = 60*60*24*365.25*1e6                       #Conversion factor from Myr to s
     t_tot   = 1e-5 * Myr2Sec                            #Total time [s]
     n       = 1                                         #Geometry; 1: planar, 2: cylindrical, 3: spherical

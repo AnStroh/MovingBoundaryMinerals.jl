@@ -2,17 +2,17 @@ using Test
 using Diff_Coupled, Diff_Coupled.Benchmarks
 using LinearAlgebra, LaTeXStrings, SparseArrays
 # Main function -------------------------------------------------------
-function main()
+function main(plot_sim)
     # Physics ---------------------------------------------------------
     Di      = 2.65*1e-18                    #Diffusion coefficient in [m^2/s]
                                             #If you want to calculate D with the Arrhenius equation, set Di = [-1.0]
-    D0      = 2.75*1e-6                     #Pre-exponential factor in [m^2/s]
+    D0      = NaN                           #Pre-exponential factor in [m^2/s]                  -> not used in this example
     L       = 0.001                         #Length of the domain in [m]
     Cinf    = 1.0                           #Composition at infinity in [-]
     Cstart  = 0.0                           #Initial composition in [-]
-    rho     = 2700.0                        #Density in [kg/m^3]
-    R       = 8.314472                      #Universal gas constant in [J/(mol*K)]
-    Ea1     = 292880.0                      #Activation energy for the left side in [J/mol]
+    rho     = 2700                          #Density in [kg/m^3]                                -> only used for mass calculation
+    R       = NaN                           #Universal gas constant in [J/(mol*K)]              -> not used in this example
+    Ea1     = NaN                           #Activation energy for the left side in [J/mol]     -> not used in this example
     Myr2Sec = 60*60*24*365.25*1e6           #Conversion factor from Myr to s
     t_tot   = 1e-3 * Myr2Sec                #Total time [s]
     n       = 3                             #Geometry; 1: planar, 2: cylindrical, 3: spherical
@@ -38,15 +38,17 @@ function main()
     #Calculate values for t check--------------------------------------
     dt_diff = zeros(length(t_ar)-1)
     dt_diff = t_ar[2:end] .- t_ar[1:end-1]
-    # Preallocate variables -------------------------------------------
-    Co      = zeros(size(C))                #Old composition
-    dt      = 0.0                           #Initial time step
-    dx      = zeros(length(x) - 1,1)        #Grid spacing
-    L_g     = spzeros(length(x),length(x))  #Global matrix
-    Mass    = Float64[]                     #Mass array
-    nels    = length(x) - 1                 #Number of elements
-    R_g     = zeros(length(x),1)            #Global vector
-    # Calculate grid --------------------------------------------------
+    #Preallocate variables --------------------------------------------
+    Co       = zeros(size(C))               #Old composition
+    dt       = 0.0                          #Initial time step
+    dx       = zeros(length(x) - 1,1)       #Grid spacing
+    L_g      = spzeros(length(x),length(x)) #Global matrix
+    Mass     = Float64[]                    #Mass array
+    nels     = length(x) - 1                #Number of elements
+    R_g      = zeros(length(x),1)           #Global vector
+    #Checks------------------------------------------------------------
+    MB_Error = Float64[]                    #Array to store the mass error     
+    #Calculate grid ---------------------------------------------------
     dx    = L * inv(res - 1.0)
     #Calculate initial Ds, KD, T---------------------------------------
     D, T  = update_t_dependent_param_simple!(D0,Di,Ea1,R,T_ar,t_ar,t,t_tot)
@@ -81,9 +83,14 @@ function main()
         L_g, R_g = set_outer_bc!(BCout,L_g,R_g,Co[1],Co[end],ScF)
         #Solve system -------------------------------------------------
         C = L_g \ R_g
+        # Suppress output of calc_mass_err
+        redirect_stdout(devnull) do
+            ErrM = calc_mass_vol_simple_diff(x,C,n,rho)
+            push!(MB_Error,ErrM)
+        end
     end
     Mass = calc_mass_vol_simple_diff(x,C,n,rho)
-    #calc_mass_err(Mass,Mass0)
+    calc_mass_err(Mass,Mass0)
     return x, C, x0, C0, D, t, t_tot
 end
 

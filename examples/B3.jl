@@ -4,11 +4,11 @@ using Plots, LinearAlgebra, Revise, LaTeXStrings, SparseArrays
 function main(adapt_dt,plot_sim,verbose)
     #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])
     #Physics-------------------------------------------------------
-    Di      = [-1.0    -1.0]                                                #Initial diffusion coefficient in [m^2/s]
+    Di      = [-1.0         -1.0]                                           #Initial diffusion coefficient in [m^2/s]           -> not used in this example
                                                                             #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     D0      = [2.75*1e-6    3.9*1e-7;]                                      #Pre-exponential factor in [m^2/s]
-    rho     = [1.0      1.0;]                                               #Normalized densities in [-]
-    Ri      = [0.0001    0.0002;]                                           #Initial radii [interface    total length] in [m]
+    rho     = [1.0          1.0;]                                           #Normalized densities in [-]
+    Ri      = [0.0001       0.0002;]                                        #Initial radii [interface    total length] in [m]
     Cl_i    = 0.6                                                           #Initial composition left side in [mol fraction]
     Cr_i    = 0.3                                                           #Initial composition right side in [mol fraction]
     V_ip    = 0.0                                                           #Interface velocity in [m/s]
@@ -164,7 +164,7 @@ function main(adapt_dt,plot_sim,verbose)
                         legend_foreground_color = :transparent)
                 display(p)
                 #frame(anim)
-            end
+            end        
         end
         # Suppress output of calc_mass_err
         redirect_stdout(devnull) do
@@ -186,7 +186,7 @@ if run_and_plot
     plot_sim  = false
     plot_end  = true
     verbose   = false
-    save_file = true
+    save_file = false
     x_left, x_right, x0, C_left, C_right, C0, Sols_left, Sols_right,Checks, CheckBC, T_pl, t_pl, Ri, maxC, minC = main(adapt_dt,plot_sim,verbose)
     Can1 = first.(Sols_left)
     Can2 = first.(Sols_right)
@@ -216,8 +216,8 @@ if run_and_plot
              legend_foreground_color = :transparent)
         #plot(p2,p1, dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
         #     legend_foreground_color = :transparent)
-        save_path = "figures"
-        save_name = "B3"
-        save_figure(save_name,save_path,save_file)
+        #save_path = "figures"
+        #save_name = "B3"
+        #save_figure(save_name,save_path,save_file)
     end
 end

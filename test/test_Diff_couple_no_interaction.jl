@@ -7,15 +7,15 @@ function main(plot_sim,verbose)
     #Physics-------------------------------------------------------
     Di      = [2.65*1e-18   2.65*1e-18;]                #Initial diffusion coefficient in [m^2/s];
                                                         #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
-    D0      = [2.75*1e-6    2.75*1e-6;]                 #Pre-exponential factor in [m^2/s]
-    rho     = [1.0      1.0;]                           #Normalized densities in [-]
-    Ri      = [0.0002    0.0004;]                       #Initial radii [interface    total length] in [m]
+    D0      = [NaN          NaN;]                       #Pre-exponential factor in [m^2/s]
+    rho     = [1.0          1.0;]                       #Normalized densities in [-]
+    Ri      = [0.0002       0.0004;]                    #Initial radii [interface    total length] in [m]
     Cl_i    = 0.6                                       #Initial composition left side in [-]
     Cr_i    = 0.6                                       #Initial composition right side in [-]
     V_ip    = 0.0                                       #Interface velocity in [m/s]; CAUTION: This code only gives correct results, if V_ip is 0.
-    R       = 8.314472                                  #Universal gas constant in [J/(mol*K)]
-    Ea1     = 292879.6767                               #Activation energy for the left side in [J/mol]
-    Ea2     = 292879.6767                               #Activation energy for the right side in [J/mol]
+    R       = NaN                                       #Universal gas constant in [J/(mol*K)]
+    Ea1     = NaN                                       #Activation energy for the left side in [J/mol]
+    Ea2     = NaN                                       #Activation energy for the right side in [J/mol]
     Myr2Sec = 60*60*24*365.25*1e6                       #Conversion factor from Myr to s
     t_tot   = 1e-5 * Myr2Sec                            #Total time [s]
     n       = 1                                         #Geometry; 1: planar, 2: cylindrical, 3: spherical
@@ -80,6 +80,8 @@ function main(plot_sim,verbose)
     L_g     = spzeros(length(x),length(x))              #Global left hand side matrix
     Mass    = Float64[]                                 #Array to store the mass of the system
     R_g     = zeros(length(x),1)                        #Global right hand side vector
+    #Checks-------------------------------------------------------
+    MB_Error = Float64[]                                #Array to store the mass error
     #Calculate initial Ds, KD, T----------------------------------
     D_l, D_r, KD, T = update_t_dependent_param!(D0,Di,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
     #First check for correct setup--------------------------------
@@ -124,18 +126,15 @@ function main(plot_sim,verbose)
             Massnow = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
             push!(Mass, Massnow)  #Stores the mass of the system
         end
-        if plot_sim
-            #Plotting---------------------------------------------
-            p = plot(x_left,C_left, lw=2, label=L"Left\ side")
-            p = plot!(x_right,C_right, lw=2, label=L"Right\ side")
-            p = plot!(x0,C0,color=:black,linestyle=:dash,xlabel = L"Distance", ylabel = L"Composition", title = L"Diffusion\ couple\ (no\ interaction)", lw=1.5,
-                      grid=:on, label=L"Initial condition")
-            display(p)
+        # Suppress output of calc_mass_err
+        redirect_stdout(devnull) do
+            ErrM = calc_mass_err(Mass, Mass0)
+            push!(MB_Error,ErrM)
         end
     end
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
-    #calc_mass_err(Mass,Mass0)
+    calc_mass_err(Mass,Mass0)
     return x_left, x_right, x0, C_left, C_right, C0, Cini_l, Cini_r, nmodes_l, nmodes_r,Amp_l, Amp_r, Di, Ri, t
 end
 #Testing-----------------------------------------------------------------------

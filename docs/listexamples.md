@@ -3,21 +3,21 @@ Examples with the letter A refer to diffusion models in a single material, while
 
 ## Exampels
 
-A1: Intracrystalline diffusion within a planar crystal
-A2: Intracrystalline diffusion in a spherical crystal
-B1: Intercrystalline diffusion within a spherical diffusion couple
-B2: Diffusion within a spherical diffusion couple for the case of time-evolving diffusivity
-B3: Major element diffusion within a diffusion couple
-B4: Spherical crystal growth due to Rayleigh fractionation in a growth and diffusion couple with D^A<<D^B
-B5: Growth of an alloy from a melt in a planar geometry
-B6: 
-B7:
-C1: Spherical crystal growth due to Rayleigh fractionation in a growth and diffusion couple with D^A<<D^B
-C2:
-D1:
-Simple_Diff:
-Diff_couple_no_interaction:
-Diff_couple_Flux:
-Diff_couple_MB:
-Diff_couple_Flux_growth:
-Diff_couple_MB_growth:
+1. A1: Intracrystalline diffusion within a planar crystal
+2. A2: Intracrystalline diffusion in a spherical crystal
+3. B1: Intercrystalline diffusion within a spherical diffusion couple
+4. B2: Diffusion within a spherical diffusion couple for the case of time-evolving  diffusivity
+5. B3: Major element diffusion within a diffusion couple
+6. B4: Spherical crystal growth due to Rayleigh fractionation in a growth and diffusion couple with D^A<<D^B
+7. B5: Growth of an alloy from a melt in a planar geometry
+8. B6: 
+9. B7:
+10. C1: Spherical crystal growth due to Rayleigh fractionation in a growth and diffusion couple with D^A<<D^B
+11. C2:
+12. D1:
+13. Simple_Diff: Diffusion within a single crystall
+14. Diff_couple_no_interaction: Diffusion couple, which is build from 2 single crystalls without an ion-exchange reaction
+15. Diff_couple_Flux: Diffusion couple with ion-exchange using flux balance at the interface
+16. Diff_couple_MB: Diffusion couple with ion-exchange using total mass balance at the interface
+17. Diff_couple_Flux_growth: Diffusion couple with ion-exchange using flux balance at the interface and simultaneous growth 
+18. Diff_couple_MB_growth: Diffusion couple with ion-exchange using total mass balance at the interface and simultaneous growth 

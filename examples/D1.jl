@@ -296,12 +296,16 @@ if run_and_plot
         #Figure 1
         plot(p1,p2,dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                 legend_foreground_color = :transparent)
+
+        display(current())
         save_path = "figures"
         save_name = "D1"
         save_figure(save_name,save_path,save_file)
         #Figure 2
         plot(p3,p4,dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                 legend_foreground_color = :transparent)
+
+        display(current())
         save_name = "D1_KD"
         save_figure(save_name,save_path,save_file)
     end

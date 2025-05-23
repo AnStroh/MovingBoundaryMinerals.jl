@@ -112,7 +112,7 @@ function main(plot_sim,verbose)
             Massnow = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
             push!(Mass, Massnow)                                #Stores the mass of the system
         end
-        if plot_sim && it % 5 == 0 
+        if plot_sim && it % 5 == 0
             #Plotting---------------------------------------------
             maxC = maximum([maximum(C_left),maximum(C_right)])
             fs = 12.0
@@ -172,8 +172,10 @@ if run_and_plot
         p3 = annotate!(0.005, 0.49, L"\mathrm{(b)}")
         plot(p1,p3, dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                     legend_foreground_color = :transparent)
-        #save_path = "figures"
-        #save_name = "B6"
-        #save_figure(save_name,save_path,save_file)
+
+        display(current())
+        save_path = "figures"
+        save_name = "B8_Bell+Rayleigh"
+        save_figure(save_name,save_path,save_file)
     end
 end

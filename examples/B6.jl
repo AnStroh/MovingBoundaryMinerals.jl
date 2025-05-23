@@ -161,6 +161,8 @@ if run_and_plot
                     legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                     legend_foreground_color = :transparent)
         plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
+
+        display(current())
         save_path = "figures"
         save_name = "B6"
         save_figure(save_name,save_path,save_file)

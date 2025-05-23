@@ -1018,9 +1018,10 @@ with a filename `save_name` that includes the current date and time.
 - `save_file::Bool`: A flag indicating whether to save the figure or not.
 """
 
-function save_figure(save_name::String = "My_example",save_path::String = "Diff-coupled-growth",save_file::Bool = false)
+function save_figure(save_name::String = "My_example",save_path::String = "MOBILE.jl",save_file::Bool = false)
     if save_file
-        current_time = Dates.format(now(), "dd_mm_yy_HHMMSS")
+        !isdir(save_path) && mkdir(save_path)
+        current_time = Dates.format(Dates.now(), "dd_mm_yy_HHMMSS")
         savefig(joinpath(save_path,"$(save_name)_$(current_time).pdf"))
         savefig(joinpath(save_path,"$(save_name)_$(current_time).png"))
     end

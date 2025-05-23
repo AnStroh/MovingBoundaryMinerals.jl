@@ -174,6 +174,8 @@ if run_and_plot
         p2 = annotate!(1.5, 124, L"\mathrm{(b)}")
         plot(p1,p2,dpi = 300, legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
               legend_foreground_color = :transparent)
+
+        display(current())
         save_path = "figures"
         save_name = "B5"
         save_figure(save_name,save_path,save_file)

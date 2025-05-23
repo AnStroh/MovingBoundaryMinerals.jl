@@ -23,13 +23,13 @@ function D1(; plot_sim = false, verbose = false)
     beta        = 90.0                                                                                  #Ideal angle between [001] and [100] (a-c-plane)
     gamma       = 90.0                                                                                  #Ideal angle between [010] and [100] (a-b-plane)
     deltaV      = 7*10^-6                                                                               #Volume change in [m^3/mol]
-    Ri          = 0.3                                                                                   #Position of the interface -> initial radius of the left phase in [m]
+    Ri          = 0.0005                                                                                #Position of the interface -> initial radius of the left phase in [m]
     Tstart      = 1400.0 + 273.0                                                                        #Starting temperature in [K]
     Tstop       = 1350.0 + 273.0                                                                        #End temperature in [K]
     P           = 10^6                                                                                  #Pressure in [Pa]
     R           = 8.314472                                                                              #Universal gas constant in [J/(mol*K)]
     Myr2Sec     = 60*60*24*365.25*1e6                                                                   #Conversion factor from Myr to s
-    t_tot       = 1e-3*Myr2Sec                                                                          #Total time [s]
+    t_tot       = 1e-8*Myr2Sec                                                                          #Total time [s]
     n           = 1                                                                                     #Geometry; 1: planar, 2: cylindrical, 3: spherical
     CompInt     = 0.25                                                                                  #Composition of interest of the solid solution (Mg number)
     coeff       = readdlm("examples/Examples_phase_diagram/Coefficients_Reaction_lines.csv")            #Reads the coefficients for the linear least squares
@@ -50,7 +50,7 @@ function D1(; plot_sim = false, verbose = false)
     TMIN                = Tstop  - 1000.0                                                               #Min temperature for T-array
     Tlin                = LinRange(TMAX,TMIN,10000)                                                     #Temperature values
     XC_left, XC_right   = composition(coeff_up,coeff_do,Tlin)                                           #e.g. liquidus/solidus/solvus
-    XC_left_Cel, XC_right_Cel = composition(coeff_up,coeff_do,Tlin .- 273.0)                                           #e.g. liquidus/solidus/solvus
+    XC_left_Cel, XC_right_Cel = composition(coeff_up,coeff_do,Tlin .- 273.0)                            #e.g. liquidus/solidus/solvus
     C_leftlin           = copy(XC_left)                                                                 #Store the composition of A for later calculations
     C_rightlin          = copy(XC_right)                                                                #Store the composition of B for later calculations
     #Create density plots---------------------------------------------------
@@ -191,21 +191,26 @@ function D1(; plot_sim = false, verbose = false)
             Tp_min = (Tstop - 273.0) * 0.95
             Tp_max = (Tstart - 273.0)* 1.05
             first_val, last_val = values_between_known_indices!(Tlin.-273.0,KDlin,Tstart,Tstop)                    #CAUTION: works just for constantly dropping temperature
-            fs = 12.0
+
             #Composition profile
-            p1 = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
-            p1 = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
-            p1 = plot!(x0,C0', label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
-                  ylabel = L"X_{Fe}", lw=1.5, grid=:on, legend = :right,ylim=(0.30,0.8))
-            p1 = plot!([Ri[1]; Ri[1]], [0; 1]*(maxC + 0.01), color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
+            p1 = plot(x_left*1e3,C_left, lw=2, label=L"\mathrm{Left\ side}")
+            p1 = plot!(x_right*1e3,C_right, lw=2, label=L"\mathrm{Right\ side}")
+            p1 = plot!(x0*1e3,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
+                  ylabel = L"X_{Fe}", lw=1.5, grid=:on, legend = :right)
+            p1 = plot!([x_left[end]; x_left[end];]*1e3, [0; 1*(maxC + 0.01)], color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}",ylim=[C0[1]-0.05; 1*(maxC + 0.01)])
             #Phase diagram
             p2 = plot(Tlin .- 273.0,XC_left, lw=2, label=L"\mathrm{Left\ side}")
             p2 = plot!(Tlin .- 273.0,XC_right, lw=2, label=L"\mathrm{Right\ side}")
-            p2 = scatter!([T-273.0],[C_left[end]],marker=:circle, markersize=2, markercolor=:black,
-                          markerstrokecolor=:black,label = "",ylabel = L"X_{Fe}",xlabel = L"T\ \mathrm{[°C]}")
-            p2 = scatter!([T-273.0],[C_right[1]],marker=:circle, markersize=2, markercolor=:black,
+            p2 = scatter!([T-273.0],[C_left[end]],marker=:circle, markersize=2, markercolor=:grey68,
+                          markerstrokecolor=:grey68,label = "",ylabel = L"X_{Fe}",xlabel=L"T\ \mathrm{[°C]}")
+            p2 = scatter!([T-273.0],[C_right[1]],marker=:circle, markersize=2, markercolor=:grey68,
+                          markerstrokecolor=:grey68,label = "")
+            p2 = scatter!([Tstart],[C0[51]],marker=:circle, markersize=2, markercolor=:black,
+                          markerstrokecolor=:black,label = "",ylabel = L"X_{Fe}",xlabel=L"T\ \mathrm{[°C]}")
+            p2 = scatter!([Tstart],[C0[50]],marker=:circle, markersize=2, markercolor=:black,
                           markerstrokecolor=:black,label = "")
-            p2 = plot!([T-273.0; T-273.0],[0; maximum([C_left[end],C_right[1]])],lw=1.5, label="",color=:black,linestyle=:dash)
+            p2 = plot!([Tstart; Tstart],[0; maximum(C0[end])],lw=1.5,color=:black,linestyle=:dash,label=L"\mathrm{T(t=0.0)}")
+            p2 = plot!([T-273.0; T-273.0],[0; maximum([C_left[end],C_right[1]])],lw=1.5,color=:grey68,linestyle=:dashdot,label=L"\mathrm{T(t_{tot})}")
             p2 = plot!([T-273.0; 0],[C_left[end];C_left[end]],lw=1.5, label="",color=:royalblue,linestyle =:dot)
             p2 = plot!([T-273.0; 0],[C_right[1];C_right[1]],lw=1.5, label="",xlims=(Tp_min, Tp_max), ylims=(0, 1),color=:crimson,linestyle =:dot)
             #p2 = plot!([Tstop*0.3; Tstart*1.5],[Mass2[end]; Mass2[end]],color=:dimgrey,linestyle=:dashdot,lw=1.5, label=L"\mathrm{Final\ mass}")
@@ -264,18 +269,24 @@ if run_and_plot
         first_val, last_val = values_between_known_indices!(Tlin.-273.0,KDlin,Tstart,Tstop)                    #CAUTION: works just for constantly dropping temperature
         fs = 12.0
         #Composition profile
-        p1 = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
-        p1 = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
-        p1 = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
+        p1 = plot(x_left*1e3,C_left, lw=2, label=L"\mathrm{Left\ side}")
+        p1 = plot!(x_right*1e3,C_right, lw=2, label=L"\mathrm{Right\ side}")
+        p1 = plot!(x0*1e3,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
               ylabel = L"X_{Fe}", lw=1.5, grid=:on, legend = :right)
+        p1 = plot!([x_left[end]; x_left[end];]*1e3, [0; 1*(maxC + 0.01)], color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}",ylim=[C0[1]-0.05; 1*(maxC + 0.01)])
         #Phase diagram
         p2 = plot(Tlin .- 273.0,XC_left, lw=2, label=L"\mathrm{Left\ side}")
         p2 = plot!(Tlin .- 273.0,XC_right, lw=2, label=L"\mathrm{Right\ side}")
-        p2 = scatter!([T-273.0],[C_left[end]],marker=:circle, markersize=2, markercolor=:black,
+        p2 = scatter!([T-273.0],[C_left[end]],marker=:circle, markersize=2, markercolor=:grey68,
+                      markerstrokecolor=:grey68,label = "",ylabel = L"X_{Fe}",xlabel=L"T\ \mathrm{[°C]}")
+        p2 = scatter!([T-273.0],[C_right[1]],marker=:circle, markersize=2, markercolor=:grey68,
+                      markerstrokecolor=:grey68,label = "")
+        p2 = scatter!([Tstart],[C0[51]],marker=:circle, markersize=2, markercolor=:black,
                       markerstrokecolor=:black,label = "",ylabel = L"X_{Fe}",xlabel=L"T\ \mathrm{[°C]}")
-        p2 = scatter!([T-273.0],[C_right[1]],marker=:circle, markersize=2, markercolor=:black,
+        p2 = scatter!([Tstart],[C0[50]],marker=:circle, markersize=2, markercolor=:black,
                       markerstrokecolor=:black,label = "")
-        p2 = plot!([T-273.0; T-273.0],[0; maximum([C_left[end],C_right[1]])],lw=1.5, label="",color=:black,linestyle=:dash)
+        p2 = plot!([Tstart; Tstart],[0; maximum(C0[end])],lw=1.5,color=:black,linestyle=:dash,label=L"\mathrm{T(t=0.0)}")
+        p2 = plot!([T-273.0; T-273.0],[0; maximum([C_left[end],C_right[1]])],lw=1.5,color=:grey68,linestyle=:dashdot,label=L"\mathrm{T(t_{tot})}")
         p2 = plot!([T-273.0; 0],[C_left[end];C_left[end]],lw=1.5, label="",color=:royalblue,linestyle =:dot)
         p2 = plot!([T-273.0; 0],[C_right[1];C_right[1]],lw=1.5, label="",xlims=(Tp_min, Tp_max), ylims=(0, 1),color=:crimson,linestyle =:dot)
         #p2 = plot!([Tstop*0.3; Tstart*1.5],[Mass2[end]; Mass2[end]],color=:dimgrey,linestyle=:dashdot,lw=1.5, label=L"\mathrm{Final\ mass}")
@@ -296,17 +307,15 @@ if run_and_plot
         #Figure 1
         plot(p1,p2,dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                 legend_foreground_color = :transparent)
-
         display(current())
         save_path = "figures"
         save_name = "D1"
         save_figure(save_name,save_path,save_file)
         #Figure 2
-        plot(p3,p4,dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
-                legend_foreground_color = :transparent)
-
-        display(current())
-        save_name = "D1_KD"
-        save_figure(save_name,save_path,save_file)
+        #plot(p3,p4,dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+        #        legend_foreground_color = :transparent)
+        #display(current())
+        #save_name = "D1_KD"
+        #save_figure(save_name,save_path,save_file)
     end
 end

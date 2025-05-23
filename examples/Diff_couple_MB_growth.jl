@@ -118,7 +118,7 @@ function DCMBG(; plot_sim = false, verbose = false)
             maxC = maximum([maximum(C_left),maximum(C_right)])
             p = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
             p = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
-            p = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
+            p = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[-]}",
                     ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on,dpi = 300,
                     legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                     legend_foreground_color = :transparent)
@@ -153,7 +153,7 @@ if run_and_plot
         fs = 12.0
         plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
         plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
-        plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
+        plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[-]}",
               ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on,dpi = 300,
                     legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                     legend_foreground_color = :transparent)

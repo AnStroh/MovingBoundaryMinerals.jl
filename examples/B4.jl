@@ -1,5 +1,5 @@
 using MOBILE, MOBILE.Benchmarks
-using Plots, LinearAlgebra,  LaTeXStrings, SparseArrays
+using Plots, LinearAlgebra, LaTeXStrings, SparseArrays
 #Main function----------------------------------------------------
 function B4(; plot_sim = false, verbose = false)
     #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])

@@ -1,5 +1,5 @@
 using MOBILE, MOBILE.Benchmarks
-using Plots, LinearAlgebra,  LaTeXStrings,SparseArrays
+using Plots, LinearAlgebra, LaTeXStrings,SparseArrays
 #Main function----------------------------------------------------------
 function B2(; plot_sim=false, verbose=false)
     #-------------------------------------------------------------------

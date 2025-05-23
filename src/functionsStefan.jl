@@ -1,4 +1,4 @@
-using BenchmarkTools, Revise, FileIO
+using  FileIO
 export calculate_density, coeff_trans_line, composition, ndgrid, set_inner_bc_stefan!,values_between_known_indices!
 #Functions---------------------------------------------------
 

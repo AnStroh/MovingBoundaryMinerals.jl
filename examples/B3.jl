@@ -1,7 +1,7 @@
 using MOBILE, MOBILE.Benchmarks
-using Plots, LinearAlgebra, Revise, LaTeXStrings, SparseArrays
+using Plots, LinearAlgebra,  LaTeXStrings, SparseArrays
 #Main function----------------------------------------------------
-function main(adapt_dt,plot_sim,verbose)
+function B3(; adapt_dt = true, plot_sim = false, verbose = false)
     #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])
     #Physics-------------------------------------------------------
     Di      = [-1.0         -1.0]                                           #Initial diffusion coefficient in [m^2/s]           -> not used in this example
@@ -180,14 +180,15 @@ function main(adapt_dt,plot_sim,verbose)
     return x_left, x_right, x0, C_left, C_right, C0, Sols_left, Sols_right,Checks, CheckBC, T_pl, (t_pl ./ Myr2Sec), Ri, maxC, minC
 end
 #Call main function-----------------------------------------------
-run_and_plot = true
+run_and_plot = false
+run_and_plot == false ? printstyled("You have disabled the simulation, change the variable run_and_plot == true", bold=true) : nothing
 if run_and_plot
     adapt_dt  = true
     plot_sim  = false
     plot_end  = true
     verbose   = false
     save_file = false
-    x_left, x_right, x0, C_left, C_right, C0, Sols_left, Sols_right,Checks, CheckBC, T_pl, t_pl, Ri, maxC, minC = main(adapt_dt,plot_sim,verbose)
+    x_left, x_right, x0, C_left, C_right, C0, Sols_left, Sols_right,Checks, CheckBC, T_pl, t_pl, Ri, maxC, minC = B3(; adapt_dt=adapt_dt,plot_sim=plot_sim,verbose=verbose)
     Can1 = first.(Sols_left)
     Can2 = first.(Sols_right)
     if plot_end
@@ -216,8 +217,8 @@ if run_and_plot
              legend_foreground_color = :transparent)
         #plot(p2,p1, dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
         #     legend_foreground_color = :transparent)
-        #save_path = "figures"
-        #save_name = "B3"
-        #save_figure(save_name,save_path,save_file)
+        save_path = "figures"
+        save_name = "B3"
+        save_figure(save_name,save_path,save_file)
     end
 end

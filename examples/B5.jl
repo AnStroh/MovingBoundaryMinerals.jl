@@ -1,7 +1,7 @@
 using MOBILE, MOBILE.Benchmarks
-using Plots, LinearAlgebra, Revise, LaTeXStrings, SparseArrays
+using Plots, LinearAlgebra,  LaTeXStrings, SparseArrays
 #Main function----------------------------------------------------
-function main(plot_sim,verbose)
+function B5(; plot_sim = false, verbose = false)
     #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])
     #Physics-------------------------------------------------------
     #Note: this example uses non-dimensional numbers! Given units might not be true!
@@ -143,13 +143,14 @@ function main(plot_sim,verbose)
     return x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, KD0, n, maxC, Di, V_ip, t_tot
 end
 #Call main function-----------------------------------------------
-run_and_plot = true
+run_and_plot = false
+run_and_plot == false ? printstyled("You have disabled the simulation, change the variable run_and_plot == true", bold=true) : nothing
 if run_and_plot
     plot_sim  = false
     plot_end  = true
     verbose   = false
     save_file = false
-    x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, KD0, n, maxC, Di, V_ip, t_tot = main(plot_sim,verbose)
+    x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, KD0, n, maxC, Di, V_ip, t_tot = B5(; plot_sim = plot_sim, verbose = verbose)
     xan, Can = smith(x_right,C_right,Ri,Di,t_tot,KD0,V_ip,n)
     if plot_end
         #Title: Diffusion couple (flux) - Smith (1955)
@@ -173,8 +174,8 @@ if run_and_plot
         p2 = annotate!(1.5, 124, L"\mathrm{(b)}")
         plot(p1,p2,dpi = 300, legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
               legend_foreground_color = :transparent)
-        #save_path = "figures"
-        #save_name = "B5"
-        #save_figure(save_name,save_path,save_file)
+        save_path = "figures"
+        save_name = "B5"
+        save_figure(save_name,save_path,save_file)
     end
 end

@@ -1,7 +1,7 @@
 using MOBILE
-using Plots, LinearAlgebra, Revise, LaTeXStrings,SparseArrays
+using Plots, LinearAlgebra,  LaTeXStrings,SparseArrays
 #Main function----------------------------------------------------
-function main(plot_sim,verbose)
+function DCNI(; plot_sim = false,verbose = false)
     #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])
     #Physics-------------------------------------------------------
     Di      = [2.65*1e-18   2.65*1e-18;]                #Initial diffusion coefficient in [m^2/s];
@@ -151,12 +151,13 @@ function main(plot_sim,verbose)
     return x_left, x_right, x0, C_left, C_right, C0, Cini_l, Cini_r, nmodes_l, nmodes_r,Amp_l, Amp_r, Di, Ri, t
 end
 #Call main function-----------------------------------------------
-run_and_plot = true
+run_and_plot = false
+run_and_plot == false ? printstyled("You have disabled the simulation, change the variable run_and_plot == true", bold=true) : nothing
 if run_and_plot
     plot_sim = false
     plot_end = true
     verbose  = false
-    x_left, x_right, x0, C_left, C_right, C0, Cini_l, Cini_r, nmodes_l, nmodes_r,Amp_l, Amp_r, Di, Ri, t = main(plot_sim,verbose)
+    x_left, x_right, x0, C_left, C_right, C0, Cini_l, Cini_r, nmodes_l, nmodes_r,Amp_l, Amp_r, Di, Ri, t = DCNI(; plot_sim=plot_sim, verbose=verbose)
     xan_l = copy(x_left)
     xan_r = copy(x_right)
     Can_l = sinusoid_profile(Cini_l,nmodes_l,Ri[1],Di[1],t,Amp_l,xan_l)

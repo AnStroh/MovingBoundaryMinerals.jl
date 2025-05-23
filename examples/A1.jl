@@ -1,7 +1,7 @@
 using MOBILE
 using Plots, LinearAlgebra, LaTeXStrings, SparseArrays
 # Main function -------------------------------------------------------
-function main(plot_sim)
+function A1(; plot_sim=false)
     # Physics ---------------------------------------------------------
     Di      = 2.65*1e-18                        #Diffusion coefficient in [m^2/s]
                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0]
@@ -108,12 +108,13 @@ function main(plot_sim)
 end
 
 #Run main function-----------------------------------------------------
-run_and_plot = true
+run_and_plot = false
+run_and_plot == false ? printstyled("You have disabled the simulation, change the variable run_and_plot == true", bold=true) : nothing
 if run_and_plot
     plot_sim  = false
     plot_end  = true
     save_file = false
-    x, C, x0, C0, Di, t, t_tot, Cini, nmodes, Amp, L  = main(plot_sim)
+    x, C, x0, C0, Di, t, t_tot, Cini, nmodes, Amp, L  = A1(; plot_sim= plot_sim)
     xan = copy(x)
     Can = sinusoid_profile(Cini,nmodes,L,Di,t,Amp,xan)
     if plot_end
@@ -129,8 +130,8 @@ if run_and_plot
                     markerstrokecolor=:crimson, markercolor=:crimson,dpi = 300,
                     legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                     legend_foreground_color = :transparent)
-        #save_path = "figures"
-        #save_name = "A1"
-        #save_figure(save_name,save_path,save_file)
+        save_path = "figures"
+        save_name = "A1"
+        save_figure(save_name,save_path,save_file)
     end
 end

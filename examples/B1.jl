@@ -1,7 +1,7 @@
 using MOBILE, MOBILE.Benchmarks
-using Plots, LinearAlgebra, Revise, LaTeXStrings, SparseArrays
+using Plots, LinearAlgebra, LaTeXStrings, SparseArrays
 #Main function-------------------------------------------------
-function main(plot_sim,verbose)
+function B1(; plot_sim = false, verbose= false)
     #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])
     #Physics-------------------------------------------------------
     Di      = [2.65*1e-18   2.65*1e-18;]        #Initial diffusion coefficient in [m^2/s]
@@ -138,13 +138,14 @@ function main(plot_sim,verbose)
     return x_left, x_right, x0, C_left, C_right, C0, t, Di, maxC, Ri
 end
 #Call main function------------------------------------------------------------
-run_and_plot = true
+run_and_plot = false
+run_and_plot == false ? printstyled("You have disabled the simulation, change the variable run_and_plot == true", bold=true) : nothing
 if run_and_plot
     plot_sim  = false
     plot_end  = true
     verbose   = false
     save_file = false
-    x_left, x_right, x0, C_left, C_right, C0, t, D, maxC, Ri = main(plot_sim,verbose)
+    x_left, x_right, x0, C_left, C_right, C0, t, D, maxC, Ri = B1(;plot_sim=plot_sim,verbose=verbose)
     nterms  = 1000                              #Number of terms within the analytical solution (degree of the polynomial)
     xan,Can = calc_sinus_sphere(x0,C0,D[1],t,nterms)
     if plot_end
@@ -162,8 +163,8 @@ if run_and_plot
                     markerstrokecolor=:crimson, markercolor=:crimson,dpi = 300,
                     legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                     legend_foreground_color = :transparent)
-        #save_path = "figures"
-        #save_name = "B1"
-        #save_figure(save_name,save_path,save_file)
+        save_path = "figures"
+        save_name = "B1"
+        save_figure(save_name,save_path,save_file)
     end
 end

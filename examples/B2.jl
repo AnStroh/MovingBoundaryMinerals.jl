@@ -1,7 +1,7 @@
 using MOBILE, MOBILE.Benchmarks
-using Plots, LinearAlgebra, Revise, LaTeXStrings,SparseArrays
+using Plots, LinearAlgebra,  LaTeXStrings,SparseArrays
 #Main function----------------------------------------------------------
-function main(plot_sim,verbose)
+function B2(; plot_sim=false, verbose=false)
     #-------------------------------------------------------------------
     #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])
     #Physics-------------------------------------------------------------
@@ -139,13 +139,14 @@ function main(plot_sim,verbose)
     return x_left, x_right, x0, C_left, C_right, C0, t, Di, D0, T_ar[1], T, Ea1, R, Ri, maxC
 end
 #Call main function----------------------------------------------------
-run_and_plot = true
+run_and_plot = false
+run_and_plot == false ? printstyled("You have disabled the simulation, change the variable run_and_plot == true", bold=true) : nothing
 if run_and_plot
     plot_sim  = false
     plot_end  = true
     verbose   = false
     save_file = false
-    x_left, x_right, x0, C_left, C_right, C0, t, D, D0, T0, T, Ea, R, Ri, maxC = main(plot_sim,verbose)
+    x_left, x_right, x0, C_left, C_right, C0, t, D, D0, T0, T, Ea, R, Ri, maxC = B2(; plot_sim=plot_sim, verbose=verbose)
     nterms  = 1000                                      #Number of terms within the analytical solution (degree of the polynomial)
     Can,xan = crank_time_transformation3(C0,x0,T0,T,Ea,R,D0[1],t,nterms)
     if plot_end
@@ -163,8 +164,8 @@ if run_and_plot
                     markerstrokecolor=:crimson, markercolor=:crimson,dpi = 300,
                     legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                     legend_foreground_color = :transparent)
-        #save_path = "figures"
-        #save_name = "B2"
-        #save_figure(save_name,save_path,save_file)
+        save_path = "figures"
+        save_name = "B2"
+        save_figure(save_name,save_path,save_file)
     end
 end

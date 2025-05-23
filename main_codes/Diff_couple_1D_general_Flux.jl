@@ -1,5 +1,5 @@
 using MOBILE
-using Plots, LinearAlgebra, Revise, LaTeXStrings,SparseArrays
+using Plots, LinearAlgebra,  LaTeXStrings,SparseArrays
 #Main function----------------------------------------------------
 function main(plot_sim,verbose)
     #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])
@@ -137,7 +137,8 @@ function main(plot_sim,verbose)
     return x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0, Mass, Mass0
 end
 #Call main function-----------------------------------------------
-run_and_plot = true
+run_and_plot = false
+run_and_plot == false ? printstyled("You have disabled the simulation, change the variable run_and_plot == true", bold=true) : nothing
 if run_and_plot
     plot_sim = false
     plot_end = true

@@ -1,4 +1,4 @@
-using SparseArrays, LinearAlgebra, BenchmarkTools, Revise, Dates, Plots
+using SparseArrays, LinearAlgebra,  Dates, Plots
 export advect_interface_regrid!, blkdiag, calculate_dt, calc_mass_vol, calc_mass_vol_simple_diff, calc_volume, create_grid!, find_dt, fill_matrix!, linear_interpolation_1D, linspace_interface, preallocations, regrid!, set_inner_bc_mb!, set_inner_bc_flux!,set_inner_bc_Lasaga!, set_outer_bc!, trapezoidal_integration, update_time!, update_t_dependent_param!, update_t_dependent_param_simple!, construct_matrix_fem, solve_soe,calc_mass_err, make_dx_right, newton_solver, define_new_grid, sinusoid_profile,save_figure,scaling,rescale
 #Functions----------------------------------------------------
 """
@@ -468,7 +468,7 @@ function find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
     dtV   = minimum([dx1,dx2]) ^1 * inv(abs(V_ip))                                                  #Advection time
     dtD   = minimum([dx1,dx2]) ^2 * inv(maximum([D_l,D_r]))*50                                      #Diffusion time
     dtV   = dtV * dt_drop                                                                           #Dropped advection time
-    
+
     if V_ip == 0.0                                                                                  #dt for pure diffusion
         dt = dtD * CFL;
     else
@@ -478,7 +478,7 @@ function find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
             dt = dtD *CFL                                                                         #Advection time with CFL
         end
     end
-    
+
     #dtV2  = dtV * CFL * 5.0                                                                         #Advection time with CFL
     #dt    = minimum([dtV1,dtV2])                                                                    #Calculate dt
     #if V_ip == 0.0                                                                                  #dt for pure diffusion

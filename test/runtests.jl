@@ -20,7 +20,7 @@ function runtests()
         println("")
         println("Running tests from $f")
         try
-            run(`$(Base.julia_cmd()) -O3 --startup-file=no --check-bounds=no $(joinpath(testdir, f))`)
+            run(`$(Base.julia_cmd()) -O3 --startup-file=no $(joinpath(testdir, f))`)
         catch ex
             nfail += 1
         end

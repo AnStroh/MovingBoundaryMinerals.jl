@@ -246,7 +246,8 @@ function main(plot_sim,verbose)
     return x_left, x_right, x0, vec(C_left), vec(C_right), vec(C0),maxC, Tlin, XC_left, XC_right, T, Tstart, Tstop, KDlin, KD_sim,T_sim, Mass0, Mass, Mass01, Mass2, C_left_check, C_right_check, T_check, Residual, MB_Error
 end
 #Run calculation------------------------------------------------------------
-run_and_plot = true
+run_and_plot = false
+run_and_plot == false ? printstyled("You have disabled the simulation, change the variable run_and_plot == true", bold=true) : nothing
 if run_and_plot
     plot_sim  = false
     plot_end  = true
@@ -295,13 +296,13 @@ if run_and_plot
         #Figure 1
         plot(p1,p2,dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                 legend_foreground_color = :transparent)
-        #save_path = "figures"
-        #save_name = "D1"
-        #save_figure(save_name,save_path,save_file)
+        save_path = "figures"
+        save_name = "D1"
+        save_figure(save_name,save_path,save_file)
         #Figure 2
         plot(p3,p4,dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                 legend_foreground_color = :transparent)
-        #save_name = "D1_KD"
-        #save_figure(save_name,save_path,save_file)
+        save_name = "D1_KD"
+        save_figure(save_name,save_path,save_file)
     end
 end

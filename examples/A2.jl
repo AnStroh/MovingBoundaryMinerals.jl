@@ -1,8 +1,8 @@
 using MOBILE, MOBILE.Benchmarks
 using Plots, LinearAlgebra, LaTeXStrings, SparseArrays
 # Main function -------------------------------------------------------
-function main(plot_sim)
-    # Physics ---------------------------------------------------------
+function A2(; plot_sim=false)
+# Physics ---------------------------------------------------------
     Di      = 2.65*1e-18                    #Diffusion coefficient in [m^2/s]
                                             #If you want to calculate D with the Arrhenius equation, set Di = [-1.0]
     D0      = NaN                           #Pre-exponential factor in [m^2/s]                  -> not used in this example
@@ -106,12 +106,13 @@ function main(plot_sim)
     return x, C, x0, C0, D, t, t_tot
 end
 #Run main function-----------------------------------------------------
-run_and_plot = true
+run_and_plot = false
+run_and_plot == false ? printstyled("You have disabled the simulation, change the variable run_and_plot == true", bold=true) : nothing
 if run_and_plot
     plot_sim  = false
     plot_end  = true
     save_file = true
-    x, C, x0, C0, Di, t, t_tot = main(plot_sim)
+    x, C, x0, C0, Di, t, t_tot = A2(;plot_sim=plot_sim)
     nterms  = 1000                          #Number of terms within the analytical solution (degree of the polynomial)
     xan,Can = calc_sinus_sphere(x0,C0,Di,t_tot,nterms)
     if plot_end
@@ -127,8 +128,8 @@ if run_and_plot
                     markerstrokecolor=:crimson, markercolor=:crimson,dpi = 300,
                     legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                     legend_foreground_color = :transparent)
-        #save_path = "figures"
-        #save_name = "A2"
-        #save_figure(save_name,save_path,save_file)
+        save_path = "figures"
+        save_name = "A2"
+        save_figure(save_name,save_path,save_file)
     end
 end

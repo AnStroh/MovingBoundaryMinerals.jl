@@ -94,7 +94,8 @@ using Plots, LinearAlgebra, LaTeXStrings, SparseArrays
 #     return x, C, x0, C0, D, t, t_tot, Cini, nmodes, Amp, L
 # end
 # #Run main function-----------------------------------------------------
-# run_and_plot = true
+# run_and_plot = false
+run_and_plot == false ? printstyled("You have disabled the simulation, change the variable run_and_plot == true", bold=true) : nothing
 # if run_and_plot
 #     plot_sim  = false
 #     plot_end  = true

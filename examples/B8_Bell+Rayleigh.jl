@@ -1,36 +1,36 @@
-using MOBILE, MOBILE.Benchmarks
-using Plots, LinearAlgebra,  LaTeXStrings, SparseArrays
+using Diff_Coupled, Diff_Coupled.Benchmarks
+using Plots, LinearAlgebra, Revise, LaTeXStrings, SparseArrays
 #Main function----------------------------------------------------
-function B4(; plot_sim = false, verbose = false)
+function main(plot_sim,verbose)
     #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])
     #Physics-------------------------------------------------------
     #Note: this example uses non-dimensional numbers! Given units might not be true!
-    Di      = [1e-4   1e4;]                                     #Initial diffusion coefficient in [m^2/s]           -> in [L*V]
+    Di      = [0.001    0.005]                                  #Initial diffusion coefficient in [m^2/s]           -> in [L*V]
                                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
-    D0      = [NaN    NaN;]                                     #Pre-exponential factor in [m^2/s]                  -> not used in this example
-    rho     = [1.0    1.0;]                                     #Normalized densities in [-]                        -> not used in this example
-    Ri      = [1e-2   1;]                                       #Initial radii [interface    total length] in [m]   -> in [L]
-    Cl_i    = 0.5                                               #Initial composition left side in [-]               -> in [C]
-    Cr_i    = Cl_i/100                                          #Initial composition right side in [-]              -> -//-
-    V_ip    = 1.0                                               #Interface velocity in [m/s]                        -> in [V]
+    D0      = [NaN      NaN;]                                   #Pre-exponential factor in [m^2/s]                  -> not used in this example
+    rho     = [1.0      1.0;]                                   #Normalized densities in [-]                        -> not used in this example
+    Ri      = [1.0      10;]                                    #Initial radii [interface    total length] in [m]   -> in [L]
+    Cl_i    = 0.1                                               #Initial composition left side in [-]               -> in [C]
+    Cr_i    = Cl_i/50.0                                         #Initial composition right side in [-]              -> -//-
+    V_ip    = 5e-3                                              #Interface velocity in [m/s]                        -> in [V]
     R       = NaN                                               #Universal gas constant in [J/(mol*K)]              -> not used in this example
     Ea1     = NaN                                               #Activation energy for the left side in [J/mol]     -> not used in this example
     Ea2     = NaN                                               #Activation energy for the right side in [J/mol]    -> not used in this example
     Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s                    -> not used in this example
-    t_tot   = 0.35                                              #Total time [s]                                     -> in [L]/[V]
+    t_tot   = 3e2                                               #Total time [s]                                     -> in [L]/[V]
     n       = 3                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
-    KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i,1000)                #Partition coefficient array to calculate distribution coefficient history; KD changes with respect to time;
+    KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i,1000)            #Partition coefficient array to calculate distribution coefficient history; KD changes with respect to time;
                                                                 #The last value must be equal to the distribution coefficient at t = t_tot.
     t_ar    = LinRange(0.0,t_tot,1000)                          #Time array (in [s]) to calculate history over time. The last value must be equal to t_tot.
                                                                 #The user is prompted to specify suitable time intervals in relation to the respective destination.
-    T_ar    = LinRange(1273.15,1273.15,1000)                    #Temperature array in [K] to calculate temperature history; T changes with respect to time;
+    T_ar    = LinRange(1273,1073,1000)                          #Temperature array in [K] to calculate temperature history; T changes with respect to time;
                                                                 #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
     CFL    = 0.4                                                #CFL condition
-    res    = [80 120;]                                          #Number of nodes
+    res    = [100 100;]                                         #Number of nodes
     resmin = copy(res)                                          #Minimum number of nodes
-    MRefin = 50.0                                               #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
+    MRefin = 5.0                                                #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     BCout  = [0 0]                                              #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
                                                                 #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Non-dimensionslization---------------------------------------
@@ -89,8 +89,7 @@ function B4(; plot_sim = false, verbose = false)
     #anim = Animation()
     while t < t_tot
         #Calculate dt---------------------------------------------
-        #dt = find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
-        dt  = minimum([dx1,dx2])/V_ip*CFL
+        dt = find_dt(dx1,dx2,V_ip,D_l,D_r,CFL)
         #Update time----------------------------------------------
         t, dt, it = update_time!(t,dt,it,t_tot)
         #Update time-dependent parameters-------------------------
@@ -113,18 +112,18 @@ function B4(; plot_sim = false, verbose = false)
             Massnow = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
             push!(Mass, Massnow)                                #Stores the mass of the system
         end
-        if plot_sim && it % 50 == 0
+        if plot_sim && it % 5 == 0 
             #Plotting---------------------------------------------
             maxC = maximum([maximum(C_left),maximum(C_right)])
-            fs = 12
-            p1 = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
-            p1 = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
-            p1 = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
-                  ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on)
-            p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}",
-                        dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
-                        legend_foreground_color = :transparent)
-            display(p1)
+            fs = 12.0
+            p = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
+            p = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
+            p = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
+                    ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on,dpi = 300,
+                        legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+                        legend_foreground_color = :transparent,ylim=(-0.01,1.25))
+            p = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
+            display(p)
             #frame(anim)
         end
         # Suppress output of calc_mass_err
@@ -136,7 +135,7 @@ function B4(; plot_sim = false, verbose = false)
     #Rescaling---------------------------------------------------
     Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar = rescale(Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar, Lsc, Dsc, Vsc, tsc)
     #Post-process------------------------------------------------
-    #gif(anim, "figures/B4.gif", fps=13)  # Save with 10 frames per second
+    #gif(anim, "figures/B6.gif", fps=5)  # Save with 10 frames per second
     maxC = maximum([maximum(C_left),maximum(C_right)])
     minC = minimum([minimum(C_left),minimum(C_right)])
     calc_mass_err(Mass,Mass0)
@@ -144,16 +143,15 @@ function B4(; plot_sim = false, verbose = false)
 end
 #Call main function-----------------------------------------------
 run_and_plot = true
-run_and_plot == false ? printstyled("You have disabled the simulation, change the variable run_and_plot == true", bold=true) : nothing
 if run_and_plot
     plot_sim  = false
     plot_end  = true
     verbose   = false
     save_file = false
-    x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, KD0, n, maxC = B4(; plot_sim = plot_sim, verbose = verbose)
+    x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, KD0, n, maxC = main(plot_sim,verbose)
     Ray_Fs, Ray_Fl, Ray_Cl, Ray_Cs, Cl_p, phi_solid = rayleigh_fractionation(x_left,C_left,Ri0,Ri,C0_r,KD0,n)
-    if plot_end
-        #Title: Diffusion couple (flux) - Rayleigh fractionation
+        if plot_end
+        #Title: Diffusion couple (flux) - growth + diffusion in a sphere
         #Plotting-------------------------------------------------
         fs = 12.0
         p1 = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
@@ -174,8 +172,8 @@ if run_and_plot
         p3 = annotate!(0.005, 0.49, L"\mathrm{(b)}")
         plot(p1,p3, dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                     legend_foreground_color = :transparent)
-        save_path = "figures"
-        save_name = "B4"
-        save_figure(save_name,save_path,save_file)
+        #save_path = "figures"
+        #save_name = "B6"
+        #save_figure(save_name,save_path,save_file)
     end
 end

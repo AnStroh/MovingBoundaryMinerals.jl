@@ -106,12 +106,12 @@ function A2(; plot_sim=false)
     return x, C, x0, C0, D, t, t_tot
 end
 #Run main function-----------------------------------------------------
-run_and_plot = false
+run_and_plot = true
 run_and_plot == false ? printstyled("You have disabled the simulation, change the variable run_and_plot == true", bold=true) : nothing
 if run_and_plot
     plot_sim  = false
     plot_end  = true
-    save_file = true
+    save_file = false
     x, C, x0, C0, Di, t, t_tot = A2(;plot_sim=plot_sim)
     nterms  = 1000                          #Number of terms within the analytical solution (degree of the polynomial)
     xan,Can = calc_sinus_sphere(x0,C0,Di,t_tot,nterms)

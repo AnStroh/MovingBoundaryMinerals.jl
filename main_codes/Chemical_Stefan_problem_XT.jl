@@ -268,7 +268,7 @@ if run_and_plot
         plot(p1,p2,dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                 legend_foreground_color = :transparent)
         #Figure 2
-        plot(p3,p4,dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
-                legend_foreground_color = :transparent)
+        #plot(p3,p4,dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
+        #        legend_foreground_color = :transparent)
     end
 end

@@ -145,7 +145,7 @@ function C1(; plot_sim = false, verbose = false)
     return x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, n, maxC, KD0
 end
 #Call main function-----------------------------------------------
-run_and_plot = false
+run_and_plot = true
 run_and_plot == false ? printstyled("You have disabled the simulation, change the variable run_and_plot == true", bold=true) : nothing
 if run_and_plot
     plot_sim  = false

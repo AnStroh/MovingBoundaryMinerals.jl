@@ -180,7 +180,7 @@ function B3(; adapt_dt = true, plot_sim = false, verbose = false)
     return x_left, x_right, x0, C_left, C_right, C0, Sols_left, Sols_right,Checks, CheckBC, T_pl, (t_pl ./ Myr2Sec), Ri, maxC, minC
 end
 #Call main function-----------------------------------------------
-run_and_plot = false
+run_and_plot = true
 run_and_plot == false ? printstyled("You have disabled the simulation, change the variable run_and_plot == true", bold=true) : nothing
 if run_and_plot
     adapt_dt  = true

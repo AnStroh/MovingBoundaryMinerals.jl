@@ -85,9 +85,9 @@ makedocs(;
     ],
 )
 
-withenv("GITHUB_REPOSITORY" => "AnStroh/MOBILE.jl.jl") do
+withenv("GITHUB_REPOSITORY" => "AnStroh/MOBILE.jl") do
      deploydocs(
-         repo = repo="https://github.com/AnStroh/MOBILE.jl.jl",
+         repo = "github.com/AnStroh/MOBILE.jl",
          devbranch = "main",
          push_preview = true
      )

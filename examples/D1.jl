@@ -23,13 +23,13 @@ function D1(; plot_sim = false, verbose = false)
     beta        = 90.0                                                                                  #Ideal angle between [001] and [100] (a-c-plane)
     gamma       = 90.0                                                                                  #Ideal angle between [010] and [100] (a-b-plane)
     deltaV      = 7*10^-6                                                                               #Volume change in [m^3/mol]
-    Ri          = 0.3                                                                                   #Position of the interface -> initial radius of the left phase in [m]
+    Ri          = 0.0005                                                                                #Position of the interface -> initial radius of the left phase in [m]
     Tstart      = 1400.0 + 273.0                                                                        #Starting temperature in [K]
     Tstop       = 1350.0 + 273.0                                                                        #End temperature in [K]
     P           = 10^6                                                                                  #Pressure in [Pa]
     R           = 8.314472                                                                              #Universal gas constant in [J/(mol*K)]
     Myr2Sec     = 60*60*24*365.25*1e6                                                                   #Conversion factor from Myr to s
-    t_tot       = 1e-3*Myr2Sec                                                                          #Total time [s]
+    t_tot       = 1e-8*Myr2Sec                                                                          #Total time [s]
     n           = 1                                                                                     #Geometry; 1: planar, 2: cylindrical, 3: spherical
     CompInt     = 0.25                                                                                  #Composition of interest of the solid solution (Mg number)
     coeff       = readdlm("examples/Examples_phase_diagram/Coefficients_Reaction_lines.csv")            #Reads the coefficients for the linear least squares
@@ -264,9 +264,9 @@ if run_and_plot
         first_val, last_val = values_between_known_indices!(Tlin.-273.0,KDlin,Tstart,Tstop)                    #CAUTION: works just for constantly dropping temperature
         fs = 12.0
         #Composition profile
-        p1 = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
-        p1 = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
-        p1 = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
+        p1 = plot(x_left*1e3,C_left, lw=2, label=L"\mathrm{Left\ side}")
+        p1 = plot!(x_right*1e3,C_right, lw=2, label=L"\mathrm{Right\ side}")
+        p1 = plot!(x0*1e3,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
               ylabel = L"X_{Fe}", lw=1.5, grid=:on, legend = :right)
         #Phase diagram
         p2 = plot(Tlin .- 273.0,XC_left, lw=2, label=L"\mathrm{Left\ side}")

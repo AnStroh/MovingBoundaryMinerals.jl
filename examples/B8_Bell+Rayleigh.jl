@@ -1,5 +1,5 @@
-using Diff_Coupled, Diff_Coupled.Benchmarks
-using Plots, LinearAlgebra, Revise, LaTeXStrings, SparseArrays
+using MOBILE, MOBILE.Benchmarks
+using Plots, LinearAlgebra,  LaTeXStrings,SparseArrays
 #Main function----------------------------------------------------
 function main(plot_sim,verbose)
     #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])
@@ -11,13 +11,13 @@ function main(plot_sim,verbose)
     rho     = [1.0      1.0;]                                   #Normalized densities in [-]                        -> not used in this example
     Ri      = [1.0      10;]                                    #Initial radii [interface    total length] in [m]   -> in [L]
     Cl_i    = 0.1                                               #Initial composition left side in [-]               -> in [C]
-    Cr_i    = Cl_i/50.0                                         #Initial composition right side in [-]              -> -//-
-    V_ip    = 5e-3                                              #Interface velocity in [m/s]                        -> in [V]
+    Cr_i    = Cl_i/350.0                                         #Initial composition right side in [-]              -> -//-
+    V_ip    = 6e-3                                              #Interface velocity in [m/s]                        -> in [V]
     R       = NaN                                               #Universal gas constant in [J/(mol*K)]              -> not used in this example
     Ea1     = NaN                                               #Activation energy for the left side in [J/mol]     -> not used in this example
     Ea2     = NaN                                               #Activation energy for the right side in [J/mol]    -> not used in this example
     Myr2Sec = 60*60*24*365.25*1e6                               #Conversion factor from Myr to s                    -> not used in this example
-    t_tot   = 3e2                                               #Total time [s]                                     -> in [L]/[V]
+    t_tot   = 4e2                                               #Total time [s]                                     -> in [L]/[V]
     n       = 3                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
     KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i,1000)            #Partition coefficient array to calculate distribution coefficient history; KD changes with respect to time;

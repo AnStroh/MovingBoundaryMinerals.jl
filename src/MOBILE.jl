@@ -1,7 +1,7 @@
 module MOBILE
 
 using LinearAlgebra, SpecialFunctions,Interpolations
-using SparseArrays, Revise
+using SparseArrays
 
 
 include("Benchmarks.jl")

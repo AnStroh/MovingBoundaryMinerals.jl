@@ -1,15 +1,3 @@
-#= Utilized functions in the framework of the Paper:
-
-    by A.Stroh and E. Moulas
-    doi:
-    Version: 1.0
-    ------------------------------------------------------------------------
-    The software can be used to calculate composition profiles taking into
-    account diffusion and a moving boundary. Mass balance describes
-    composition changes at the interface.'
-    Phase A: left component (stable at lower T), Phase B: right component
-    (stable at higher T)
-============================================================================#
 using MOBILE
 using Plots, LinearAlgebra, DelimitedFiles, SparseArrays, LaTeXStrings
 #Main function--------------------------------------------------------------

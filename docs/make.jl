@@ -78,7 +78,7 @@ makedocs(;
         "Home"      => "index.md",
         "General Remarks" => "man/general_remarks.md",
         "Stefan Problem" => "man/stefan_problem.md",
-        "Digitization" => "man/digitization.md",
+        "Digitization" => "man/digitalization.md",
         "List of examples" => "man/listexamples.md",
         "List of functions" => "man/listfunctions.md",
         "Authors" => "man/authors.md",

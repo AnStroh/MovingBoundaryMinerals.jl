@@ -22,7 +22,6 @@ jobs:
         version:
           - 'lts' # latest LTS release (1.10)
           - '1.11'
-          - 'pre'
         os:
           - ubuntu-latest
           - macos-13 # macs with Intel Chips

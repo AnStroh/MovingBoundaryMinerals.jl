@@ -1,7 +1,7 @@
 using MOBILE
 using Plots, LinearAlgebra, LaTeXStrings,SparseArrays
 #Main function----------------------------------------------------
-function main(plot_sim,verbose)
+function DCMBG(; plot_sim = false, verbose = false)
     #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])
     #Physics-------------------------------------------------------
     #Note: this example uses non-dimensional numbers! Given units might not be true!
@@ -146,7 +146,7 @@ if run_and_plot
     plot_sim = false
     plot_end = true
     verbose  = false
-    x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0, maxC = main(plot_sim,verbose)
+    x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0, maxC = DCMBG(; plot_sim = false, verbose = false)
     if plot_end
         #Plotting-------------------------------------------------
         maxC = maximum([maximum(C_left),maximum(C_right)])

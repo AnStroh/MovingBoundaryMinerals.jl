@@ -1,7 +1,7 @@
 using MOBILE
 using Plots, LinearAlgebra,  LaTeXStrings,SparseArrays
 #Main function----------------------------------------------------
-function main(plot_sim,verbose)
+function DCF(; plot_sim = false, verbose = false)
     #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])
     #Physics-------------------------------------------------------
     Di      = [-1.0         -1.0;]                              #Initial diffusion coefficient in [m^2/s]
@@ -130,13 +130,13 @@ function main(plot_sim,verbose)
     return x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0
 end
 #Call main function-----------------------------------------------
-run_and_plot = false
+run_and_plot = true
 run_and_plot == false ? printstyled("You have disabled the simulation, change the variable run_and_plot == true", bold=true) : nothing
 if run_and_plot
     plot_sim = false
     plot_end = true
     verbose  = false
-    x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0 = main(plot_sim,verbose)
+    x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0 = DCF(; plot_sim = plot_sim, verbose = verbose)
     if plot_end
         #Plotting-------------------------------------------------
         maxC = maximum([maximum(C_left),maximum(C_right)])

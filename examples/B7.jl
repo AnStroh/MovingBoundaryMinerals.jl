@@ -1,7 +1,7 @@
 using MOBILE, MOBILE.Benchmarks
 using Plots, LinearAlgebra,  LaTeXStrings,SparseArrays
 #Main function----------------------------------------------------
-function main(plot_sim,verbose)
+function B7(; plot_sim = false, verbose = false)
     #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])
     #Physics-------------------------------------------------------
     #Note: this example uses non-dimensional numbers! Given units might not be true!
@@ -142,14 +142,14 @@ function main(plot_sim,verbose)
     return x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, KD0, n, maxC
 end
 #Call main function-----------------------------------------------
-run_and_plot = false
+run_and_plot = true
 run_and_plot == false ? printstyled("You have disabled the simulation, change the variable run_and_plot == true", bold=true) : nothing
 if run_and_plot
     plot_sim  = false
     plot_end  = true
     verbose   = false
     save_file = false
-    x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, KD0, n, maxC = main(plot_sim,verbose)
+    x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, KD0, n, maxC = B7(; plot_sim = plot_sim, verbose = verbose)
         if plot_end
         #Title: Diffusion couple (flux) - resorption + diffusion in a sphere
         #Plotting-------------------------------------------------

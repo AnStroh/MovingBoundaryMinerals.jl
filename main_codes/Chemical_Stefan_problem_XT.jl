@@ -13,7 +13,7 @@
 using MOBILE
 using Plots, LinearAlgebra, DelimitedFiles, SparseArrays, LaTeXStrings
 #Main function--------------------------------------------------------------
-function main(plot_sim,verbose)
+function CSP(; plot_sim = false, verbose = false)
     #If you find a [] with two entries this belong to the respective side of
     #the diffusion couple ([left right])
     #Physics-----------------------------------------------------------------
@@ -219,13 +219,13 @@ function main(plot_sim,verbose)
     return x_left, x_right, x0, vec(C_left), vec(C_right), vec(C0),maxC, Tlin, XC_left, XC_right, T, Tstart, Tstop, KDlin, KD_sim,T_sim, Mass0, Mass, Mass01, Mass2
 end
 #Run calculation------------------------------------------------------------
-run_and_plot = false
+run_and_plot = true
 run_and_plot == false ? printstyled("You have disabled the simulation, change the variable run_and_plot == true", bold=true) : nothing
 if run_and_plot
     plot_sim = false
     plot_end = true
     verbose  = false
-    x_left, x_right, x0, C_left, C_right, C0, maxC, Tlin, XC_left, XC_right, T, Tstart, Tstop, KDlin, KD_sim,T_sim, Mass0, Mass, Mass01, Mass2 = main(plot_sim,verbose)
+    x_left, x_right, x0, C_left, C_right, C0, maxC, Tlin, XC_left, XC_right, T, Tstart, Tstop, KDlin, KD_sim,T_sim, Mass0, Mass, Mass01, Mass2 = CSP(; plot_sim = plot_sim, verbose = verbose)
     if plot_end
         #Plotting-----------------------------------------------------------
         Tstart = Tstart - 273.0

@@ -1,7 +1,7 @@
 using MOBILE, MOBILE.Benchmarks
 using Plots, LinearAlgebra, LaTeXStrings, SparseArrays
 # Main function -------------------------------------------------------
-function main()
+function SD()
     #------------------------------------------------------------------
     verbose  = false
     plot_sim = true
@@ -107,7 +107,7 @@ function main()
     return x, C, x0, C0, D, t, t_tot
 end
 #Run main function-----------------------------------------------------
-x, C, x0, C0, Di, t, t_tot  = main()
+x, C, x0, C0, Di, t, t_tot  = SD()
 if plot_end
     # Plotting --------------------------------------------------------
     fs = 12.0

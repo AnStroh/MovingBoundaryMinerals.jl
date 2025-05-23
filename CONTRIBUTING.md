@@ -1,12 +1,12 @@
 # Contributing
 
-[Diffusion-coupled-growth](https://github.com/AnStroh/Diffusion-coupled-growth) is an open-source project and we are very happy to accept contributions
-from the community. Please feel free to [open issues](https://github.com/AnStroh/Diffusion-coupled-growth/issues/new) or submit patches (preferably
-as [pull requests](https://github.com/AnStroh/Diffusion-coupled-growth/pulls)) any time. For planned larger contributions, it is often
+[MOBILE.jl](https://github.com/AnStroh/MOBILE.jl) is an open-source project and we are very happy to accept contributions
+from the community. Please feel free to [open issues](https://github.com/AnStroh/MOBILE.jl/issues/new) or submit patches (preferably
+as [pull requests](https://github.com/AnStroh/MOBILE.jl/pulls)) any time. For planned larger contributions, it is often
 beneficial to get in contact with one of the principal developers first (see
 [AUTHORS.md](AUTHORS.md)).
 
-[Diffusion-coupled-growth](https://github.com/AnStroh/Diffusion-coupled-growth) and its contributions are licensed under the MIT license. As a contributor, you certify that all your
+[MOBILE.jl](https://github.com/AnStroh/MOBILE.jl) and its contributions are licensed under the MIT license. As a contributor, you certify that all your
 contributions are in conformance with the *Developer Certificate of Origin
 (Version 1.1)*, which is reproduced below.
 

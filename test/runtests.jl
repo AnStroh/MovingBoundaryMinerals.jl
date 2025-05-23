@@ -1,4 +1,4 @@
-using Diff_Coupled
+using MOBILE
 using Test
 
 push!(LOAD_PATH, "..")
@@ -13,7 +13,7 @@ function runtests()
         ),
     )
     nfail = 0
-    printstyled("Testing package Diff_Coupled.jl\n"; bold=true, color=:white)
+    printstyled("Testing package MOBILE.jl\n"; bold=true, color=:white)
 
     for f in testfiles
 

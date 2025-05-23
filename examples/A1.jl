@@ -1,4 +1,4 @@
-using Diff_Coupled
+using MOBILE
 using Plots, LinearAlgebra, LaTeXStrings, SparseArrays
 # Main function -------------------------------------------------------
 function main(plot_sim)
@@ -47,7 +47,7 @@ function main(plot_sim)
     nels    = length(x) - 1                     #Number of elements
     R_g     = zeros(length(x),1)                #Global vector
     #Checks------------------------------------------------------------
-    MB_Error = Float64[]                        #Array to store the mass error   
+    MB_Error = Float64[]                        #Array to store the mass error
     #Calculate grid ---------------------------------------------------
     dx     = L * inv(res - 1.0)
     #Calculate initial D, KD, T----------------------------------------
@@ -91,7 +91,7 @@ function main(plot_sim)
             p = plot!(x0*1000,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
                     ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on,dpi = 300,
                         legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
-                        legend_foreground_color = :transparent)      
+                        legend_foreground_color = :transparent)
             display(p)
             #frame(anim)
         end

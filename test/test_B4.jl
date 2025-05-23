@@ -1,5 +1,5 @@
 using Test
-using Diff_Coupled, Diff_Coupled.Benchmarks
+using MOBILE, MOBILE.Benchmarks
 using LinearAlgebra, LaTeXStrings, SparseArrays
 #Main function----------------------------------------------------
 function main(plot_sim,verbose)

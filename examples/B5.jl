@@ -1,4 +1,4 @@
-using Diff_Coupled, Diff_Coupled.Benchmarks
+using MOBILE, MOBILE.Benchmarks
 using Plots, LinearAlgebra, Revise, LaTeXStrings, SparseArrays
 #Main function----------------------------------------------------
 function main(plot_sim,verbose)
@@ -113,7 +113,7 @@ function main(plot_sim,verbose)
             Massnow = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
             push!(Mass, Massnow)                                #Stores the mass of the system
         end
-        if plot_sim && it % 10 == 0 
+        if plot_sim && it % 10 == 0
             #Plotting---------------------------------------------
             maxC = maximum([maximum(C_left),maximum(C_right)])
             fs = 12.0
@@ -131,7 +131,7 @@ function main(plot_sim,verbose)
         redirect_stdout(devnull) do
             ErrM = calc_mass_err(Mass, Mass0)
             push!(MB_Error,ErrM)
-        end 
+        end
     end
     #Rescaling---------------------------------------------------
     Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar = rescale(Ri0, Ri, x_left, x_right, x0, Di, D0, V_ip, t_tot, t_ar, Lsc, Dsc, Vsc, tsc)

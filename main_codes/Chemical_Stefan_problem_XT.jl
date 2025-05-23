@@ -10,7 +10,7 @@
     Phase A: left component (stable at lower T), Phase B: right component
     (stable at higher T)
 ============================================================================#
-using Diff_Coupled
+using MOBILE
 using Plots, LinearAlgebra, DelimitedFiles, SparseArrays, LaTeXStrings
 #Main function--------------------------------------------------------------
 function main(plot_sim,verbose)
@@ -103,7 +103,7 @@ function main(plot_sim,verbose)
     R_g         = zeros(length(x0),1)                                                                   #Global RHS vector
     #Checks-----------------------------------------------------------------
     C_left_check        = [C_left[end]]                                                                 #Check composition left side
-    C_right_check       = [C_right[1]]                                                                  #Check composition right side           
+    C_right_check       = [C_right[1]]                                                                  #Check composition right side
     T_check             = [Tstart]                                                                      #Check temperature
     Residual            = Float64[]                                                                     #Residual of the velocity
     MB_Error            = Float64[]                                                                     #Mass error
@@ -268,6 +268,6 @@ if run_and_plot
                 legend_foreground_color = :transparent)
         #Figure 2
         plot(p3,p4,dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
-                legend_foreground_color = :transparent)    
+                legend_foreground_color = :transparent)
     end
 end

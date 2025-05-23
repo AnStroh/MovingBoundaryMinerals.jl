@@ -1,4 +1,4 @@
-using Diff_Coupled, Diff_Coupled.Benchmarks
+using MOBILE, MOBILE.Benchmarks
 using Plots, LinearAlgebra, Revise, LaTeXStrings, SparseArrays
 #Main function----------------------------------------------------
 function main(plot_sim,verbose)

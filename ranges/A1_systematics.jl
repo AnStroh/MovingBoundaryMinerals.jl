@@ -1,4 +1,4 @@
-using Diff_Coupled
+using MOBILE
 using Plots, LinearAlgebra, LaTeXStrings, SparseArrays
 # Main function -------------------------------------------------------
 # function main(plot_sim)

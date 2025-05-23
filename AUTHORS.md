@@ -1,10 +1,10 @@
 # Authors
 
-[Diffusion-coupled-growth](https://github.com/AnStroh/Diffusion-coupled-growth)'s development is coordinated by a group of *principal developers*,
+[MOBILE.jl](https://github.com/AnStroh/MOBILE.jl)'s development is coordinated by a group of *principal developers*,
 who are also its main contributors and who can be contacted in case of
-questions about [Diffusion-coupled-growth](https://github.com/AnStroh/Diffusion-coupled-growth). In addition, there are *contributors* who have
+questions about [MOBILE.jl](https://github.com/AnStroh/MOBILE.jl). In addition, there are *contributors* who have
 provided substantial additions or modifications. Together, these two groups form
-"Diffusion-coupled-growth.jl Authors".
+"MOBILE.jl.jl Authors".
 
 ## Principal Developers
 * [Annalena Stroh](https://github.com/AnStroh),
@@ -14,7 +14,7 @@ provided substantial additions or modifications. Together, these two groups form
 
 
 ## Contributors
-The following people contributed major additions or modifications to [Diffusion-coupled-growth](https://github.com/AnStroh/Diffusion-coupled-growth) and
+The following people contributed major additions or modifications to [MOBILE.jl](https://github.com/AnStroh/MOBILE.jl) and
 are listed in alphabetical order:
 
 * [Pascal Aellig](https://github.com/aelligp),

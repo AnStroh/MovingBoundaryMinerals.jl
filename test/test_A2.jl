@@ -1,5 +1,5 @@
 using Test
-using Diff_Coupled, Diff_Coupled.Benchmarks
+using MOBILE, MOBILE.Benchmarks
 using LinearAlgebra, LaTeXStrings, SparseArrays
 # Main function -------------------------------------------------------
 function main(plot_sim)
@@ -47,7 +47,7 @@ function main(plot_sim)
     nels     = length(x) - 1                #Number of elements
     R_g      = zeros(length(x),1)           #Global vector
     #Checks------------------------------------------------------------
-    MB_Error = Float64[]                    #Array to store the mass error     
+    MB_Error = Float64[]                    #Array to store the mass error
     #Calculate grid ---------------------------------------------------
     dx    = L * inv(res - 1.0)
     #Calculate initial Ds, KD, T---------------------------------------

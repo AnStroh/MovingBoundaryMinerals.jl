@@ -1,4 +1,4 @@
-using Diff_Coupled, Diff_Coupled.Benchmarks
+using MOBILE, MOBILE.Benchmarks
 using Plots, LinearAlgebra, LaTeXStrings, SparseArrays
 #Main function----------------------------------------------------
 function main(plot_sim,verbose)
@@ -115,7 +115,7 @@ function main(plot_sim,verbose)
             Massnow = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
             push!(Mass, Massnow)                                #Stores the mass of the system
         end
-        if plot_sim && it % 150 == 0 
+        if plot_sim && it % 150 == 0
             #Plotting---------------------------------------------
             maxC = maximum([maximum(C_left),maximum(C_right)])
             fs = 12

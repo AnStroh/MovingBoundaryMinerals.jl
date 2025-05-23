@@ -1,4 +1,4 @@
-using Diff_Coupled
+using MOBILE
 using Plots, LinearAlgebra, Revise, LaTeXStrings,SparseArrays, DataFrames,Tables,CSV, Dates
 #Main function----------------------------------------------------
 function main(plot_sim,verbose,Di,D0,rho,Ri,Cl_i,Cr_i,V_ip,R,Ea1,Ea2,Myr2Sec,t_tot,n)
@@ -158,11 +158,11 @@ if run_and_plot
     results = DataFrame(Di1 = Float64[], Di2 = Float64[], V_ip = Float64[], Ri1 = Float64[],
                         Ri2 = Float64[],  success_ = String[])
 
-                        
+
     counts = 0
     for Di1 in Di1_values, Di2 in Di2_values, V_ip in V_ip_values, Ri1 in Ri1_values, Ri2 in Ri2_values
         global counts = counts + 1
-        println("Running simulation $counts of $(numb^5)") 
+        println("Running simulation $counts of $(numb^5)")
         try
             Di = [Di1 Di2]
             Ri = [Ri1 Ri2]
@@ -174,7 +174,7 @@ if run_and_plot
             global success_ = "Failure"
             @warn "Error for Di = $([Di1 Di2]) , Ri = $([Ri1 Ri2]) and V_ip = $V_ip"
         end
-    
+
         # Push results into the DataFrame
         push!(results, (Di1, Di2, V_ip, Ri1, Ri2, success_))
         if counts % 10 == 0

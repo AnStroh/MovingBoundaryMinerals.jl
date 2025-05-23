@@ -1,5 +1,5 @@
 using Test
-using Diff_Coupled, Diff_Coupled.Benchmarks
+using MOBILE, MOBILE.Benchmarks
 using LinearAlgebra, LaTeXStrings,SparseArrays
 #Main function----------------------------------------------------
 function main(adapt_dt,plot_sim,verbose)
@@ -74,7 +74,7 @@ function main(adapt_dt,plot_sim,verbose)
     T_pl       = []                                                         #Temperature for plotting
     t_pl       = []                                                         #Time for plotting
     Sols_left  = []                                                         #Array to store solutions for the left side
-    Sols_right = []                                                         #Array to store solutions for the right side    
+    Sols_right = []                                                         #Array to store solutions for the right side
     #Checks-------------------------------------------------------
     MB_Error   = Float64[]                                                  #Array to store mass error
     Checks     = []                                                         #Array to store checks
@@ -172,4 +172,3 @@ end
     @test Can1 ≈ last.(Sols_left) rtol = 1e-3
     @test Can2 ≈ last.(Sols_right) rtol = 1e-3
 end
-

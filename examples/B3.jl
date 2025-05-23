@@ -1,4 +1,4 @@
-using Diff_Coupled, Diff_Coupled.Benchmarks
+using MOBILE, MOBILE.Benchmarks
 using Plots, LinearAlgebra, Revise, LaTeXStrings, SparseArrays
 #Main function----------------------------------------------------
 function main(adapt_dt,plot_sim,verbose)
@@ -73,7 +73,7 @@ function main(adapt_dt,plot_sim,verbose)
     T_pl       = []                                                         #Temperature for plotting
     t_pl       = []                                                         #Time for plotting
     Sols_left  = []                                                         #Array to store solutions for the left side
-    Sols_right = []                                                         #Array to store solutions for the right side    
+    Sols_right = []                                                         #Array to store solutions for the right side
     #Checks-------------------------------------------------------
     MB_Error   = Float64[]                                                  #Array to store mass error
     Checks     = []                                                         #Array to store checks
@@ -164,7 +164,7 @@ function main(adapt_dt,plot_sim,verbose)
                         legend_foreground_color = :transparent)
                 display(p)
                 #frame(anim)
-            end        
+            end
         end
         # Suppress output of calc_mass_err
         redirect_stdout(devnull) do

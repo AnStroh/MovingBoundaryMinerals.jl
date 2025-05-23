@@ -1,4 +1,4 @@
-module Diff_Coupled
+module MOBILE
 
 using LinearAlgebra, BenchmarkTools, SpecialFunctions,Interpolations
 using SparseArrays, Revise
@@ -13,4 +13,4 @@ export advect_interface_regrid!, blkdiag, calculate_dt, calc_mass_vol, calc_mass
 include("functionsStefan.jl")
 export calculate_density, coeff_trans_line, composition, digitise_plot, ndgrid, set_inner_bc_stefan!,values_between_known_indices!
 
-end 
+end

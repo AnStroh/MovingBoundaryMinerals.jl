@@ -1,4 +1,4 @@
-using Diff_Coupled, Diff_Coupled.Benchmarks
+using MOBILE, MOBILE.Benchmarks
 using Plots, LinearAlgebra, LaTeXStrings, SparseArrays
 # Main function -------------------------------------------------------
 function main()
@@ -50,7 +50,7 @@ function main()
     nels    = length(x) - 1                     #Number of elements
     R_g     = zeros(length(x),1)                #Global vector
     #Checks------------------------------------------------------------
-    MB_Error = Float64[]                        #Array to store the mass error     
+    MB_Error = Float64[]                        #Array to store the mass error
     #Calculate grid ---------------------------------------------------
     dx    = L * inv(nx - 1.0)
     #Calculate initial Ds, KD, T---------------------------------------

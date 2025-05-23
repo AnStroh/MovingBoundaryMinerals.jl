@@ -10,14 +10,14 @@
     Phase A: left component (stable at lower T), Phase B: right component
     (stable at higher T)
 ============================================================================#
-using Diff_Coupled
+using MOBILE
 using Plots, LinearAlgebra, DelimitedFiles, SparseArrays, LaTeXStrings
 #Main function--------------------------------------------------------------
 function main(plot_sim,verbose)
     #If you find a [] with two entries this belong to the respective side of
     #the diffusion couple ([left right])
     #Physics-----------------------------------------------------------------
-    D0          = 5.38*1e-9                                                                             #Pre-exponential factor in [m^2/s]                                                                     
+    D0          = 5.38*1e-9                                                                             #Pre-exponential factor in [m^2/s]
     Ea          = 226000                                                                                #Activation energy for the left side in [J/mol]
     alpha       = 90.0                                                                                  #Ideal angle between [001] and [010] (b-c-plane)
     beta        = 90.0                                                                                  #Ideal angle between [001] and [100] (a-c-plane)
@@ -27,7 +27,7 @@ function main(plot_sim,verbose)
     Tstart      = 1400.0 + 273.0                                                                        #Starting temperature in [K]
     Tstop       = 1350.0 + 273.0                                                                        #End temperature in [K]
     P           = 10^6                                                                                  #Pressure in [Pa]
-    R           = 8.314472                                                                              #Universal gas constant in [J/(mol*K)]              
+    R           = 8.314472                                                                              #Universal gas constant in [J/(mol*K)]
     Myr2Sec     = 60*60*24*365.25*1e6                                                                   #Conversion factor from Myr to s
     t_tot       = 1e-3*Myr2Sec                                                                          #Total time [s]
     n           = 1                                                                                     #Geometry; 1: planar, 2: cylindrical, 3: spherical
@@ -77,13 +77,13 @@ function main(plot_sim,verbose)
     T                   = copy(Tstart)                                                                  #Initial temperature
     C_leftB, C_rightB   = composition(coeff_up,coeff_do,T)                                              #Initial composition of the phases
     Xc                  = (1.0 - CompInt) * C_rightB + CompInt * C_leftB                                #Actual total composition (Xc intersection with black dashed line, e.g. Xc = C(Ol)*V(Ol)+C(melt)*V(melt)
-    log10D_001          = log10(D0) - (Ea + (P-10^5)* deltaV)/(2.303*R*Tstart) + 3*((1-C_leftB)-0.14)   #log10(diffusion coefficient Olivine) following Dohmen & Chakraborty (2007)                     
-    log10D_others       = log10D_001 - log10(6.0)                                                       #log10(diffusion coefficient Olivine) following Dohmen & Chakraborty (2007)                     
+    log10D_001          = log10(D0) - (Ea + (P-10^5)* deltaV)/(2.303*R*Tstart) + 3*((1-C_leftB)-0.14)   #log10(diffusion coefficient Olivine) following Dohmen & Chakraborty (2007)
+    log10D_others       = log10D_001 - log10(6.0)                                                       #log10(diffusion coefficient Olivine) following Dohmen & Chakraborty (2007)
     D_001               = 10^log10D_001                                                                 #Diffusion coefficient in direction 001
     D_010               = 10^log10D_others                                                              #Diffusion coefficient in direction 010
     D_100               = 10^log10D_others                                                              #Diffusion coefficient in direction 100
     D_l                 = D_001*(cos(alpha))^2 + D_010*(cos(beta))^2 + D_100*(cos(gamma))^2             #Effective diffusion coefficient Olivine after Crank (1975), p. 7
-    D_r                 = exp(-7.92-26222/(Tstart))                                                     #Diffusivity melt: Approximated after Zhang & Cherniak (2010) p. 332 EQ. 19                   
+    D_r                 = exp(-7.92-26222/(Tstart))                                                     #Diffusivity melt: Approximated after Zhang & Cherniak (2010) p. 332 EQ. 19
     L                   = (Ri[1] ^ n * (Xc - C_leftB) * inv((C_rightB - Xc)) ^ (1 * inv(n))) + Ri[1]    #Total length of the modelling domain
     Ri                  = [Ri L]                                                                        #Radii of the 2 phases
     #Create mesh, discretization and mapping--------------------------------
@@ -117,7 +117,7 @@ function main(plot_sim,verbose)
     R_g                 = zeros(length(x0),1)                                                           #Global RHS vector
     #Checks-----------------------------------------------------------------
     C_left_check        = [C_left[end]]                                                                 #Check composition left side
-    C_right_check       = [C_right[1]]                                                                  #Check composition right side           
+    C_right_check       = [C_right[1]]                                                                  #Check composition right side
     T_check             = [Tstart]                                                                      #Check temperature
     Residual            = Float64[]                                                                     #Residual of the velocity
     MB_Error            = Float64[]                                                                     #Mass error
@@ -135,13 +135,13 @@ function main(plot_sim,verbose)
         dC  = C_right[1] - C_left[end]                                                                  #Composition difference
         rho = calculate_density(Xwm[:,1],Twm[1,:],rho_left,rho_right,C_leftB,C_rightB,T)
         #Calculate diffusivities--------------------------------------------
-        log10D_001    = log10(D0) - (Ea + (P-10^5)* deltaV)/(2.303*R*T) + 3*((1-C_left[end])-0.14)      #log10(diffusion coefficient Olivine) following Dohmen & Chakraborty (2007)                     
-        log10D_others = log10D_001 - log10(6.0)                                                         #log10(diffusion coefficient Olivine) following Dohmen & Chakraborty (2007)                     
+        log10D_001    = log10(D0) - (Ea + (P-10^5)* deltaV)/(2.303*R*T) + 3*((1-C_left[end])-0.14)      #log10(diffusion coefficient Olivine) following Dohmen & Chakraborty (2007)
+        log10D_others = log10D_001 - log10(6.0)                                                         #log10(diffusion coefficient Olivine) following Dohmen & Chakraborty (2007)
         D_001         = 10^log10D_001                                                                   #Diffusion coefficient in direction 001
         D_010         = 10^log10D_others                                                                #Diffusion coefficient in direction 010
         D_100         = 10^log10D_others                                                                #Diffusion coefficient in direction 100
         D_l           = D_001*(cos(alpha))^2 + D_010*(cos(beta))^2 + D_100*(cos(gamma))^2               #Effective diffusion coefficient after Crank (1975), p. 7
-        D_r           = exp(-7.92-26222/(T))                                                            #Diffusivity melt: Approximated after Zhang & Cherniak (2010) p. 332 EQ. 19                   
+        D_r           = exp(-7.92-26222/(T))                                                            #Diffusivity melt: Approximated after Zhang & Cherniak (2010) p. 332 EQ. 19
         #Stefan condition -> Composition difference-------------------------
         JL   = - D_l * rho[1] * (C_left[end] - C_left[end-1]) * inv(dx1)                                #Flux of the left side to the right side
         JR   = - D_r * rho[2] * (C_right[2]  - C_right[1])    * inv(dx2)                                #Flux of the right side to the left side
@@ -185,7 +185,7 @@ function main(plot_sim,verbose)
         dtD   = minimum([dx1,dx2]) ^2 .* inv((maximum([D_l,D_r])))
         dt    = minimum([dtD,dtV]) * CFL
         #Plotting-----------------------------------------------------------
-        if plot_sim && it % 200 == 0 
+        if plot_sim && it % 200 == 0
             #Plotting-------------------------------------------------------
             maxC = maximum([maximum(C_left),maximum(C_right)])
             Tp_min = (Tstop - 273.0) * 0.95

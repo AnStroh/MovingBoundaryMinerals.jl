@@ -1,5 +1,5 @@
 using Test
-using Diff_Coupled, Diff_Coupled.Benchmarks
+using MOBILE, MOBILE.Benchmarks
 using LinearAlgebra, LaTeXStrings, SparseArrays
 #Main function-------------------------------------------------
 function main(plot_sim,verbose)
@@ -70,11 +70,11 @@ function main(plot_sim,verbose)
     dt       = 0.0                              #Initial time step
     L_g      = spzeros(length(x),length(x))     #Global left hand side matrix
     Mass     = Float64[]                        #Array to store the mass of the system
-    R_g      = zeros(length(x),1)               #Global right hand side vector    
+    R_g      = zeros(length(x),1)               #Global right hand side vector
     #Calculate initial Ds, KD, T---------------------------------------------
     D_l, D_r, KD, T = update_t_dependent_param!(D0,Di,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
     #Checks------------------------------------------------------------
-    MB_Error = Float64[]                        #Array to store the mass error   
+    MB_Error = Float64[]                        #Array to store the mass error
     #First check for correct setup-------------------------------------
     if BCout[1] != 0 && (n == 3 || n == 2)
         error("The code is only valid for cylindrical/spherical geometry, where the left outer BC has Neumann conditions (0).")

@@ -1,8 +1,8 @@
-module Benchmarks 
-    
-    using ..Diff_Coupled
+module Benchmarks
+
+    using ..MOBILE
     using LinearAlgebra, BenchmarkTools, SpecialFunctions
-    
+
     export analytical_sol_step_function, analytical_sol_half_space, calc_sinus_sphere, crank_time_transformation1, crank_time_transformation2, lasaga, rayleigh_fractionation ,smith,crank_time_transformation3
 
     """
@@ -29,7 +29,7 @@ module Benchmarks
         x0  = copy(x)
         C   = copy(C0)
         Can = (C[end] + C[1]) * inv(2.0) .+ (C[end] - C[1]) * inv(2.0) * erf.((x0 .- Ri[1]) * inv(2.0) * inv(sqrt(Di * t_tot)))       #Single step function
-        return Can   
+        return Can
     end
 
     """
@@ -56,7 +56,7 @@ module Benchmarks
         x0  = copy(x)
         C   = copy(C0)
         Can =  C[1] .+ (C[end] - C[1]) * erf.((x0 .- H) * inv(2.0) * inv(sqrt(Di * t_tot)))         #Half-space solution
-        return Can   
+        return Can
     end
 
     """
@@ -82,10 +82,10 @@ module Benchmarks
     function calc_sinus_sphere(x0,C0,D,tot,nterms)
         #Routine to test a linear diffusion code with Neumann BC
         #The solution is based on the eigenfuction expansion method
-        #Crank (1975): The Mathematics of Diffusion, chapter: 6.3 
+        #Crank (1975): The Mathematics of Diffusion, chapter: 6.3
         C = copy(C0)
         x = copy(x0)
-        C1   = C0[1] 
+        C1   = C0[1]
         Cs  = C0[end]
         L   = x0[end]
         for nt = 1:nterms
@@ -128,8 +128,8 @@ module Benchmarks
         Dan     = D0.*exp.(-E.*inv.(R .* Tan))
         zeta    = trapezoidal_integration(tan,Dan)
         index   = findfirst(C0 -> C0 != Cl_i, C0)
-        H       = x0[index]                                                                         #Location of the step                                                              
-        C_Crank = C0[1] .+ (C0[end] - C0[1]) * erf.((x0 .- H) * inv(2.0 * sqrt(zeta)))              #Half-space solution       
+        H       = x0[index]                                                                         #Location of the step
+        C_Crank = C0[1] .+ (C0[end] - C0[1]) * erf.((x0 .- H) * inv(2.0 * sqrt(zeta)))              #Half-space solution
         return C_Crank
     end
 
@@ -198,7 +198,7 @@ module Benchmarks
         #Analytical solution diffusion in a sphere, Crank (1975)
         C_Crank = copy(C0)
         xan     = copy(x0)
-        C1      = C0[1] 
+        C1      = C0[1]
         Cs      = C0[end]
         L       = x0[end]
         for nt = 1:nterms
@@ -242,7 +242,7 @@ module Benchmarks
         Cliquid/C_tot = F^(KD-1) F: melt fraction    => C_tot = 1 (closed system)
         KD = Cs/Cl =#
         #Fractions Rayleigh Limit------------------------------------
-        Ray_Fs = LinRange(Ri0[1] *inv(Ri0[2]),Ri[1] * inv(Ri0[2]),1000) .^ n                        #Solid fraction; solid = solid/liquid fraction 
+        Ray_Fs = LinRange(Ri0[1] *inv(Ri0[2]),Ri[1] * inv(Ri0[2]),1000) .^ n                        #Solid fraction; solid = solid/liquid fraction
         Ray_Fl = 1.0 .- Ray_Fs                                                                      #Liquid fraction
         Ray_Cl = Ray_Fl .^ (KD0 - 1.0) .* C0_r[end]                                                 #Liquid composition
         Ray_Cs = Ray_Cl .* KD0                                                                      #Solid composition
@@ -255,7 +255,7 @@ module Benchmarks
         C_l_p  = zeros(size(C_left))
         C_l_p  = copy(C_left[LinearIndices(indi)])
         C_bc_p = linear_interpolation_1D(x_left,C_left,Ri0[1])
-        C_l_p  = [C_bc_p C_l_p'] 
+        C_l_p  = [C_bc_p C_l_p']
         return Ray_Fs, Ray_Fl, Ray_Cl, Ray_Cs, C_l_p, phi_solid
     end
 
@@ -291,9 +291,9 @@ module Benchmarks
             R    = V_ip
             ksi  = 0.5 .* (Dan .* tan) .^ (-0.5)
             Can0 = C_right[end]
-            Can  = 1.0 .+ ((1.0 .- Kan) .* inv(2.0 * Kan)) .* exp.(- R .* inv(Dan) .* xan) .* erfc.(ksi .* (xan .- R .* tan)) .- 
-                    0.5 .* erfc.(ksi .* (xan .+ R .* tan)) .+ ((1.0 .- Kan) .* inv(2.0)) .* (1.0 .* inv(1.0 .- Kan) .- 1.0 .* inv(Kan)) .* 
-                    exp.(- (1.0 .- Kan) .* (R .* inv(Dan)) .* (xan .+ Kan .* R .* tan)) .* 
+            Can  = 1.0 .+ ((1.0 .- Kan) .* inv(2.0 * Kan)) .* exp.(- R .* inv(Dan) .* xan) .* erfc.(ksi .* (xan .- R .* tan)) .-
+                    0.5 .* erfc.(ksi .* (xan .+ R .* tan)) .+ ((1.0 .- Kan) .* inv(2.0)) .* (1.0 .* inv(1.0 .- Kan) .- 1.0 .* inv(Kan)) .*
+                    exp.(- (1.0 .- Kan) .* (R .* inv(Dan)) .* (xan .+ Kan .* R .* tan)) .*
                     erfc.(ksi .* (xan .+ (2.0 .* Kan .- 1.0) .* R .* tan))
             Can  = Can * Can0                                                                       #Solution for liquid
         end

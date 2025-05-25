@@ -119,7 +119,7 @@ function B5(; plot_sim = false, verbose = false)
             fs = 12.0
             p1 = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
             p1 = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
-            p1 = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
+            p1 = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[-]}",
                         ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on,dpi = 300,
                             legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                             legend_foreground_color = :transparent,ylim=(-3.0,125))
@@ -158,7 +158,7 @@ if run_and_plot
         fs = 12.0
         p1 = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
         p1 = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
-        p1 = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
+        p1 = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[-]}",
                     ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on)
         p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
         p1 = scatter!([xan[1:2:end].+Ri[1]],[Can[1:2:end]], marker=:circle, markersize=2.0, label=L"\mathrm{Analytical\ solution}",
@@ -169,7 +169,7 @@ if run_and_plot
         p2 = plot(x_right,C_right, lw=2, label=L"\mathrm{Numerical\ solution}", color = palette(:auto)[2])
         p2 = scatter!([xan[1:5:end].+Ri[1]],[Can[1:5:end]], marker=:circle, markersize=2.0, label=L"\mathrm{Analytical\ solution}",
                  markerstrokecolor=:crimson, markercolor=:crimson, dpi = 300,
-                 xlabel = L"x\ \mathrm{[m]}", ylabel = L"C\ \mathrm{[-]}")
+                 xlabel = L"x\ \mathrm{[-]}", ylabel = L"C\ \mathrm{[-]}")
         p2 = scatter!([xan[end].+Ri[1]],[Can[end]], marker=:circle, markersize=2.0,markerstrokecolor=:crimson, markercolor=:crimson, label="")
         p2 = annotate!(1.5, 124, L"\mathrm{(b)}")
         plot(p1,p2,dpi = 300, legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,

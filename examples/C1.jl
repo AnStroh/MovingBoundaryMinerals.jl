@@ -121,7 +121,7 @@ function C1(; plot_sim = false, verbose = false)
             fs = 12
             p1 = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
             p1 = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
-            p1 = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
+            p1 = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[-]}",
                   ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on)
             p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}",
                         dpi = 300,legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
@@ -160,7 +160,7 @@ if run_and_plot
         fs = 12.0
         p1 = plot(x_left,C_left, lw=2, label=L"\mathrm{Left\ side}")
         p1 = plot!(x_right,C_right, lw=2, label=L"\mathrm{Right\ side}")
-        p1 = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[m]}",
+        p1 = plot!(x0,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[-]}",
               ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on)
         p1 = plot!([Ri[1]; Ri[1]], [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
         p1 = annotate!(0.15, 0.49, L"\mathrm{(a)}")

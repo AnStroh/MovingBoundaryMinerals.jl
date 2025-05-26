@@ -1,9 +1,9 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
-MOBILE = "ede1ac2d-c776-4409-bf2f-c421e41a2d87"
+MovingBoundaryMinerals = "ede1ac2d-c776-4409-bf2f-c421e41a2d87"
 
 [sources]
-MOBILE = {path = ".."}
+MovingBoundaryMinerals = {path = ".."}
 
 [compat]
 Documenter = "1"

@@ -1018,7 +1018,7 @@ with a filename `save_name` that includes the current date and time.
 - `save_file::Bool`: A flag indicating whether to save the figure or not.
 """
 
-function save_figure(save_name::String = "My_example",save_path::String = "MOBILE.jl",save_file::Bool = false)
+function save_figure(save_name::String = "My_example",save_path::String = "MovingBoundaryMinerals.jl",save_file::Bool = false)
     if save_file
         !isdir(save_path) && mkdir(save_path)
         current_time = Dates.format(Dates.now(), "dd_mm_yy_HHMMSS")

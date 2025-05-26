@@ -1,5 +1,5 @@
 using Test
-using MOBILE, MOBILE.Benchmarks
+using MovingBoundaryMinerals, MovingBoundaryMinerals.Benchmarks
 
 include("../examples/C1.jl")
 #Testing-----------------------------------------------------------------------

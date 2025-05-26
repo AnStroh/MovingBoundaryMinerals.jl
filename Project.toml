@@ -1,11 +1,10 @@
-name = "MOBILE"
+name = "MovingBoundaryMinerals"
 uuid = "ede1ac2d-c776-4409-bf2f-c421e41a2d87"
 authors = ["Annalena Stroh <anstroh@uni-mainz.de>, Evangelos Moulas <evmoulas@uni-mainz.de>, Pascal Aellig <paellig@uni-mainz.de>"]
 version = "0.1.0"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
-ColorSchemes = "35d6a980-a343-548e-a6ea-1d62b119f2f4"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
@@ -20,4 +19,17 @@ SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
+CSV = "0.10"
+DataFrames = "1.7"
+Dates = "1.10, 1.11"
+DelimitedFiles = "1.9"
+FileIO = "1"
+ImageIO = "0.6"
+Interpolations = "0.16"
+LaTeXStrings = "1.4"
+Plots = "1.40"
+SparseArrays = "1.10, 1.11"
+LinearAlgebra = "1.10, 1.11"
+SpecialFunctions = "2.5"
+Statistics = "1.10, 1.11"
 julia = "1.10, 1.11"

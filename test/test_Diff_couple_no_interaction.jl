@@ -1,5 +1,5 @@
 using Test
-using MOBILE, MOBILE.Benchmarks
+using MovingBoundaryMinerals, MovingBoundaryMinerals.Benchmarks
 
 include("../examples/Diff_couple_no_interaction.jl")
 #Testing-----------------------------------------------------------------------

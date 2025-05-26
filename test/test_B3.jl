@@ -1,5 +1,5 @@
 using Test
-using MOBILE, MOBILE.Benchmarks
+using MovingBoundaryMinerals, MovingBoundaryMinerals.Benchmarks
 include("../examples/B3.jl")
 #Testing-----------------------------------------------------------------------
 @testset "Diffusion couple (flux) - Lasaga (1983)" begin

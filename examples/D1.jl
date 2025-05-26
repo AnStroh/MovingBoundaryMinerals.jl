@@ -1,5 +1,5 @@
 using MOBILE
-using Plots, LinearAlgebra, DelimitedFiles, SparseArrays, LaTeXStrings
+using Plots, LinearAlgebra, DelimitedFiles, SparseArrays, LaTeXStrings, Statistics
 #Main function--------------------------------------------------------------
 function D1(; plot_sim = false, verbose = false)
     #If you find a [] with two entries this belong to the respective side of
@@ -11,21 +11,21 @@ function D1(; plot_sim = false, verbose = false)
     beta        = 90.0                                                                                  #Ideal angle between [001] and [100] (a-c-plane)
     gamma       = 90.0                                                                                  #Ideal angle between [010] and [100] (a-b-plane)
     deltaV      = 7*10^-6                                                                               #Volume change in [m^3/mol]
-    Ri          = 0.0005                                                                                #Position of the interface -> initial radius of the left phase in [m]
+    Ri          = 0.0001                                                                                #Position of the interface -> initial radius of the left phase in [m]
     Tstart      = 1400.0 + 273.0                                                                        #Starting temperature in [K]
     Tstop       = 1350.0 + 273.0                                                                        #End temperature in [K]
     P           = 10^6                                                                                  #Pressure in [Pa]
     R           = 8.314472                                                                              #Universal gas constant in [J/(mol*K)]
     Myr2Sec     = 60*60*24*365.25*1e6                                                                   #Conversion factor from Myr to s
-    t_tot       = 1e-8*Myr2Sec                                                                          #Total time [s]
+    t_tot       = 60*60*24*30                                                                           #Total time [s]
     n           = 1                                                                                     #Geometry; 1: planar, 2: cylindrical, 3: spherical
-    CompInt     = 0.25                                                                                  #Composition of interest of the solid solution (Mg number)
+    CompInt     = 0.50                                                                                  #Composition of interest of the solid solution (Fe number)
     coeff       = readdlm("examples/Examples_phase_diagram/Coefficients_Reaction_lines.csv")            #Reads the coefficients for the linear least squares
     eq_values   = [coeff[1,1]  coeff[2,1]  coeff[3,1];	                                                #Coefficients for composition calculation of component B (stable at higher T) X2 = a2 + b2*T + c2*T²
                    coeff[1,2]  coeff[2,2]  coeff[3,2]]                                                  #Coefficients for composition calculation of component A (stable at lower T) X1 = a1 + b1*T + c1*T²
     rho_phases  = readdlm("./examples/Examples_phase_diagram/density_phases copy.tab")                  #Reads the density values for the phases
     #Numerics---------------------------------------------------------------
-    CFL                 = 5.0                                                                           #CFL condition
+    CFL                 = 50.0                                                                          #CFL condition
     res                 = [50 50;]                                                                      #Number of nodes
     resmin              = copy(res)                                                                     #Minimum number of nodes
     MRefin              = 2.0                                                                           #Refinement factor
@@ -56,7 +56,7 @@ function D1(; plot_sim = false, verbose = false)
     #Create other arrays----------------------------------------------------
     R_left              = C_leftlin .* inv.((1.0 .- C_leftlin))                                         #Composition rate in phase A
     R_right             = C_rightlin .* inv.((1.0 .- C_rightlin))                                       #Composition rate in phase B
-    KDlin               = R_left .* inv.(R_right)                                                       #Partition coefficient KD
+    KDlin               = R_left .* inv.(R_right)                                                       #KD coefficient
     Tpath               = LinRange(Tstart,Tstop,10000)                                                  #Temperature path in [K]
     tpath               = LinRange(0,t_tot+1e-10,10000)                                                 #Time path in [s]
     #Preprocess and initial condition---------------------------------------
@@ -65,7 +65,7 @@ function D1(; plot_sim = false, verbose = false)
     T                   = copy(Tstart)                                                                  #Initial temperature
     C_leftB, C_rightB   = composition(coeff_up,coeff_do,T)                                              #Initial composition of the phases
     Xc                  = (1.0 - CompInt) * C_rightB + CompInt * C_leftB                                #Actual total composition (Xc intersection with black dashed line, e.g. Xc = C(Ol)*V(Ol)+C(melt)*V(melt)
-    log10D_001          = log10(D0) - (Ea + (P-10^5)* deltaV)/(2.303*R*Tstart) + 3*((1-C_leftB)-0.14)   #log10(diffusion coefficient Olivine) following Dohmen & Chakraborty (2007)
+    log10D_001          = log10(D0) - (Ea + (P-10^5)* deltaV)/(2.303*R*Tstart) + 3*(C_leftB - 0.14)     #log10(diffusion coefficient Olivine) following Dohmen & Chakraborty (2007)
     log10D_others       = log10D_001 - log10(6.0)                                                       #log10(diffusion coefficient Olivine) following Dohmen & Chakraborty (2007)
     D_001               = 10^log10D_001                                                                 #Diffusion coefficient in direction 001
     D_010               = 10^log10D_others                                                              #Diffusion coefficient in direction 010
@@ -123,7 +123,7 @@ function D1(; plot_sim = false, verbose = false)
         dC  = C_right[1] - C_left[end]                                                                  #Composition difference
         rho = calculate_density(Xwm[:,1],Twm[1,:],rho_left,rho_right,C_leftB,C_rightB,T)
         #Calculate diffusivities--------------------------------------------
-        log10D_001    = log10(D0) - (Ea + (P-10^5)* deltaV)/(2.303*R*T) + 3*((1-C_left[end])-0.14)      #log10(diffusion coefficient Olivine) following Dohmen & Chakraborty (2007)
+        log10D_001    = log10(D0) - (Ea + (P-10^5)* deltaV)/(2.303*R*T) + 3*(mean(C_left) - 0.14)       #log10(diffusion coefficient Olivine) following Dohmen & Chakraborty (2007)
         log10D_others = log10D_001 - log10(6.0)                                                         #log10(diffusion coefficient Olivine) following Dohmen & Chakraborty (2007)
         D_001         = 10^log10D_001                                                                   #Diffusion coefficient in direction 001
         D_010         = 10^log10D_others                                                                #Diffusion coefficient in direction 010

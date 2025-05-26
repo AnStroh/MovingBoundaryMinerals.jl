@@ -47,7 +47,7 @@ function CSP(; plot_sim = false, verbose = false)
     #Create other arrays----------------------------------------------------
     R_left              = C_leftlin .* inv.((1.0 .- C_leftlin))                                         #Composition rate in phase A
     R_right             = C_rightlin .* inv.((1.0 .- C_rightlin))                                       #Composition rate in phase B
-    KDlin               = R_left .* inv.(R_right)                                                       #Partition coefficient KD
+    KDlin               = R_left .* inv.(R_right)                                                       #KD coefficient
     Tpath               = LinRange(Tstart,Tstop,10000)                                                  #Temperature path in [K]
     tpath               = LinRange(0,t_tot+1e-10,10000)                                                 #Time path in [s]
     #Preprocess and initial condition---------------------------------------

@@ -7,9 +7,9 @@ function D1(; plot_sim = false, verbose = false)
     #Physics-----------------------------------------------------------------
     D0          = 5.38*1e-9                                                                             #Pre-exponential factor in [m^2/s]
     Ea          = 226000                                                                                #Activation energy for the left side in [J/mol]
-    alpha       = 90.0                                                                                  #Ideal angle between [001] and [010] (b-c-plane)
-    beta        = 90.0                                                                                  #Ideal angle between [001] and [100] (a-c-plane)
-    gamma       = 90.0                                                                                  #Ideal angle between [010] and [100] (a-b-plane)
+    alpha       = 0.0                                                                                   #Angle between [001] & profile
+    beta        = 90.0                                                                                  #Angle between [010] & profile
+    gamma       = 90.0                                                                                  #Angle between [100] & profile
     deltaV      = 7*10^-6                                                                               #Volume change in [m^3/mol]
     Ri          = 0.0001                                                                                #Position of the interface -> initial radius of the left phase in [m]
     Tstart      = 1400.0 + 273.0                                                                        #Starting temperature in [K]
@@ -28,7 +28,7 @@ function D1(; plot_sim = false, verbose = false)
     CFL                 = 50.0                                                                          #CFL condition
     res                 = [50 50;]                                                                      #Number of nodes
     resmin              = copy(res)                                                                     #Minimum number of nodes
-    MRefin              = 2.0                                                                           #Refinement factor
+    MRefin              = 5.0                                                                           #Refinement factor
     BCout               = [0 0]                                                                         #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
                                                                                                         #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Create data set--------------------------------------------------------
@@ -245,7 +245,7 @@ if run_and_plot
     plot_sim  = false
     plot_end  = true
     verbose   = false
-    save_file = false
+    save_file = true
     x_left, x_right, x0, C_left, C_right, C0, maxC, Tlin, XC_left, XC_right, T, Tstart, Tstop, KDlin, KD_sim,T_sim, Mass0, Mass, Mass01, Mass2, C_left_check, C_right_check, T_check,Residual, MB_Error = D1(; plot_sim = plot_sim, verbose = verbose)
     if plot_end
         #Title: Thermodynamical constrained Stefan condition

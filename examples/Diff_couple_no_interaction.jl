@@ -1,4 +1,4 @@
-using MOBILE
+using MovingBoundaryMinerals
 using Plots, LinearAlgebra, LaTeXStrings,SparseArrays
 #Main function----------------------------------------------------
 function DCNI(; plot_sim = false,verbose = false)

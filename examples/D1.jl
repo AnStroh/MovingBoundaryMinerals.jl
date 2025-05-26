@@ -1,4 +1,4 @@
-using MOBILE
+using MovingBoundaryMinerals
 using Plots, LinearAlgebra, DelimitedFiles, SparseArrays, LaTeXStrings, Statistics
 #Main function--------------------------------------------------------------
 function D1(; plot_sim = false, verbose = false)

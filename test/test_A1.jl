@@ -1,5 +1,5 @@
 using Test
-using MOBILE
+using MovingBoundaryMinerals
 # using LinearAlgebra, LaTeXStrings, SparseArrays
 include("../examples/A1.jl")
 #Testing-----------------------------------------------------------------------

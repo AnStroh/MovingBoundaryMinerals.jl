@@ -1,4 +1,4 @@
-using MOBILE, MOBILE.Benchmarks
+using MovingBoundaryMinerals, MovingBoundaryMinerals.Benchmarks
 using Plots, LinearAlgebra, LaTeXStrings, SparseArrays
 #Main function----------------------------------------------------
 function B3(; adapt_dt = true, plot_sim = false, verbose = false)

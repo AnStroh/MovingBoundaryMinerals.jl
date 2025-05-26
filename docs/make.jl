@@ -1,7 +1,7 @@
 using Documenter
-using MOBILE
+using MovingBoundaryMinerals
 
-# Get MOBILE.jl root directory
+# Get MovingBoundaryMinerals.jl root directory
 DC_root_dir = dirname(@__DIR__)
 
 license = read(joinpath(DC_root_dir, "LICENSE.md"), String)
@@ -22,7 +22,7 @@ open(joinpath(@__DIR__, "src", "man", "license.md"), "w") do io
   # Point to source license file
   println(io, """
   ```@meta
-  EditURL = "https://github.com/AnStroh/MOBILE.jl/blob/main/LICENSE.md"
+  EditURL = "https://github.com/AnStroh/MovingBoundaryMinerals.jl/blob/main/LICENSE.md"
   ```
   """)
   # Write the modified contents
@@ -38,7 +38,7 @@ open(joinpath(@__DIR__, "src", "man", "code_of_conduct.md"), "w") do io
   # Point to source license file
   println(io, """
   ```@meta
-  EditURL = "https://github.com/AnStroh/MOBILE.jl/blob/main/CODE_OF_CONDUCT.md"
+  EditURL = "https://github.com/AnStroh/MovingBoundaryMinerals.jl/blob/main/CODE_OF_CONDUCT.md"
   ```
   """)
   # Write the modified contents
@@ -54,7 +54,7 @@ open(joinpath(@__DIR__, "src", "man", "contributing.md"), "w") do io
     # Point to source license file
     println(io, """
     ```@meta
-    EditURL = "https://github.com/AnStroh/MOBILE.jl/blob/main/CONTRIBUTING.md"
+    EditURL = "https://github.com/AnStroh/MovingBoundaryMinerals.jl/blob/main/CONTRIBUTING.md"
     ```
     """)
     # Write the modified contents
@@ -66,9 +66,9 @@ open(joinpath(@__DIR__, "src", "man", "contributing.md"), "w") do io
   end
 @info "Making documentation..."
 makedocs(;
-    sitename="MOBILE.jl",
+    sitename="MovingBoundaryMinerals.jl",
     authors="Annalena Stroh, Evangelos Moulas and contributors",
-    modules=[MOBILE],
+    modules=[MovingBoundaryMinerals],
     format=Documenter.HTML(; assets = ["assets/favicon.ico"],
     prettyurls=get(ENV, "CI", nothing) == "true",
     size_threshold_ignore = ["man/listfunctions.md"]), # easier local build
@@ -89,9 +89,9 @@ makedocs(;
     ],
 )
 
-withenv("GITHUB_REPOSITORY" => "AnStroh/MOBILE.jl") do
+withenv("GITHUB_REPOSITORY" => "AnStroh/MovingBoundaryMinerals.jl") do
      deploydocs(
-         repo = "github.com/AnStroh/MOBILE.jl",
+         repo = "github.com/AnStroh/MovingBoundaryMinerals.jl",
          devbranch = "main",
          push_preview = true
      )

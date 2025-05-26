@@ -1,4 +1,4 @@
-using MOBILE
+using MovingBoundaryMinerals
 using Plots, LinearAlgebra, DelimitedFiles, SparseArrays, LaTeXStrings
 #Main function--------------------------------------------------------------
 function CSP(; plot_sim = false, verbose = false)

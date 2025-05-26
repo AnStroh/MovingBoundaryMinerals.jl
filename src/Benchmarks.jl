@@ -1,6 +1,6 @@
 module Benchmarks
 
-    using ..MOBILE
+    using ..MovingBoundaryMinerals
     using LinearAlgebra, SpecialFunctions
 
     export analytical_sol_step_function, analytical_sol_half_space, calc_sinus_sphere, crank_time_transformation1, crank_time_transformation2, lasaga, rayleigh_fractionation ,smith,crank_time_transformation3

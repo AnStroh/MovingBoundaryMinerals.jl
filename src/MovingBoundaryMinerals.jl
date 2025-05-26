@@ -1,4 +1,4 @@
-module MOBILE
+module MovingBoundaryMinerals
 
 using LinearAlgebra, SpecialFunctions,Interpolations
 using SparseArrays

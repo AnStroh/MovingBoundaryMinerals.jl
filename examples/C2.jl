@@ -11,7 +11,7 @@ function C2(; plot_sim = false, verbose = false)
     rho     = [1.0     1.0;]                                    #Normalized densities in [-]                        -> not used in this example
     Ri      = [5.0     10;]                                     #Initial radii [interface    total length] in [m]   -> in [L]
     Cl_i    = 0.1                                               #Initial composition left side in [-]               -> in [C]
-    Cr_i    = Cl_i/50.0                                         #Initial composition right side in [-]              -> -//-
+    Cr_i    = Cl_i/20.0                                         #Initial composition right side in [-]              -> -//-
     V_ip    = -5e-3                                             #Interface velocity in [m/s]                        -> in [V]
     R       = NaN                                               #Universal gas constant in [J/(mol*K)]              -> not used in this example
     Ea1     = NaN                                               #Activation energy for the left side in [J/mol]     -> not used in this example
@@ -20,17 +20,17 @@ function C2(; plot_sim = false, verbose = false)
     t_tot   = 3e2                                               #Total time [s]                                     -> in [L]/[V]
     n       = 3                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
-    KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i*0.5,1000)            #Partition coefficient array to calculate distribution coefficient history; KD changes with respect to time;
+    KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i*0.5,1000)            #KD array to calculate distribution coefficient history; KD changes with respect to time;
                                                                 #The last value must be equal to the distribution coefficient at t = t_tot.
     t_ar    = LinRange(0.0,t_tot,1000)                          #Time array (in [s]) to calculate history over time. The last value must be equal to t_tot.
                                                                 #The user is prompted to specify suitable time intervals in relation to the respective destination.
     T_ar    = LinRange(1273.15,1073.15,1000)                    #Temperature array in [K] to calculate temperature history; T changes with respect to time;
                                                                 #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
-    CFL    = 0.4                                                #CFL condition
-    res    = [80 120;]                                          #Number of nodes
+    CFL    = 0.005                                              #CFL condition
+    res    = [200 250;]                                         #Number of nodes
     resmin = copy(res)                                          #Minimum number of nodes
-    MRefin = 50.0                                               #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
+    MRefin = 10.0                                               #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
     BCout  = [0 0]                                              #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
                                                                 #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Non-dimensionslization---------------------------------------

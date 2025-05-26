@@ -1118,7 +1118,7 @@ differ from SI units if non-dimensionalisation has been performed.
 - `Cl_i::Float64`: Initial composition on the left side in [-].
 - `beta::Float64`: Variable from Lasagas semi-analytical solution.
 - `t::Float64`: Time in [s].
-- `KD::Float64`: Partition coefficient.
+- `KD::Float64`: Distribution coefficient.
 - `D_r::Float64`: Diffusion coefficient on the right side in [m²/s].
 - `D_l::Float64`: Diffusion coefficient on the left side in [m²/s].
 - `D0::Array{Float64}`: Pre-exponential factor within the equation for the diffusion coefficient (`D`` at T0).
@@ -1359,7 +1359,7 @@ function update_t_dependent_param!(D0,Di,Ea1,Ea2,KD_ar,R,T_ar,t_ar,t,t_tot)
         println("t = t_tot -> T and KD are set to the last values of the arrays.")
     elseif minimum(KD) < minimum(KD_ar) - tol || maximum(KD) > maximum(KD_ar) + tol
         @show KD
-        error("Partition coefficient exceeds the values of KD_ar.")
+        error("KD exceeds the values of KD_ar.")
     elseif minimum(T) < minimum(T_ar) - tol || maximum(T) > maximum(T_ar) + tol
         @show T
         error("Temperature exceeds the values of T_ar.")

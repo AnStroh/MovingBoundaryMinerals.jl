@@ -20,7 +20,7 @@ function B6(; plot_sim = false, verbose = false)
     t_tot   = 3e2                                               #Total time [s]                                     -> in [L]/[V]
     n       = 3                                                 #Geometry; 1: planar, 2: cylindrical, 3: spherical
     #History dependent parameters---------------------------------
-    KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i*0.5,1000)            #Partition coefficient array to calculate distribution coefficient history; KD changes with respect to time;
+    KD_ar   = LinRange(Cl_i/Cr_i,Cl_i/Cr_i*0.5,1000)            #KD array to calculate distribution coefficient history; KD changes with respect to time;
                                                                 #The last value must be equal to the distribution coefficient at t = t_tot.
     t_ar    = LinRange(0.0,t_tot,1000)                          #Time array (in [s]) to calculate history over time. The last value must be equal to t_tot.
                                                                 #The user is prompted to specify suitable time intervals in relation to the respective destination.

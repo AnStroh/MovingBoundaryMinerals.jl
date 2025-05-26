@@ -222,7 +222,7 @@ module Benchmarks
     - `Ri0::Vector{Float64}`: Initial radii.
     - `Ri::Vector{Float64}`: Actuel radii.
     - `C0_r::Vector{Float64}`: Initial concentrations.
-    - `KD0::Float64`: Partition coefficient.
+    - `KD0::Float64`: Distribution coefficient.
     - `n::Int`: Geometry factor.
 
     # Returns
@@ -270,7 +270,7 @@ module Benchmarks
     - `Ri::Array{Float64}`: Actuel radii.
     - `Di::Array{Float64}`: Array of diffusion coefficients.
     - `t_tot::Float64`: Total time.
-    - `KD::Float64`: Partition coefficient.
+    - `KD::Float64`: Distribution coefficient.
     - `V_ip::Float64`: Interface velocity.
     - `n::Int`: Geometry factor.
 

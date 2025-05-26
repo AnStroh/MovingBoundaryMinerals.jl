@@ -87,7 +87,7 @@ function B3(; adapt_dt = true, plot_sim = false, verbose = false)
     #doi: 10.1007/978-1-4612-5587-1-------------------------------
     betap = dH0 * s * inv(R) .* inv.(T0) .^ 2
     beta  = (dH0 * s * sqrt.(D_r .* inv.(D_l))) .* inv.((R .* T0 .^ 2 .* (sqrt.(D_r .* inv.(D_l)) .* (1 + Cl_i .* inv(1 - Cl_i)) + (Cl_i .* inv(Cr_i) + Cl_i * inv(1 - Cr_i)))))
-    KD_ar = KD0 * exp.(-betap .* t_ar)                                      #Partition coefficient array to calculate distribution coefficient history; KD changes with respect to time;
+    KD_ar = KD0 * exp.(-betap .* t_ar)                                      #KD array to calculate distribution coefficient history; KD changes with respect to time;
                                                                             #The last value must be equal to the distribution coefficient at t = t_tot.
     #First check for correct setup--------------------------------
     if n != 1

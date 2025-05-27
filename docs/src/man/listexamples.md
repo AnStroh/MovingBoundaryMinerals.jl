@@ -8,13 +8,13 @@ Examples with the letter A refer to diffusion models in a single material, while
 3. B1: Intercrystalline diffusion within a spherical diffusion couple
 4. B2: Diffusion within a spherical diffusion couple for the case of time-evolving  diffusivity
 5. B3: Major element diffusion within a diffusion couple
-6. B4: Spherical crystal growth due to Rayleigh fractionation in a growth and diffusion couple with D^A<<D^B
+6. B4: Spherical crystal growth due to Rayleigh fractionation in a growth and diffusion couple with $`D^A << D^B`$
 7. B5: Growth of an alloy from a melt in a planar geometry
-8. B6:
-9. B7:
-10. C1: Spherical crystal growth due to Rayleigh fractionation in a growth and diffusion couple with D^A<<D^B
-11. C2:
-12. D1:
+8. B6: Growth of a spherical crystal in a diffusion couple ($`v_A > 0`$)
+9. B7: Growth of a spherical crystal in a diffusion couple ($`v_A < 0`$)
+10. C1: Spherical crystal growth due to Rayleigh fractionation in a growth and diffusion couple with $`D^A << D^B`$
+11. C2: Growth of a spherical crystal in a diffusion couple ($`v_A < 0`$)
+12. D1: Diffusion-limited crystal growth of olivine
 13. Simple_Diff: Diffusion within a single crystall
 14. Diff_couple_no_interaction: Diffusion couple, which is build from 2 single crystals without an ion-exchange reaction
 15. Diff_couple_Flux: Diffusion couple with ion-exchange using flux balance at the interface

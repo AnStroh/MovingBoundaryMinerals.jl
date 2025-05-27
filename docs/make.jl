@@ -76,9 +76,9 @@ makedocs(;
     warnonly = Documenter.except(:footnote),
     pages=[
         "Home"      => "index.md",
-        []: #"General Remarks" => "man/general_remarks.md",
-        []: #"Stefan Problem" => "man/stefan_problem.md",
-        []: #"Digitization" => "man/digitalization.md",
+        #"General Remarks" => "man/general_remarks.md",
+        #"Stefan Problem" => "man/stefan_problem.md",
+        #"Digitization" => "man/digitalization.md",
         "List of examples" => "man/listexamples.md",
         "List of functions" => "man/listfunctions.md",
         "Authors" => "man/authors.md",

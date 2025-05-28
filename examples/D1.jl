@@ -262,6 +262,7 @@ if run_and_plot
         p1 = plot!(x0*1e3,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
               ylabel = L"X_{Fe}", lw=1.5, grid=:on, legend = :right)
         p1 = plot!([x_left[end]; x_left[end];]*1e3, [0; 1*(maxC + 0.01)], color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}",ylim=[C0[1]-0.05; 1*(maxC + 0.01)])
+        p2 = annotate!(0.015, 0.75, L"\mathrm{(a)}")
         #Phase diagram
         p2 = plot(Tlin .- 273.0,XC_left, lw=2, label=L"\mathrm{Left\ side}")
         p2 = plot!(Tlin .- 273.0,XC_right, lw=2, label=L"\mathrm{Right\ side}")
@@ -277,6 +278,7 @@ if run_and_plot
         p2 = plot!([T-273.0; T-273.0],[0; maximum([C_left[end],C_right[1]])],lw=1.5,color=:grey68,linestyle=:dashdot,label=L"\mathrm{T(t_{tot})}")
         p2 = plot!([T-273.0; 0],[C_left[end];C_left[end]],lw=1.5, label="",color=:royalblue,linestyle =:dot)
         p2 = plot!([T-273.0; 0],[C_right[1];C_right[1]],lw=1.5, label="",xlims=(Tp_min, Tp_max), ylims=(0, 1),color=:crimson,linestyle =:dot)
+        p2 = annotate!(1300, 0.95, L"\mathrm{(b)}")
         #p2 = plot!([Tstop*0.3; Tstart*1.5],[Mass2[end]; Mass2[end]],color=:dimgrey,linestyle=:dashdot,lw=1.5, label=L"\mathrm{Final\ mass}")
         #p2 = plot!([Tstop*0.3; Tstart*1.5],[Mass01; Mass01],color=:grey,linestyle=:dashdot,lw=1.5, label=L"\mathrm{Initial\ mass}",
         #            xlabel = L"T\ \mathrm{[°C]}", ylabel = L"X_{Mg}",grid=:on,legend = :topright)

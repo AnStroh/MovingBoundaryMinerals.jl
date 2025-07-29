@@ -157,10 +157,10 @@ function D1(; plot_sim = false, verbose = false)
         for iit in enumerate(1)
             Massnow     = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
             Massnow2    = (trapezoidal_integration(x_left.^n*rho[1],C_left)+ trapezoidal_integration(x_right.^n*rho[2],C_right))/Ri[2]
-            R_left     = C_left[end] .* inv((1.0 - C_left[end]))
-            R_right    = C_right[1] .* inv((1.0 - C_right[1]))
-            KDt        = R_left .* inv(R_right)
-            T_pl       = copy(T)
+            R_left      = C_left[end] .* inv((1.0 - C_left[end]))
+            R_right     = C_right[1] .* inv((1.0 - C_right[1]))
+            KDt         = R_left .* inv(R_right)
+            T_pl        = copy(T)
             push!(Mass, Massnow)                                                                        #Stores the mass of the system
             push!(Mass2, Massnow2)                                                                      #Stores the mass of the system (plot)
             push!(KD_sim, KDt)                                                                          #Stores the distribution coefficient
@@ -184,30 +184,32 @@ function D1(; plot_sim = false, verbose = false)
             p1 = plot(x_left*1e3,C_left, lw=2, label=L"\mathrm{Left\ side}")
             p1 = plot!(x_right*1e3,C_right, lw=2, label=L"\mathrm{Right\ side}")
             p1 = plot!(x0*1e3,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
-                  ylabel = L"X_{Fe}", lw=1.5, grid=:on, legend = :right)
+                  ylabel = L"X\mathrm{_{Fe}}", lw=1.5, grid=:on, legend = :right)
             p1 = plot!([x_left[end]; x_left[end];]*1e3, [0; 1*(maxC + 0.01)], color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}",ylim=[C0[1]-0.05; 1*(maxC + 0.01)])
+            p1 = annotate!(0.015, 0.75, L"\mathrm{(a)}")
             #Phase diagram
             p2 = plot(Tlin .- 273.0,XC_left, lw=2, label=L"\mathrm{Left\ side}")
             p2 = plot!(Tlin .- 273.0,XC_right, lw=2, label=L"\mathrm{Right\ side}")
             p2 = scatter!([T-273.0],[C_left[end]],marker=:circle, markersize=2, markercolor=:grey68,
-                          markerstrokecolor=:grey68,label = "",ylabel = L"X_{Fe}",xlabel=L"T\ \mathrm{[°C]}")
+                          markerstrokecolor=:grey68,label = "",ylabel = L"X\mathrm{_{Fe}}",xlabel=L"T\ \mathrm{[°C]}")
             p2 = scatter!([T-273.0],[C_right[1]],marker=:circle, markersize=2, markercolor=:grey68,
                           markerstrokecolor=:grey68,label = "")
             p2 = scatter!([Tstart],[C0[51]],marker=:circle, markersize=2, markercolor=:black,
-                          markerstrokecolor=:black,label = "",ylabel = L"X_{Fe}",xlabel=L"T\ \mathrm{[°C]}")
+                          markerstrokecolor=:black,label = "",ylabel = L"X\mathrm{_{Fe}}",xlabel=L"T\ \mathrm{[°C]}")
             p2 = scatter!([Tstart],[C0[50]],marker=:circle, markersize=2, markercolor=:black,
                           markerstrokecolor=:black,label = "")
-            p2 = plot!([Tstart; Tstart],[0; maximum(C0[end])],lw=1.5,color=:black,linestyle=:dash,label=L"\mathrm{T(t=0.0)}")
-            p2 = plot!([T-273.0; T-273.0],[0; maximum([C_left[end],C_right[1]])],lw=1.5,color=:grey68,linestyle=:dashdot,label=L"\mathrm{T(t_{tot})}")
+            p2 = plot!([Tstart; Tstart],[0; maximum(C0[end])],lw=1.5,color=:black,linestyle=:dash,label=L"T(t=0.0)")
+            p2 = plot!([T-273.0; T-273.0],[0; maximum([C_left[end],C_right[1]])],lw=1.5,color=:grey68,linestyle=:dashdot,label=L"T(t_{tot})")
             p2 = plot!([T-273.0; 0],[C_left[end];C_left[end]],lw=1.5, label="",color=:royalblue,linestyle =:dot)
             p2 = plot!([T-273.0; 0],[C_right[1];C_right[1]],lw=1.5, label="",xlims=(Tp_min, Tp_max), ylims=(0, 1),color=:crimson,linestyle =:dot)
+            p2 = annotate!(1300, 0.95, L"\mathrm{(b)}")
             #p2 = plot!([Tstop*0.3; Tstart*1.5],[Mass2[end]; Mass2[end]],color=:dimgrey,linestyle=:dashdot,lw=1.5, label=L"\mathrm{Final\ mass}")
             #p2 = plot!([Tstop*0.3; Tstart*1.5],[Mass01; Mass01],color=:grey,linestyle=:dashdot,lw=1.5, label=L"\mathrm{Initial\ mass}",
             #            xlabel = L"T\ \mathrm{[°C]}", ylabel = L"X_{Mg}",grid=:on,legend = :topright)
             #p2 = scatter!([T_check],[C_left_check],marker=:circle, markersize=2, markercolor=:black,
             #              markerstrokecolor=:black,label = "Model")
             #p2 = scatter!([T_check],[C_right_check],marker=:circle, markersize=2, markercolor=:black,
-            #              markerstrokecolor=:black,label = "mODEL")
+            #              markerstrokecolor=:black,label = "model")
             #Evolution of KD(T)
             p3 = plot(Tlin .- 273.0, KDlin, lw=1.5, label=L"\mathrm{Thermodynamic\ data}", color=:black)
             p3 = scatter!([T_sim[end]-273.0],[KD_sim[end]],marker=:circle, markersize=3.0, markercolor=:black,markerstrokecolor=:black,
@@ -260,22 +262,22 @@ if run_and_plot
         p1 = plot(x_left*1e3,C_left, lw=2, label=L"\mathrm{Left\ side}")
         p1 = plot!(x_right*1e3,C_right, lw=2, label=L"\mathrm{Right\ side}")
         p1 = plot!(x0*1e3,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
-              ylabel = L"X_{Fe}", lw=1.5, grid=:on, legend = :right)
+              ylabel = L"X\mathrm{_{Fe}}", lw=1.5, grid=:on, legend = :right)
         p1 = plot!([x_left[end]; x_left[end];]*1e3, [0; 1*(maxC + 0.01)], color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}",ylim=[C0[1]-0.05; 1*(maxC + 0.01)])
-        p2 = annotate!(0.015, 0.75, L"\mathrm{(a)}")
+        p1 = annotate!(0.015, 0.75, L"\mathrm{(a)}")
         #Phase diagram
         p2 = plot(Tlin .- 273.0,XC_left, lw=2, label=L"\mathrm{Left\ side}")
         p2 = plot!(Tlin .- 273.0,XC_right, lw=2, label=L"\mathrm{Right\ side}")
         p2 = scatter!([T-273.0],[C_left[end]],marker=:circle, markersize=2, markercolor=:grey68,
-                      markerstrokecolor=:grey68,label = "",ylabel = L"X_{Fe}",xlabel=L"T\ \mathrm{[°C]}")
+                      markerstrokecolor=:grey68,label = "",ylabel = L"X\mathrm{_{Fe}}",xlabel=L"T\ \mathrm{[°C]}")
         p2 = scatter!([T-273.0],[C_right[1]],marker=:circle, markersize=2, markercolor=:grey68,
                       markerstrokecolor=:grey68,label = "")
         p2 = scatter!([Tstart],[C0[51]],marker=:circle, markersize=2, markercolor=:black,
-                      markerstrokecolor=:black,label = "",ylabel = L"X_{Fe}",xlabel=L"T\ \mathrm{[°C]}")
+                      markerstrokecolor=:black,label = "",ylabel = L"X\mathrm{_{Fe}}",xlabel=L"T\ \mathrm{[°C]}")
         p2 = scatter!([Tstart],[C0[50]],marker=:circle, markersize=2, markercolor=:black,
                       markerstrokecolor=:black,label = "")
-        p2 = plot!([Tstart; Tstart],[0; maximum(C0[end])],lw=1.5,color=:black,linestyle=:dash,label=L"\mathrm{T(t=0.0)}")
-        p2 = plot!([T-273.0; T-273.0],[0; maximum([C_left[end],C_right[1]])],lw=1.5,color=:grey68,linestyle=:dashdot,label=L"\mathrm{T(t_{tot})}")
+        p2 = plot!([Tstart; Tstart],[0; maximum(C0[end])],lw=1.5,color=:black,linestyle=:dash,label=L"T(t=0.0)")
+        p2 = plot!([T-273.0; T-273.0],[0; maximum([C_left[end],C_right[1]])],lw=1.5,color=:grey68,linestyle=:dashdot,label=L"T(t_{tot})")
         p2 = plot!([T-273.0; 0],[C_left[end];C_left[end]],lw=1.5, label="",color=:royalblue,linestyle =:dot)
         p2 = plot!([T-273.0; 0],[C_right[1];C_right[1]],lw=1.5, label="",xlims=(Tp_min, Tp_max), ylims=(0, 1),color=:crimson,linestyle =:dot)
         p2 = annotate!(1300, 0.95, L"\mathrm{(b)}")
@@ -285,7 +287,7 @@ if run_and_plot
         #p2 = scatter!([T_check],[C_left_check],marker=:circle, markersize=2, markercolor=:black,
         #              markerstrokecolor=:black,label = "Model")
         #p2 = scatter!([T_check],[C_right_check],marker=:circle, markersize=2, markercolor=:black,
-        #              markerstrokecolor=:black,label = "mODEL")
+        #              markerstrokecolor=:black,label = "model")
         #Evolution of KD(T)
         p3 = plot(Tlin .- 273.0, KDlin, lw=1.5, label=L"\mathrm{Thermodynamic\ data}", color=:black)
         p3 = scatter!([T_sim[end]-273.0],[KD_sim[end]],marker=:circle, markersize=3.0, markercolor=:black,markerstrokecolor=:black,

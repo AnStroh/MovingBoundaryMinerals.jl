@@ -86,7 +86,7 @@ function A2(; plot_sim=false)
         if plot_sim && it % 150 == 0
             # Plotting ------------------------------------------------
             fs = 12
-            p = plot(x*1000,C, lw=2, label=L"\mathrm{Current\ composition}")
+            p = plot(x*1000,C, lw=2, label=L"\mathrm{Numerical\ solution}")
             p = plot!(x0*1000,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
                     ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on,dpi = 300,
                         legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
@@ -119,7 +119,7 @@ if run_and_plot
         # Title: Simple diffusion - sphere
         # Plotting ----------------------------------------------------
         fs = 12.0
-        plot(x*1000,C, lw=2, label=L"\mathrm{Current\ composition}")
+        plot(x*1000,C, lw=2, label=L"\mathrm{Numerical\ solution}")
         plot!(x0*1000,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
               ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on)
         scatter!([xan[1:5:end]]*1000,[Can[1:5:end]], marker=:circle, markersize=2.0, label=L"\mathrm{Analytical\ solution}",

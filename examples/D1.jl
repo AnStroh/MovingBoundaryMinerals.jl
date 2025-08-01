@@ -199,7 +199,7 @@ function D1(; plot_sim = false, verbose = false)
             p2 = scatter!([Tstart],[C0[50]],marker=:circle, markersize=2, markercolor=:black,
                           markerstrokecolor=:black,label = "")
             p2 = plot!([Tstart; Tstart],[0; maximum(C0[end])],lw=1.5,color=:black,linestyle=:dash,label=L"T(t=0.0)")
-            p2 = plot!([T-273.0; T-273.0],[0; maximum([C_left[end],C_right[1]])],lw=1.5,color=:grey68,linestyle=:dashdot,label=L"T(t_{tot})")
+            p2 = plot!([T-273.0; T-273.0],[0; maximum([C_left[end],C_right[1]])],lw=1.5,color=:grey68,linestyle=:dashdot,label=L"T(t\mathrm{_{tot})}")
             p2 = plot!([T-273.0; 0],[C_left[end];C_left[end]],lw=1.5, label="",color=:royalblue,linestyle =:dot)
             p2 = plot!([T-273.0; 0],[C_right[1];C_right[1]],lw=1.5, label="",xlims=(Tp_min, Tp_max), ylims=(0, 1),color=:crimson,linestyle =:dot)
             p2 = annotate!(1300, 0.95, L"\mathrm{(b)}")
@@ -247,7 +247,7 @@ if run_and_plot
     plot_sim  = false
     plot_end  = true
     verbose   = false
-    save_file = true
+    save_file = false
     x_left, x_right, x0, C_left, C_right, C0, maxC, Tlin, XC_left, XC_right, T, Tstart, Tstop, KDlin, KD_sim,T_sim, Mass0, Mass, Mass01, Mass2, C_left_check, C_right_check, T_check,Residual, MB_Error = D1(; plot_sim = plot_sim, verbose = verbose)
     if plot_end
         #Title: Thermodynamical constrained Stefan condition
@@ -277,7 +277,7 @@ if run_and_plot
         p2 = scatter!([Tstart],[C0[50]],marker=:circle, markersize=2, markercolor=:black,
                       markerstrokecolor=:black,label = "")
         p2 = plot!([Tstart; Tstart],[0; maximum(C0[end])],lw=1.5,color=:black,linestyle=:dash,label=L"T(t=0.0)")
-        p2 = plot!([T-273.0; T-273.0],[0; maximum([C_left[end],C_right[1]])],lw=1.5,color=:grey68,linestyle=:dashdot,label=L"T(t_{tot})")
+        p2 = plot!([T-273.0; T-273.0],[0; maximum([C_left[end],C_right[1]])],lw=1.5,color=:grey68,linestyle=:dashdot,label=L"T(t\mathrm{_{tot})}")
         p2 = plot!([T-273.0; 0],[C_left[end];C_left[end]],lw=1.5, label="",color=:royalblue,linestyle =:dot)
         p2 = plot!([T-273.0; 0],[C_right[1];C_right[1]],lw=1.5, label="",xlims=(Tp_min, Tp_max), ylims=(0, 1),color=:crimson,linestyle =:dot)
         p2 = annotate!(1300, 0.95, L"\mathrm{(b)}")

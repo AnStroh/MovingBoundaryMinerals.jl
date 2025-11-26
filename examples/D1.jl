@@ -29,9 +29,9 @@ function D1(;RefineMethod = 1, plot_sim = false, verbose= false)
     res                 = [50 50;]                                                                      #Number of nodes
     resmin              = copy(res)                                                                     #Minimum number of nodes
     MRefin              = 5.0                                                                           #Refinement factor
-    RefineLevel         = 5                                                                            #Refinement level; how many times should the grid be refined
-    RefineCond          = 0.1                                                                           #Refinement condition; refine until last dx on the left side <= RefineCond * Ri[1]
-    nPoints             = 15                                                                             #Number of points for initial grid (h-refinement)
+    RefineLevel         = 3                                                                            #Refinement level; how many times should the grid be refined
+    RefineCond          = 0.01                                                                           #Refinement condition; refine until last dx on the left side <= RefineCond * Ri[1]
+    nPoints             = 20                                                                             #Number of points for initial grid (h-refinement)
     BCout               = [0 0]                                                                         #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
                                                                                                         #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Create data set--------------------------------------------------------
@@ -267,7 +267,7 @@ if run_and_plot
     plot_end  = true
     verbose   = false
     save_file = false
-    x_left, x_right, x0, C_left, C_right, C0, maxC, Tlin, XC_left, XC_right, T, Tstart, Tstop, KDlin, KD_sim,T_sim, Mass0, Mass, Mass01, Mass2, C_left_check, C_right_check, T_check,Residual, MB_Error = D1(RefineMethod = 2, plot_sim=plot_sim, verbose=verbose)
+    x_left, x_right, x0, C_left, C_right, C0, maxC, Tlin, XC_left, XC_right, T, Tstart, Tstop, KDlin, KD_sim,T_sim, Mass0, Mass, Mass01, Mass2, C_left_check, C_right_check, T_check,Residual, MB_Error = D1(RefineMethod = 1, plot_sim=plot_sim, verbose=verbose)
     if plot_end
         #Title: Thermodynamical constrained Stefan condition
         #Plotting in K-----------------------------------------------------------

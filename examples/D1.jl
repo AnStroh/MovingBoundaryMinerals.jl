@@ -1,7 +1,7 @@
 using MovingBoundaryMinerals
 using Plots, LinearAlgebra, DelimitedFiles, SparseArrays, LaTeXStrings, Statistics
 #Main function--------------------------------------------------------------
-function D1(; plot_sim = false, verbose = false)
+function D1(;RefineMethod = 1, plot_sim = false, verbose= false)
     #If you find a [] with two entries this belong to the respective side of
     #the diffusion couple ([left right])
     #Physics-----------------------------------------------------------------
@@ -29,6 +29,9 @@ function D1(; plot_sim = false, verbose = false)
     res                 = [50 50;]                                                                      #Number of nodes
     resmin              = copy(res)                                                                     #Minimum number of nodes
     MRefin              = 5.0                                                                           #Refinement factor
+    RefineLevel         = 5                                                                             #Refinement level; how many times should the grid be refined
+    RefineCond          = 0.00255                                                                       #Refinement condition; refine until last dx on the left side <= RefineCond * Ri[1]
+    nPoints             = 20                                                                            #Number of points for initial grid (h-refinement)
     BCout               = [0 0]                                                                         #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
                                                                                                         #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Create data set--------------------------------------------------------
@@ -81,7 +84,19 @@ function D1(; plot_sim = false, verbose = false)
     if res[1] > res[2]
         error("Please change the resolution of the system. res[2] >= res[1].")
     end
-    x0_left, x0_right, dx1, dx2, x0 = create_grid!(Ri,res,MRefin,verbose)
+    if RefineMethod == 1
+        x0_left, x0_right, dx1, dx2, x0 = create_grid!(Ri,res,MRefin,verbose)
+    elseif RefineMethod == 2
+        x0_left, x0_right, dx1, dx2, x0 = h_refinement1(Ri,RefineLevel,nPoints)
+        res = [length(x_left) length(x_right)]
+        resmin = copy(res)
+    elseif RefineMethod == 3
+        x0_left, x0_right, dx1, dx2, x0 = h_refinement2(Ri,RefineCond,nPoints)
+        res = [length(x_left) length(x_right)]
+        resmin = copy(res)
+    else
+        error("RefineMethod not valid. Please choose 1, 2 or 3.")
+    end
     #Calculate densities----------------------------------------------------
     rho                 = calculate_density(Xwm[:,1],Twm[1,:],rho_left,rho_right,C_leftB,C_rightB,T)    #Initial normalized densities in [-]
     #More initial conditions------------------------------------------------
@@ -152,7 +167,7 @@ function D1(; plot_sim = false, verbose = false)
         push!(C_right_check,C_right[1])
         push!(T_check, T)
         #Regrid-------------------------------------------------------------
-        x_left, x_right, C_left, C_right, dx1, dx2, res = regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, res, resmin, MRefin,verbose)
+        x_left, x_right, C_left, C_right, dx1, dx2, res = regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, res, resmin, MRefin,RefineCond,RefineLevel,nPoints,RefineMethod,verbose)
         #Post-Preprocessing-------------------------------------------------
         for iit in enumerate(1)
             Massnow     = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
@@ -241,6 +256,7 @@ function D1(; plot_sim = false, verbose = false)
     return x_left, x_right, x0, vec(C_left), vec(C_right), vec(C0),maxC, Tlin, XC_left, XC_right, T, Tstart, Tstop, KDlin, KD_sim,T_sim, Mass0, Mass, Mass01, Mass2, C_left_check, C_right_check, T_check, Residual, MB_Error
 end
 #Run calculation------------------------------------------------------------
+# Refinement method: 1 = m-refinement, 2 = h-refinement based on number of refinement levels, 3 = h-refinement based on refinement condition (first/last dx on the left side)
 run_and_plot = true
 run_and_plot == false ? printstyled("You have disabled the simulation, change the variable run_and_plot == true", bold=true) : nothing
 if run_and_plot
@@ -248,7 +264,7 @@ if run_and_plot
     plot_end  = true
     verbose   = false
     save_file = false
-    x_left, x_right, x0, C_left, C_right, C0, maxC, Tlin, XC_left, XC_right, T, Tstart, Tstop, KDlin, KD_sim,T_sim, Mass0, Mass, Mass01, Mass2, C_left_check, C_right_check, T_check,Residual, MB_Error = D1(; plot_sim = plot_sim, verbose = verbose)
+    x_left, x_right, x0, C_left, C_right, C0, maxC, Tlin, XC_left, XC_right, T, Tstart, Tstop, KDlin, KD_sim,T_sim, Mass0, Mass, Mass01, Mass2, C_left_check, C_right_check, T_check,Residual, MB_Error = D1(RefineMethod = 1, plot_sim=plot_sim, verbose=verbose)
     if plot_end
         #Title: Thermodynamical constrained Stefan condition
         #Plotting in K-----------------------------------------------------------

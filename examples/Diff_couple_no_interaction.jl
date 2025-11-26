@@ -1,7 +1,7 @@
 using MovingBoundaryMinerals
 using Plots, LinearAlgebra, LaTeXStrings,SparseArrays
 #Main function----------------------------------------------------
-function DCNI(; plot_sim = false,verbose = false)
+function DCNI(;RefineMethod = 1, plot_sim = false, verbose= false)
     #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])
     #Physics-------------------------------------------------------
     Di      = [2.65*1e-18   2.65*1e-18;]                #Initial diffusion coefficient in [m^2/s];
@@ -26,12 +26,15 @@ function DCNI(; plot_sim = false,verbose = false)
     T_ar    = LinRange(1273.15,1273.15,1000)            #Temperature array in [K] to calculate temperature history; T changes with respect to time;
                                                         #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
-    CFL    = 0.5                                        #CFL condition
-    res    = [500 500;]                                 #Number of nodes
-    resmin = copy(res)                                  #Minimum number of nodes
-    MRefin = 1.0                                        #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
-    Dirichlet = 1                                       #Dirchlet BC at the interface
-    BCout  = [1 1]                                      #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
+    CFL         = 0.5                                   #CFL condition
+    res         = [500 500;]                            #Number of nodes
+    resmin      = copy(res)                             #Minimum number of nodes
+    MRefin      = 1.0                                   #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
+    Dirichlet   = 1                                     #Dirchlet BC at the interface
+    RefineLevel = 3                                     #Refinement level; how many times should the grid be refined
+    RefineCond  = 0.00255                               #Refinement condition; refine until last dx on the left side <= RefineCond * Ri[1]
+    nPoints     = 250                                   #Number of points for initial grid (h-refinement)
+    BCout       = [1 1]                                 #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
                                                         #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Check, if t_ar is valid (increasing in time)-----------------
     dt_diff = zeros(length(t_ar)-1)
@@ -49,7 +52,19 @@ function DCNI(; plot_sim = false,verbose = false)
     elseif any(KD_ar .!= 1.0)
         error("Please change each entry of KD_ar to 1.0.")
     end
-    x_left, x_right, dx1, dx2, x0 = create_grid!(Ri,res,MRefin,verbose)
+    if RefineMethod == 1
+        x_left, x_right, dx1, dx2, x0 = create_grid!(Ri,res,MRefin,verbose)
+    elseif RefineMethod == 2
+        x_left, x_right, dx1, dx2, x0 = h_refinement1(Ri,RefineLevel,nPoints)
+        res = [length(x_left) length(x_right)]
+        resmin = copy(res)
+    elseif RefineMethod == 3
+        x_left, x_right, dx1, dx2, x0 = h_refinement2(Ri,RefineCond,nPoints)
+        res = [length(x_left) length(x_right)]
+        resmin = copy(res)
+    else
+        error("RefineMethod not valid. Please choose 1, 2 or 3.")
+    end
     #Create initial profile---------------------------------------
     Cini_l   = zeros(length(x_left))                    #Initial background composition left
     nmodes_l = [1; 2; 5; 7; 12] .* 1.0                  #Modes of the sinusoids left
@@ -151,13 +166,14 @@ function DCNI(; plot_sim = false,verbose = false)
     return x_left, x_right, x0, C_left, C_right, C0, Cini_l, Cini_r, nmodes_l, nmodes_r,Amp_l, Amp_r, Di, Ri, t
 end
 #Call main function-----------------------------------------------
+# Refinement method: 1 = m-refinement, 2 = h-refinement based on number of refinement levels, 3 = h-refinement based on refinement condition (first/last dx on the left side)
 run_and_plot = true
 run_and_plot == false ? printstyled("You have disabled the simulation, change the variable run_and_plot == true", bold=true) : nothing
 if run_and_plot
     plot_sim = false
     plot_end = true
     verbose  = false
-    x_left, x_right, x0, C_left, C_right, C0, Cini_l, Cini_r, nmodes_l, nmodes_r,Amp_l, Amp_r, Di, Ri, t = DCNI(; plot_sim=plot_sim, verbose=verbose)
+    x_left, x_right, x0, C_left, C_right, C0, Cini_l, Cini_r, nmodes_l, nmodes_r,Amp_l, Amp_r, Di, Ri, t = DCNI(RefineMethod = 1, plot_sim=plot_sim, verbose=verbose)
     xan_l = copy(x_left)
     xan_r = copy(x_right)
     Can_l = sinusoid_profile(Cini_l,nmodes_l,Ri[1],Di[1],t,Amp_l,xan_l)

@@ -1,7 +1,7 @@
 using MovingBoundaryMinerals, MovingBoundaryMinerals.Benchmarks
 using Plots, LinearAlgebra, LaTeXStrings, SparseArrays
 #Main function-------------------------------------------------
-function B1(; plot_sim = false, verbose= false)
+function B1(;RefineMethod = 1, plot_sim = false, verbose= false)
     #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])
     #Physics-------------------------------------------------------
     Di      = [2.65*1e-18   2.65*1e-18;]        #Initial diffusion coefficient in [m^2/s]
@@ -26,11 +26,14 @@ function B1(; plot_sim = false, verbose= false)
     T_ar    = LinRange(1273.15,1273.15,1000)    #Temperature array in [K] to calculate temperature history; T changes with respect to time;
                                                 #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
-    CFL    = 0.3                                #CFL condition
-    res    = [50 75;]                           #Number of nodes
-    resmin = copy(res)                          #Minimum number of nodes
-    MRefin = 15.0                               #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
-    BCout  = [0 1]                              #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
+    CFL         = 0.3                           #CFL condition
+    res         = [50 75;]                      #Number of nodes
+    resmin      = copy(res)                     #Minimum number of nodes
+    MRefin      = 15.0                          #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
+    RefineLevel = 5                             #Refinement level; how many times should the grid be refined
+    RefineCond  = 0.00255                       #Refinement condition; refine until last dx on the left side <= RefineCond * Ri[1]
+    nPoints     = 20                            #Number of points for initial grid (h-refinement)
+    BCout       = [0 1]                         #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
                                                 #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Check, if t_ar is valid (increasing in time)----------------------------------------
     dt_diff = zeros(length(t_ar)-1)
@@ -46,7 +49,19 @@ function B1(; plot_sim = false, verbose= false)
     elseif V_ip != 0.0
         error("Please change V_ip to 0.0. This code deals with a fixed interface.")
     end
-    x_left, x_right, dx1, dx2, x0 = create_grid!(Ri,res,MRefin,verbose)
+    if RefineMethod == 1
+        x_left, x_right, dx1, dx2, x0 = create_grid!(Ri,res,MRefin,verbose)
+    elseif RefineMethod == 2
+        x_left, x_right, dx1, dx2, x0 = h_refinement1(Ri,RefineLevel,nPoints)
+        res = [length(x_left) length(x_right)]
+        resmin = copy(res)
+    elseif RefineMethod == 3
+        x_left, x_right, dx1, dx2, x0 = h_refinement2(Ri,RefineCond,nPoints)
+        res = [length(x_left) length(x_right)]
+        resmin = copy(res)
+    else
+        error("RefineMethod not valid. Please choose 1, 2 or 3.")
+    end
     #Preprocess and initial condition--------------------------------------------
     L       = Ri[end]                           #Length of the domain in [m]
     t       = 0.0                               #Initial time in [s]
@@ -105,7 +120,7 @@ function B1(; plot_sim = false, verbose= false)
         #Solve system---------------------------------------------------
         C_left, C_right = solve_soe(L_g,R_g,res)
         #Regrid---------------------------------------------------------
-        x_left, x_right, C_left, C_right, dx1, dx2, res = regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, res, resmin, MRefin,verbose)
+        x_left, x_right, C_left, C_right, dx1, dx2, res = regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, res, resmin, MRefin,RefineCond,RefineLevel,nPoints,RefineMethod,verbose)
         #Post-Preprocessing---------------------------------------------
         for iit in enumerate(1)
             Massnow = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
@@ -138,6 +153,7 @@ function B1(; plot_sim = false, verbose= false)
     return x_left, x_right, x0, C_left, C_right, C0, t, Di, maxC, Ri
 end
 #Call main function------------------------------------------------------------
+# Refinement method: 1 = m-refinement, 2 = h-refinement based on number of refinement levels, 3 = h-refinement based on refinement condition (first/last dx on the left side)
 run_and_plot = true
 run_and_plot == false ? printstyled("You have disabled the simulation, change the variable run_and_plot == true", bold=true) : nothing
 if run_and_plot
@@ -145,7 +161,7 @@ if run_and_plot
     plot_end  = true
     verbose   = false
     save_file = false
-    x_left, x_right, x0, C_left, C_right, C0, t, D, maxC, Ri = B1(;plot_sim=plot_sim,verbose=verbose)
+    x_left, x_right, x0, C_left, C_right, C0, t, D, maxC, Ri = B1(RefineMethod = 1, plot_sim=plot_sim, verbose=verbose)
     nterms  = 1000                              #Number of terms within the analytical solution (degree of the polynomial)
     xan,Can = calc_sinus_sphere(x0,C0,D[1],t,nterms)
     if plot_end
@@ -156,14 +172,12 @@ if run_and_plot
         plot!(x_right*1000,C_right, lw=2, label=L"\mathrm{Right\ side}")
         plot!(x0*1000,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
               ylabel = L"C\ \mathrm{[-]}", lw=1.5, grid=:on)
-        plot!([Ri[1]; Ri[1]]*1000, [0; 1]*maxC, color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}")
         scatter!([xan[1:2:end]]*1000,[Can[1:2:end]], marker=:circle, markersize=2.0, label=L"\mathrm{Analytical\ solution}",
                     markerstrokecolor=:crimson, markercolor=:crimson)
         scatter!([xan[end]]*1000,[Can[end]], marker=:circle, markersize=2.0, label="",
                     markerstrokecolor=:crimson, markercolor=:crimson,dpi = 300,
                     legendfontsize=fs-2,guidefontsize=fs, tickfontsize=fs-1,
                     legend_foreground_color = :transparent)
-
         display(current())
         save_path = "figures"
         save_name = "B1"

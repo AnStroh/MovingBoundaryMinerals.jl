@@ -1,7 +1,7 @@
 using MovingBoundaryMinerals
 using Plots, LinearAlgebra, LaTeXStrings,SparseArrays
 #Main function----------------------------------------------------
-function DCMBG(; plot_sim = false, verbose = false)
+function DCMBG(;RefineMethod = 1, plot_sim = false, verbose= false)
     #If you find a [] with two entries this belong to the respective side of the diffusion couple ([left right])
     #Physics-------------------------------------------------------
     #Note: this example uses non-dimensional numbers! Given units might not be true!
@@ -27,11 +27,14 @@ function DCMBG(; plot_sim = false, verbose = false)
     T_ar    = LinRange(1273.15,923.15,1000)                     #Temperature array in [K] to calculate temperature history; T changes with respect to time;
                                                                 #The last value must be equal to the temperature at t = t_tot.
     #Numerics-----------------------------------------------------
-    CFL    = 0.3                                                #CFL condition
-    res    = [200 300;]                                         #Number of nodes
-    resmin = copy(res)                                          #Minimum number of nodes
-    MRefin = 20.0                                               #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
-    BCout  = [0 0]                                              #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
+    CFL         = 0.3                                           #CFL condition
+    res         = [200 300;]                                    #Number of nodes
+    resmin      = copy(res)                                     #Minimum number of nodes
+    MRefin      = 20.0                                          #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
+    RefineLevel = 3                                             #Refinement level; how many times should the grid be refined
+    RefineCond  = 0.00255                                       #Refinement condition; refine until last dx on the left side <= RefineCond * Ri[1]
+    nPoints     = 150                                            #Number of points for initial grid (h-refinement)
+    BCout       = [0 0]                                         #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
                                                                 #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Non-dimensionslization---------------------------------------
     V_ip, t_tot, t_ar, Di, D0, Ri, Lsc, Dsc, Vsc, tsc = scaling(Ri, Di, D0, V_ip, t_tot, t_ar)
@@ -47,7 +50,19 @@ function DCMBG(; plot_sim = false, verbose = false)
     elseif res[1] > res[2]
         error("Please change the resolution of the system. res[2] >= res[1].")
     end
-    x_left, x_right, dx1, dx2, x0 = create_grid!(Ri,res,MRefin,verbose)
+    if RefineMethod == 1
+        x_left, x_right, dx1, dx2, x0 = create_grid!(Ri,res,MRefin,verbose)
+    elseif RefineMethod == 2
+        x_left, x_right, dx1, dx2, x0 = h_refinement1(Ri,RefineLevel,nPoints)
+        res = [length(x_left) length(x_right)]
+        resmin = copy(res)
+    elseif RefineMethod == 3
+        x_left, x_right, dx1, dx2, x0 = h_refinement2(Ri,RefineCond,nPoints)
+        res = [length(x_left) length(x_right)]
+        resmin = copy(res)
+    else
+        error("RefineMethod not valid. Please choose 1, 2 or 3.")
+    end
     #Preprocess and initial condition-----------------------------
     L       = Ri[end]                                           #Length of the domain in [m]
     t       = 0.0                                               #Initial time in [s]
@@ -106,7 +121,7 @@ function DCMBG(; plot_sim = false, verbose = false)
         #Solve system---------------------------------------------
         C_left, C_right = solve_soe(L_g,R_g,res)
         #Regrid---------------------------------------------------
-        x_left, x_right, C_left, C_right, dx1, dx2, res = regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, res, resmin, MRefin,verbose)
+        x_left, x_right, C_left, C_right, dx1, dx2, res = regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, res, resmin, MRefin,RefineCond,RefineLevel,nPoints,RefineMethod,verbose)
         #Post-Preprocessing---------------------------------------
         for iit in enumerate(1)
             Massnow = calc_mass_vol(x_left,x_right,C_left,C_right,n,rho)
@@ -140,13 +155,14 @@ function DCMBG(; plot_sim = false, verbose = false)
     return x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0, maxC
 end
 #Call main function-----------------------------------------------
+# Refinement method: 1 = m-refinement, 2 = h-refinement based on number of refinement levels, 3 = h-refinement based on refinement condition (first/last dx on the left side)
 run_and_plot = true
 run_and_plot == false ? printstyled("You have disabled the simulation, change the variable run_and_plot == true", bold=true) : nothing
 if run_and_plot
     plot_sim = false
     plot_end = true
     verbose  = false
-    x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0, maxC = DCMBG(; plot_sim = false, verbose = false)
+    x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0, maxC = DCMBG(RefineMethod = 1, plot_sim=plot_sim, verbose=verbose)
     if plot_end
         #Plotting-------------------------------------------------
         maxC = maximum([maximum(C_left),maximum(C_right)])

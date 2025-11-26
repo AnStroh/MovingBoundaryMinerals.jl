@@ -1,5 +1,5 @@
 using SparseArrays, LinearAlgebra,  Dates, Plots
-export advect_interface_regrid!, blkdiag, calculate_dt, calc_mass_vol, calc_mass_vol_simple_diff, calc_volume, create_grid!, find_dt, fill_matrix!, linear_interpolation_1D, linspace_interface, preallocations, regrid!, set_inner_bc_mb!, set_inner_bc_flux!,set_inner_bc_Lasaga!, set_outer_bc!, trapezoidal_integration, update_time!, update_t_dependent_param!, update_t_dependent_param_simple!, construct_matrix_fem, solve_soe,calc_mass_err, make_dx_right, newton_solver, define_new_grid, sinusoid_profile,save_figure,scaling,rescale
+export advect_interface_regrid!, blkdiag, calculate_dt, calc_mass_vol, calc_mass_vol_simple_diff, calc_volume, create_grid!, find_dt, fill_matrix!, linear_interpolation_1D, linspace_interface, preallocations, regrid!, set_inner_bc_mb!, set_inner_bc_flux!,set_inner_bc_Lasaga!, set_outer_bc!, trapezoidal_integration, update_time!, update_t_dependent_param!, update_t_dependent_param_simple!, construct_matrix_fem, solve_soe,calc_mass_err, make_dx_right, newton_solver, define_new_grid, sinusoid_profile,save_figure,scaling,rescale,h_refinement1,h_refinement2
 #Functions----------------------------------------------------
 """
     advect_interface_regrid!(Ri, V_ip, dt, x_left, x_right, C_left, C_right, nr)
@@ -547,6 +547,137 @@ function fill_matrix!(C,x,D,dt,ndim,nels)
     end
     return L_g, R_g
 end
+"""
+    h_refinement1(Ri,RefineLevel,npoints)
+
+Generate a locally refined mesh following the h-refinement method. This function stops the refinement after a given number of refinement levels.
+
+Arguments
+- Ri::AbstractVector{<:Real}
+    Monotonic vector of node coordinates (e.g. from inner to outer radius) that defines the base mesh. It has the length of npoints.
+- RefineLevel::Union{Function, AbstractVector{Bool}}
+    Number of refinement levels to be applied.
+- npoints::Integer
+    Number of nodes in the original mesh.
+
+Returns
+- x_left::Vector{Float64}
+    Refined left nodes in [m].
+- x_right::Vector{Float64}
+    Refined right nodes in [m].
+- dx_l::Float64
+    Last dx on the left side in [m].
+- dx_r::Float64
+    First dx on the right side in [m].
+- x0::Vector{Float64}
+    Initial grid spacing for the whole domain in [m].
+"""
+
+function h_refinement1(Ri,RefineLevel,npoints)
+    # Handle x_left: add midpoint between last two entries
+    dx_i = Ri[1] / (npoints - 1)
+    x_left = 0.0:dx_i:Ri[1]
+    for i in 1:RefineLevel
+        x_second_last = x_left[end-1]
+        x_last = x_left[end]
+        x_mid_left = (x_second_last + x_last) / 2
+        x_left = vcat(x_left[1:end-1], x_mid_left, x_left[end])
+    end
+    
+    # Handle x_right: add midpoint between first two entries
+    dx_i = (Ri[2] - Ri[1]) / (npoints - 1)
+    x_right = Ri[1]:dx_i:Ri[2]
+    for i in 1:RefineLevel*100
+        x_first = x_right[1]
+        x_second = x_right[2]
+        x_mid_right = (x_first + x_second) / 2
+        x_right = vcat(x_right[1], x_mid_right, x_right[2:end])
+        dx_l = x_left[end] - x_left[end-1]
+        dx_r = x_right[2] - x_right[1]
+        if dx_r <= dx_l
+            #println("Test for same dx length and order of magnitude:")
+            #@show isapprox(dx_l, dx_r, rtol=1e-6)                   #test for same size
+            #@show abs(log10(dx_l) - log10(dx_r)) < 1.0              #test for same order of magnitude
+            break
+        end
+    end
+    x0 = vcat(x_left, x_right)
+    dx_l = x_left[end] - x_left[end-1]
+    dx_r = x_right[2] - x_right[1]
+    return x_left, x_right, dx_l, dx_r, x0
+end
+
+"""
+    h_refinement2(Ri, RefineCond, npoints)
+
+Generate a locally refined mesh following the h-refinement method. The refinement will stop, if the last dx on the left side is smaller than Ri[1]*RefineCond.
+
+Arguments
+- Ri::AbstractVector{<:Real}
+    Monotonic vector of node coordinates (e.g. from inner to outer radius) that defines the base mesh. It has the length of npoints.
+- RefineCond::Union{Function, AbstractVector{Bool}}
+    Ratio between the first and the last dx on the left side. If the last dx is smaller than Ri[1]*RefineCond, the refinement stops.
+- npoints::Integer
+    Number of nodes in the original mesh.
+
+Returns
+- x_left::Vector{Float64}
+    Refined left nodes in [m].
+- x_right::Vector{Float64}
+    Refined right nodes in [m].
+- dx_l::Float64
+    Last dx on the left side in [m].
+- dx_r::Float64
+    First dx on the right side in [m].
+- x0::Vector{Float64}
+    Initial grid spacing for the whole domain in [m].
+"""
+
+function h_refinement2(Ri,RefineCond,npoints)
+    max_it = 1000
+    # Handle x_left: add midpoint between last two entries
+    dx_i = Ri[1] / (npoints - 1)
+    x_left = 0.0:dx_i:Ri[1]
+    for i in 1:max_it
+        x_second_last = x_left[end-1]
+        x_last = x_left[end]
+        x_mid_left = (x_second_last + x_last) / 2
+        x_left = vcat(x_left[1:end-1], x_mid_left, x_left[end])
+        dx_l = x_left[end] - x_left[end-1]
+        if dx_l <= RefineCond*Ri[1]
+            break
+        end
+        if i == max_it
+            @show dx_l RefineCond*Ri[1]
+            error("Refinement of the right side not met within $max_it iterations.")
+        end
+    end
+    
+    # Handle x_right: add midpoint between first two entries
+    dx_i = (Ri[2] - Ri[1]) / (npoints - 1)
+    x_right = Ri[1]:dx_i:Ri[2]
+    for i in 1:max_it
+        x_first = x_right[1]
+        x_second = x_right[2]
+        x_mid_right = (x_first + x_second) / 2
+        x_right = vcat(x_right[1], x_mid_right, x_right[2:end])
+        dx_l = x_left[end] - x_left[end-1]
+        dx_r = x_right[2] - x_right[1]
+        if dx_r <= dx_l
+            #println("Test for same dx length and order of magnitude:")
+            #@show isapprox(dx_l, dx_r, rtol=1e-6)                   #test for same size
+            #@show abs(log10(dx_l) - log10(dx_r)) < 1.0              #test for same order of magnitude
+            break
+        end
+        if i == max_it
+            error("Refinement of the right side not met within 1000 iterations.")
+        end
+    end
+    x0 = vcat(x_left, x_right)
+    dx_l = x_left[end] - x_left[end-1]
+    dx_r = x_right[2] - x_right[1]
+    return x_left, x_right, dx_l, dx_r, x0
+end
 
 """
     linear_interpolation_1D(x, y, x_interp)
@@ -866,7 +997,7 @@ been performed.
 - `dx2::Float64`: Grid spacing at the right interface in [m].
 - `nr::Vector`: Updated resolution.
 """
-function regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, nr, nmin, MRefin,verbose)
+function regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, nr, nmin, MRefin,RefineCond,RefineLevel,nPoints,RefineMethod,verbose)
     x_left  = copy(vec(x_left))
     x_right = copy(vec(x_right))
     if Fl_regrid == 1
@@ -889,7 +1020,17 @@ function regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, nr, nmin
         end
         #Calculate new grid
         #X_left, X_right = linspace_interface(0, Ri[2], Ri[1], nr[1], nr[2], MRefin)                #Use the bisection method
-        Ri, nr, X_left, X_right = define_new_grid(Ri,nr,MRefin,verbose)                             #Use the Newton method (better performance!)
+        if RefineMethod == 1
+            Ri, nr, X_left, X_right = define_new_grid(Ri,nr,MRefin,verbose)                             #Use the Newton method (better performance!)
+        elseif RefineMethod == 2
+            X_left, X_right = h_refinement1(Ri,RefineLevel,nPoints)
+            nr = [length(X_left) length(X_right)]
+            Ri = [X_left[end] X_right[end]]
+        elseif RefineMethod == 3
+            X_left, X_right = h_refinement2(Ri,RefineCond,nPoints)
+            nr = [length(X_left) length(X_right)]
+            Ri = [X_left[end] X_right[end]]
+        end
         dx1     = X_left[end] - X_left[end-1]                                                       #Calculate last dx on the left side
         dx2     = X_right[2] - X_right[1]                                                           #Calculate first dx on the right side
         C_left  = pchip(x_left, C_left, vec(X_left))                                                #Interpolate composition on the left side

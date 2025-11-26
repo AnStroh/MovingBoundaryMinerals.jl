@@ -29,9 +29,9 @@ function D1(;RefineMethod = 1, plot_sim = false, verbose= false)
     res                 = [50 50;]                                                                      #Number of nodes
     resmin              = copy(res)                                                                     #Minimum number of nodes
     MRefin              = 5.0                                                                           #Refinement factor
-    RefineLevel         = 5                                                                             #Refinement level; how many times should the grid be refined
-    RefineCond          = 0.00255                                                                       #Refinement condition; refine until last dx on the left side <= RefineCond * Ri[1]
-    nPoints             = 20                                                                            #Number of points for initial grid (h-refinement)
+    RefineLevel         = 5                                                                            #Refinement level; how many times should the grid be refined
+    RefineCond          = 0.1                                                                           #Refinement condition; refine until last dx on the left side <= RefineCond * Ri[1]
+    nPoints             = 15                                                                             #Number of points for initial grid (h-refinement)
     BCout               = [0 0]                                                                         #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
                                                                                                         #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Create data set--------------------------------------------------------
@@ -88,11 +88,11 @@ function D1(;RefineMethod = 1, plot_sim = false, verbose= false)
         x0_left, x0_right, dx1, dx2, x0 = create_grid!(Ri,res,MRefin,verbose)
     elseif RefineMethod == 2
         x0_left, x0_right, dx1, dx2, x0 = h_refinement1(Ri,RefineLevel,nPoints)
-        res = [length(x_left) length(x_right)]
+        res = [length(x0_left) length(x0_right)]
         resmin = copy(res)
     elseif RefineMethod == 3
         x0_left, x0_right, dx1, dx2, x0 = h_refinement2(Ri,RefineCond,nPoints)
-        res = [length(x_left) length(x_right)]
+        res = [length(x0_left) length(x0_right)]
         resmin = copy(res)
     else
         error("RefineMethod not valid. Please choose 1, 2 or 3.")
@@ -247,6 +247,9 @@ function D1(;RefineMethod = 1, plot_sim = false, verbose= false)
             ErrM = calc_mass_err(Mass, Mass0)
             push!(MB_Error,ErrM)
         end
+        if it % 15000 == 0
+            println("Iteration: $it, Time: $(round(t/3600, digits=2)) h / $(round(t_tot/3600, digits=2))")
+        end
     end
     #Post-process-----------------------------------------------------------
     #gif(anim, "figures/D1.gif", fps=5)  # Save with 10 frames per second
@@ -264,7 +267,7 @@ if run_and_plot
     plot_end  = true
     verbose   = false
     save_file = false
-    x_left, x_right, x0, C_left, C_right, C0, maxC, Tlin, XC_left, XC_right, T, Tstart, Tstop, KDlin, KD_sim,T_sim, Mass0, Mass, Mass01, Mass2, C_left_check, C_right_check, T_check,Residual, MB_Error = D1(RefineMethod = 1, plot_sim=plot_sim, verbose=verbose)
+    x_left, x_right, x0, C_left, C_right, C0, maxC, Tlin, XC_left, XC_right, T, Tstart, Tstop, KDlin, KD_sim,T_sim, Mass0, Mass, Mass01, Mass2, C_left_check, C_right_check, T_check,Residual, MB_Error = D1(RefineMethod = 2, plot_sim=plot_sim, verbose=verbose)
     if plot_end
         #Title: Thermodynamical constrained Stefan condition
         #Plotting in K-----------------------------------------------------------
@@ -288,9 +291,9 @@ if run_and_plot
                       markerstrokecolor=:grey68,label = "",ylabel = L"X\mathrm{_{Fe}}",xlabel=L"T\ \mathrm{[°C]}")
         p2 = scatter!([T-273.0],[C_right[1]],marker=:circle, markersize=2, markercolor=:grey68,
                       markerstrokecolor=:grey68,label = "")
-        p2 = scatter!([Tstart],[C0[51]],marker=:circle, markersize=2, markercolor=:black,
+        p2 = scatter!([Tstart],[C0[length(x_left)+1]],marker=:circle, markersize=2, markercolor=:black,
                       markerstrokecolor=:black,label = "",ylabel = L"X\mathrm{_{Fe}}",xlabel=L"T\ \mathrm{[°C]}")
-        p2 = scatter!([Tstart],[C0[50]],marker=:circle, markersize=2, markercolor=:black,
+        p2 = scatter!([Tstart],[C0[length(x_left)]],marker=:circle, markersize=2, markercolor=:black,
                       markerstrokecolor=:black,label = "")
         p2 = plot!([Tstart; Tstart],[0; maximum(C0[end])],lw=1.5,color=:black,linestyle=:dash,label=L"T(t=0.0)")
         p2 = plot!([T-273.0; T-273.0],[0; maximum([C_left[end],C_right[1]])],lw=1.5,color=:grey68,linestyle=:dashdot,label=L"T(t\mathrm{_{tot})}")

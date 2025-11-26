@@ -31,9 +31,9 @@ function C2(;RefineMethod = 1, plot_sim = false, verbose= false)
     res         = [200 250;]                                    #Number of nodes
     resmin      = copy(res)                                     #Minimum number of nodes
     MRefin      = 10.0                                          #Refinement factor; If negative, it uses MRefin = 1 on the left, and abs(MRefin) on the right
-    RefineLevel = 4                                             #Refinement level; how many times should the grid be refined
-    RefineCond  = 0.00255                                       #Refinement condition; refine until last dx on the left side <= RefineCond * Ri[1]
-    nPoints     = 50                                            #Number of points for initial grid (h-refinement)
+    RefineLevel = 1                                             #Refinement level; how many times should the grid be refined
+    RefineCond  = 0.01                                          #Refinement condition; refine until last dx on the left side <= RefineCond * Ri[1]
+    nPoints     = 75                                            #Number of points for initial grid (h-refinement)
     BCout       = [0 0]                                         #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
                                                                 #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Non-dimensionslization---------------------------------------
@@ -167,7 +167,7 @@ if run_and_plot
     plot_end  = true
     verbose   = false
     save_file = false
-    x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, n, maxC, KD0 = C2(RefineMethod = 2, plot_sim=plot_sim, verbose=verbose)
+    x_left, x_right, x0, Ri, Ri0, C_left, C_right, C0, C0_r, n, maxC, KD0 = C2(RefineMethod = 1, plot_sim=plot_sim, verbose=verbose)
     if plot_end
         #Title: Diffusion couple (MB) - resorption + diffusion in a sphere
         #Plotting-------------------------------------------------

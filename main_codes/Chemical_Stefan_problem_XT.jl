@@ -23,6 +23,9 @@ function CSP(;RefineMethod = 1, plot_sim = false, verbose= false)
     res                 = [15 25;]                                                                      #Number of nodes
     resmin              = copy(res)                                                                     #Minimum number of nodes
     MRefin              = 5.0                                                                           #Refinement factor
+    RefineLevel         = 3                                                                             #Refinement level; how many times should the grid be refined
+    RefineCond          = 0.1                                                                           #Refinement condition; refine until last dx on the left side <= RefineCond * Ri[1]
+    nPoints             = 5                                                                             #Number of points for initial grid (h-refinement)
     BCout               = [0 0]                                                                         #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
                                                                                                         #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Create data set--------------------------------------------------------
@@ -71,11 +74,11 @@ function CSP(;RefineMethod = 1, plot_sim = false, verbose= false)
         x0_left, x0_right, dx1, dx2, x0 = create_grid!(Ri,res,MRefin,verbose)
     elseif RefineMethod == 2
         x0_left, x0_right, dx1, dx2, x0 = h_refinement1(Ri,RefineLevel,nPoints)
-        res = [length(x_left) length(x_right)]
+        res = [length(x0_left) length(x0_right)]
         resmin = copy(res)
     elseif RefineMethod == 3
         x0_left, x0_right, dx1, dx2, x0 = h_refinement2(Ri,RefineCond,nPoints)
-        res = [length(x_left) length(x_right)]
+        res = [length(x0_left) length(x0_right)]
         resmin = copy(res)
     else
         error("RefineMethod not valid. Please choose 1, 2 or 3.")

@@ -558,7 +558,7 @@ Arguments
 - RefineLevel::Union{Function, AbstractVector{Bool}}
     Number of refinement levels to be applied.
 - npoints::Integer
-    Number of nodes in the original mesh.
+    Number of nodes in the original mesh.  If you give 1 number, both sides will have the same number of points. If you give 2 numbers, the first number defines the left side, the second number the right side.
 
 Returns
 - x_left::Vector{Float64}
@@ -574,8 +574,11 @@ Returns
 """
 
 function h_refinement1(Ri,RefineLevel,npoints)
+    if length(npoints) != 2
+        npoints = [npoints,npoints]
+    end
     # Handle x_left: add midpoint between last two entries
-    dx_i = Ri[1] / (npoints - 1)
+    dx_i = Ri[1] / (npoints[1] - 1)
     x_left = 0.0:dx_i:Ri[1]
     for i in 1:RefineLevel
         x_second_last = x_left[end-1]
@@ -585,7 +588,7 @@ function h_refinement1(Ri,RefineLevel,npoints)
     end
     
     # Handle x_right: add midpoint between first two entries
-    dx_i = (Ri[2] - Ri[1]) / (npoints - 1)
+    dx_i = (Ri[2] - Ri[1]) / (npoints[2] - 1)
     x_right = Ri[1]:dx_i:Ri[2]
     for i in 1:RefineLevel*100
         x_first = x_right[1]
@@ -618,7 +621,7 @@ Arguments
 - RefineCond::Union{Function, AbstractVector{Bool}}
     Ratio between the first and the last dx on the left side. If the last dx is smaller than Ri[1]*RefineCond, the refinement stops.
 - npoints::Integer
-    Number of nodes in the original mesh.
+    Number of nodes in the original mesh. If you give 1 number, both sides will have the same number of points. If you give 2 numbers, the first number defines the left side, the second number the right side.
 
 Returns
 - x_left::Vector{Float64}
@@ -635,8 +638,11 @@ Returns
 
 function h_refinement2(Ri,RefineCond,npoints)
     max_it = 1000
+    if length(npoints) != 2
+        npoints = [npoints,npoints]
+    end
     # Handle x_left: add midpoint between last two entries
-    dx_i = Ri[1] / (npoints - 1)
+    dx_i = Ri[1] / (npoints[1] - 1)
     x_left = 0.0:dx_i:Ri[1]
     for i in 1:max_it
         x_second_last = x_left[end-1]
@@ -654,7 +660,7 @@ function h_refinement2(Ri,RefineCond,npoints)
     end
     
     # Handle x_right: add midpoint between first two entries
-    dx_i = (Ri[2] - Ri[1]) / (npoints - 1)
+    dx_i = (Ri[2] - Ri[1]) / (npoints[2] - 1)
     x_right = Ri[1]:dx_i:Ri[2]
     for i in 1:max_it
         x_first = x_right[1]

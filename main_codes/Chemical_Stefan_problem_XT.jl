@@ -25,7 +25,7 @@ function CSP(;RefineMethod = 1, plot_sim = false, verbose= false)
     MRefin              = 5.0                                                                           #Refinement factor
     RefineLevel         = 3                                                                             #Refinement level; how many times should the grid be refined
     RefineCond          = 0.1                                                                           #Refinement condition; refine until last dx on the left side <= RefineCond * Ri[1]
-    nPoints             = 5                                                                             #Number of points for initial grid (h-refinement)
+    nPoints             = 5                                                                             #Number of points for initial grid (h-refinement); It can be a number, if both sides should have the same initial number of points or it can be an array ([left right]), if the resolution for the initial number of points should differ.
     BCout               = [0 0]                                                                         #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
                                                                                                         #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Create data set--------------------------------------------------------
@@ -222,7 +222,7 @@ function CSP(;RefineMethod = 1, plot_sim = false, verbose= false)
     return x_left, x_right, x0, vec(C_left), vec(C_right), vec(C0),maxC, Tlin, XC_left, XC_right, T, Tstart, Tstop, KDlin, KD_sim,T_sim, Mass0, Mass, Mass01, Mass2
 end
 #Run calculation------------------------------------------------------------
-# Refinement method: 1 = m-refinement, 2 = h-refinement based on number of refinement levels, 3 = h-refinement based on refinement condition (first/last dx on the left side)
+# Refinement method: 1 = r-refinement, 2 = h-refinement based on number of refinement levels, 3 = h-refinement based on refinement condition (first/last dx on the left side)
 run_and_plot = true
 run_and_plot == false ? printstyled("You have disabled the simulation, change the variable run_and_plot == true", bold=true) : nothing
 if run_and_plot

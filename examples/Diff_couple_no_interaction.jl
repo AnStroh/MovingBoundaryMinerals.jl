@@ -33,7 +33,7 @@ function DCNI(;RefineMethod = 1, plot_sim = false, verbose= false)
     Dirichlet   = 1                                     #Dirchlet BC at the interface
     RefineLevel = 3                                     #Refinement level; how many times should the grid be refined
     RefineCond  = 0.00255                               #Refinement condition; refine until last dx on the left side <= RefineCond * Ri[1]
-    nPoints     = 250                                   #Number of points for initial grid (h-refinement)
+    nPoints     = 250                                   #Number of points for initial grid (h-refinement); It can be a number, if both sides should have the same initial number of points or it can be an array ([left right]), if the resolution for the initial number of points should differ.
     BCout       = [1 1]                                 #Outer BC at the [left right]; 1 = Dirichlet, 0 = Neumann;
                                                         #CAUTION for n = 3 the left BC must be Neumann (0)! -> right phase grows around the left phase
     #Check, if t_ar is valid (increasing in time)-----------------
@@ -166,7 +166,7 @@ function DCNI(;RefineMethod = 1, plot_sim = false, verbose= false)
     return x_left, x_right, x0, C_left, C_right, C0, Cini_l, Cini_r, nmodes_l, nmodes_r,Amp_l, Amp_r, Di, Ri, t
 end
 #Call main function-----------------------------------------------
-# Refinement method: 1 = m-refinement, 2 = h-refinement based on number of refinement levels, 3 = h-refinement based on refinement condition (first/last dx on the left side)
+# Refinement method: 1 = r-refinement, 2 = h-refinement based on number of refinement levels, 3 = h-refinement based on refinement condition (first/last dx on the left side)
 run_and_plot = true
 run_and_plot == false ? printstyled("You have disabled the simulation, change the variable run_and_plot == true", bold=true) : nothing
 if run_and_plot

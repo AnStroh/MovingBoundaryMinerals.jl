@@ -153,7 +153,7 @@ function DCFG(;RefineMethod = 1, plot_sim = false, verbose= false)
     return x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0, Mass, Mass0
 end
 #Call main function-----------------------------------------------
-# Refinement method: 1 = r-refinement, 2 = h-refinement based on number of refinement levels, 3 = h-refinement based on refinement condition (first/last dx on the left side)
+# Refinement method: 1 = m-refinement, 2 = h-refinement based on number of refinement levels, 3 = h-refinement based on refinement condition (first/last dx on the left side)
 run_and_plot = true
 run_and_plot == false ? printstyled("You have disabled the simulation, change the variable run_and_plot == true", bold=true) : nothing
 if run_and_plot

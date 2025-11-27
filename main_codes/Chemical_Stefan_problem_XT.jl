@@ -164,7 +164,6 @@ function CSP(;RefineMethod = 1, plot_sim = false, verbose= false)
         dt    = minimum([dtD,dtV]) * CFL
         #Plotting-----------------------------------------------------------
         if plot_sim
-            @show size(x_left), size(x_right), size(C_left), size(C_right), size(C0)
             #Plotting-------------------------------------------------------
             maxC = maximum([maximum(C_left),maximum(C_right)])
             Tp_min = (Tstop - 273.0) * 0.95
@@ -222,7 +221,7 @@ function CSP(;RefineMethod = 1, plot_sim = false, verbose= false)
     return x_left, x_right, x0, vec(C_left), vec(C_right), vec(C0),maxC, Tlin, XC_left, XC_right, T, Tstart, Tstop, KDlin, KD_sim,T_sim, Mass0, Mass, Mass01, Mass2
 end
 #Run calculation------------------------------------------------------------
-# Refinement method: 1 = r-refinement, 2 = h-refinement based on number of refinement levels, 3 = h-refinement based on refinement condition (first/last dx on the left side)
+# Refinement method: 1 = m-refinement, 2 = h-refinement based on number of refinement levels, 3 = h-refinement based on refinement condition (first/last dx on the left side)
 run_and_plot = true
 run_and_plot == false ? printstyled("You have disabled the simulation, change the variable run_and_plot == true", bold=true) : nothing
 if run_and_plot

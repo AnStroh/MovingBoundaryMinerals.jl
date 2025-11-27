@@ -159,7 +159,7 @@ if run_and_plot
     plot_sim = false
     plot_end = true
     verbose  = false
-    x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0, Mass, Mass0 = DCGF(RefineMethod = 3, plot_sim=plot_sim, verbose=verbose)
+    x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0, Mass, Mass0 = DCGF(RefineMethod = 1, plot_sim=plot_sim, verbose=verbose)
     if plot_end
         #Plotting-------------------------------------------------
         fs = 12.0

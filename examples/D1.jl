@@ -247,9 +247,6 @@ function D1(;RefineMethod = 1, plot_sim = false, verbose= false)
             ErrM = calc_mass_err(Mass, Mass0)
             push!(MB_Error,ErrM)
         end
-        if it % 15000 == 0
-            println("Iteration: $it, Time: $(round(t/3600, digits=2)) h / $(round(t_tot/3600, digits=2))")
-        end
     end
     #Post-process-----------------------------------------------------------
     #gif(anim, "figures/D1.gif", fps=5)  # Save with 10 frames per second

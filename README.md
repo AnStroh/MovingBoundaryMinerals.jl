@@ -1,6 +1,8 @@
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://anstroh.github.io/MovingBoundaryMinerals.jl/dev/)
 [![CI](https://github.com/AnStroh/MovingBoundaryMinerals.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/AnStroh/MovingBoundaryMinerals.jl/actions/workflows/CI.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15535732.svg)](https://doi.org/10.5281/zenodo.15535732)
+
 # MovingBoundaryMinerals.jl
 
 [MovingBoundaryMinerals.jl](https://github.com/AnStroh/MovingBoundaryMinerals.jl) is a software to model diffusion-controlled growth/resorption processes in mineral couples. 

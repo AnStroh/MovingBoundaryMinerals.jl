@@ -36,7 +36,7 @@ julia> ]
 The test can take a while.
 
 ## How to cite
-Stroh, A., Aellig, P. S., and Moulas, E.: Numerical modelling of diffusion-limited mineral growth for geospeedometry applications, EGUsphere [preprint], https://doi.org/10.5194/egusphere-2025-2511, 2025. 
+Stroh, A., Aellig, P. S., and Moulas, E.: Numerical modelling of diffusion-limited mineral growth for geospeedometry applications, Geosci. Model Dev., 18, 10203–10220, https://doi.org/10.5194/gmd-18-10203-2025, 2025. 
 
 ## Funding
 The development of this package is supported by the DFG project 524829125 (VECTOR) and by the European Research Council through the MAGMA project, ERC Consolidator Grant \#771143.

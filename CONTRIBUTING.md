@@ -1,18 +1,33 @@
 # Contributing
 
-[MovingBoundaryMinerals.jl](https://github.com/AnStroh/MovingBoundaryMinerals.jl) is an open-source project and we are very happy to accept contributions
-from the community. Please feel free to [open issues](https://github.com/AnStroh/MovingBoundaryMinerals.jl/issues/new) or submit patches (preferably
-as [pull requests](https://github.com/AnStroh/MovingBoundaryMinerals.jl/pulls)) any time. For planned larger contributions, it is often
-beneficial to get in contact with one of the principal developers first (see
-[AUTHORS.md](AUTHORS.md)).
+[MovingBoundaryMinerals.jl](https://github.com/AnStroh/MovingBoundaryMinerals.jl) is an open-source project and we are very happy to accept contributions from the community. Please feel free to [open issues](https://github.com/AnStroh/MovingBoundaryMinerals.jl/issues/new) or submit patches (preferably as [pull requests](https://github.com/AnStroh/MovingBoundaryMinerals.jl/pulls)) any time. For planned larger contributions, it is often beneficial to get in contact with one of the principal developers first (see [AUTHORS.md](AUTHORS.md)).
 
-[MovingBoundaryMinerals.jl](https://github.com/AnStroh/MovingBoundaryMinerals.jl) and its contributions are licensed under the MIT license. As a contributor, you certify that all your
-contributions are in conformance with the *Developer Certificate of Origin
-(Version 1.1)*, which is reproduced below.
+[MovingBoundaryMinerals.jl](https://github.com/AnStroh/MovingBoundaryMinerals.jl) and its contributions are licensed under the MIT license. As a contributor, you certify that all your contributions are in conformance with the *Developer Certificate of Origin (Version 1.1)*, which is reproduced below.
+
+## Development setup
+
+To work on the package itself, clone the repository and run everything from its root directory.
+
+**Running the test suite:**
+```julia-repl
+julia --project=. -e 'using Pkg; Pkg.test()'
+```
+or, from within a Julia REPL started with `julia --project=.`:
+```julia-repl
+julia> ]
+(MovingBoundaryMinerals) pkg> test
+```
+The test suite can take a while to run.
+
+**Building the documentation locally:**
+```julia-repl
+julia --project=docs -e 'using Pkg; Pkg.instantiate()'
+julia --project=docs docs/make.jl
+```
+This writes the built site to `docs/build/`; open `docs/build/index.html` in a browser to preview it. The first run will be slower while dependencies precompile.
 
 ## Developer Certificate of Origin (Version 1.1)
-The following text was taken from
-[https://developercertificate.org](https://developercertificate.org):
+The following text was taken from [https://developercertificate.org](https://developercertificate.org):
 
     Developer Certificate of Origin
     Version 1.1

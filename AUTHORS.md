@@ -1,10 +1,6 @@
 # Authors
 
-[MovingBoundaryMinerals.jl](https://github.com/AnStroh/MovingBoundaryMinerals.jl)'s development is coordinated by a group of *principal developers*,
-who are also its main contributors and who can be contacted in case of
-questions about [MovingBoundaryMinerals.jl](https://github.com/AnStroh/MovingBoundaryMinerals.jl). In addition, there are *contributors* who have
-provided substantial additions or modifications. Together, these two groups form
-"MovingBoundaryMinerals.jl.jl Authors".
+[MovingBoundaryMinerals.jl](https://github.com/AnStroh/MovingBoundaryMinerals.jl)'s development is coordinated by a group of *principal developers*, who are also its main contributors and who can be contacted in case of questions about [MovingBoundaryMinerals.jl](https://github.com/AnStroh/MovingBoundaryMinerals.jl). In addition, there are *contributors* who have provided substantial additions or modifications. Together, these two groups form "MovingBoundaryMinerals.jl Authors".
 
 ## Principal Developers
 * [Annalena Stroh](https://github.com/AnStroh),

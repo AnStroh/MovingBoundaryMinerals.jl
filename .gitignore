@@ -1,4 +1,7 @@
 Manifest.toml
+# GUI/ is an application, not a library - its Manifest.toml should stay committed so
+# everyone who runs it gets the exact dependency versions it was tested with.
+!GUI/Manifest.toml
 .DS_Store
 *.pdf
 *.png

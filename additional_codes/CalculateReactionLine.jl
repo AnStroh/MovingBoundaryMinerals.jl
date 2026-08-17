@@ -59,11 +59,11 @@ function CalculateReactionLine(data1,data2)
 end
 
 #Call function--------------------------------------------
-#CAUTION: CSV.file with more points give inaccurate results at the boundaries (Check ~ X = 0 and ~ X = 1).
+#CAUTION: CSV.file with more points gives inaccurate results at the boundaries (Check ~ X = 0 and ~ X = 1).
 #file_name_1 = "examples/Examples_phase_diagram/Lower_Line.csv"
 #file_name_2 = "examples/Examples_phase_diagram/Upper_Line.csv"
 
-#CAUTION: CSV.file with fewer points give more accurate results at the boundaries (Check ~ X = 0 and ~ X = 1).
+#CAUTION: CSV.file with fewer points gives more accurate results at the boundaries (Check ~ X = 0 and ~ X = 1).
 file_name_1 = "examples/Examples_phase_diagram/digitized_data_2.csv"    #Lower Line
 file_name_2 = "examples/Examples_phase_diagram/digitized_data_1.csv"    #Upper Line
 
@@ -74,7 +74,7 @@ data2       = readdlm(file_name_2)
 coeff_up, coeff_do  = CalculateReactionLine(data1,data2)
 
 #Check for correctness of the result within the plot
-println("CAUTION: Be careful, that limits are captured correctly. Sometimes fewer points give better results.")
+println("CAUTION: Be careful that limits are captured correctly. Sometimes fewer points give better results.")
 T  = LinRange(1273.0,1873.0,100)                                        #Choose the temperature range of the phase diagram
 y  = coeff_do[1] .+ coeff_do[2] .* T .+ coeff_do[3] * T .^ 2.0
 y2 = coeff_up[1] .+ coeff_up[2] .* T .+ coeff_up[3] * T .^ 2.0

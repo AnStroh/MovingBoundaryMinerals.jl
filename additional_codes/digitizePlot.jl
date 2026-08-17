@@ -1,8 +1,8 @@
 #=
-This is a short summery of details related to our Olivine example and the digitalization of the
-phase diagram.We are using the repository PlotDigitizer.jl in GitHub from Stroh & Frasunkiewicz
+This is a short summary of details related to our Olivine example and the digitalization of the
+phase diagram. We are using the repository PlotDigitizer.jl on GitHub from Stroh & Frasunkiewicz
 (07.01.2025,https://github.com/AnStroh/PlotDigitizer)
-Their example is the same as in our case. The phase diagram was created using Perple_X PERPLE_X software package (Connolly, 2005,
+Their example is the same as in our case. The phase diagram was created using the Perple_X software package (Connolly, 2005,
 https://doi.org/10.1016/j.epsl.2005.04.033; Connolly, 2009, https://doi.org/10.1029/2009GC002540; Xiang & Connolly, 2022,
 https://doi.org/10.1111/jmg.12626).
 thermodynamic data set:
@@ -11,11 +11,11 @@ solution models:
 O(HP)       (Holland & Powell, 1998, https://doi.org/10.1111/j.1525-1314.1998.00140.x)
 melt(HP)    (Holland & Powell, 2001, https://doi.org/10.1093/petrology/42.4.673; White, Powell & Holland, 2001, https://doi.org/10.1046/j.0263-4929.2000.00303.x)
 
-Reminder: PlotDigitizer.jl is not included into this Pkg. Please download PlotDigitizer.jl to
+Reminder: PlotDigitizer.jl is not included in this package. Please download PlotDigitizer.jl to
 use it or use your preferred digitizer. The code shown here is only a previous version of the package.
 More options are possible with the help of the package. To proceed, two output files containing X-T values for the
 reaction lines are needed.
-CAUTION: Be careful, that limits are captured correctly. Sometimes fewer points give better results.
+CAUTION: Be careful that limits are captured correctly. Sometimes fewer points give better results.
 =#
 
 

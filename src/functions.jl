@@ -1,5 +1,5 @@
 using SparseArrays, LinearAlgebra,  Dates, Plots
-export advect_interface_regrid!, blkdiag, calculate_dt, calc_mass_vol, calc_mass_vol_simple_diff, calc_volume, create_grid!, find_dt, fill_matrix!, linear_interpolation_1D, linspace_interface, preallocations, regrid!, set_inner_bc_mb!, set_inner_bc_flux!,set_inner_bc_Lasaga!, set_outer_bc!, trapezoidal_integration, update_time!, update_t_dependent_param!, update_t_dependent_param_simple!, construct_matrix_fem, solve_soe,calc_mass_err, make_dx_right, newton_solver, define_new_grid, sinusoid_profile,save_figure,scaling,rescale,h_refinement1,h_refinement2
+export advect_interface_regrid!, blkdiag, calculate_dt, calc_mass_vol, calc_mass_vol_simple_diff, calc_volume, create_grid!, find_dt, fill_matrix!, linear_interpolation_1D, linspace_interface, regrid!, set_inner_bc_mb!, set_inner_bc_flux!,set_inner_bc_Lasaga!, set_outer_bc!, trapezoidal_integration, update_time!, update_t_dependent_param!, update_t_dependent_param_simple!, construct_matrix_fem, solve_soe,calc_mass_err, make_dx_right, newton_solver, define_new_grid, sinusoid_profile,save_figure,scaling,rescale,h_refinement1,h_refinement2
 #Functions----------------------------------------------------
 """
     advect_interface_regrid!(Ri, V_ip, dt, x_left, x_right, C_left, C_right, nr)
@@ -75,7 +75,6 @@ Constructs a block diagonal matrix from a variable number of input matrices.
 # Returns
 - `result::Matrix`: Block diagonal matrix constructed from the input matrices.
 """
-
 function blkdiag(matrices::AbstractMatrix...)
     # Calculate total size for the block diagonal matrix
     total_rows = sum(size(m, 1) for m in matrices)
@@ -160,7 +159,6 @@ has been performed.
 # Returns
 - `dt::Float64`: The calculated time step.
 """
-
 function calculate_dt(D,dx,CFL)
     #Calculate dt---------------------------------------------
     dt = CFL * (dx .^ 2) *inv(D)
@@ -233,7 +231,6 @@ total mass (`Mtot`) is calculated using trapezoidal integration of the product o
 composition.
 
 """
-
 function calc_mass_vol_simple_diff(x1,C1,ndim,rho)
     #Calculate total mass based on the volume-----------------
     #Preallocations
@@ -260,14 +257,14 @@ Calculation of all volumes. The density in both phases is constant. Subsequently
 considered.
 
 # Arguments
-- `x1`: Nodes of the left phase.
-- `x2`: Nodes of the right phase.
-- `ndim`: Geometry factor.
+- `x1::Vector{Float64}`: Nodes of the left phase in [m].
+- `x2::Vector{Float64}`: Nodes of the right phase in [m].
+- `ndim::Int`: Geometry exponent (1 = planar, 2 = cylindrical, 3 = spherical).
 
 # Returns
-- `V1`: Array of volumes for the left phase.
-- `V2`: Array of volumes for the right phase.
-- `dVC`: Array of total volume changes.
+- `V1::Vector{Float64}`: Volumes of the left phase in [m^ndim].
+- `V2::Vector{Float64}`: Volumes of the right phase in [m^ndim].
+- `dVC::Vector{Float64}`: Total volume change per node in [m^ndim].
 
 """
 function calc_volume(x1,x2,ndim)
@@ -552,27 +549,18 @@ end
 
 Generate a locally refined mesh following the h-refinement method. This function stops the refinement after a given number of refinement levels.
 
-Arguments
-- Ri::AbstractVector{<:Real}
-    Monotonic vector of node coordinates (e.g. from inner to outer radius) that defines the base mesh. It has the length of npoints.
-- RefineLevel::Union{Function, AbstractVector{Bool}}
-    Number of refinement levels to be applied.
-- npoints::Integer
-    Number of nodes in the original mesh.  If you give 1 number, both sides will have the same number of points. If you give 2 numbers, the first number defines the left side, the second number the right side.
+# Arguments
+- `Ri::AbstractVector{<:Real}`: Monotonic vector `[left_radius, right_radius]` in [m] that defines the base mesh.
+- `RefineLevel::Int`: Number of refinement levels to be applied.
+- `npoints::Union{Int, AbstractVector{<:Int}}`: Number of nodes in the original mesh. If you give 1 number, both sides will have the same number of points. If you give 2 numbers, the first number defines the left side, the second number the right side.
 
-Returns
-- x_left::Vector{Float64}
-    Refined left nodes in [m].
-- x_right::Vector{Float64}
-    Refined right nodes in [m].
-- dx_l::Float64
-    Last dx on the left side in [m].
-- dx_r::Float64
-    First dx on the right side in [m].
-- x0::Vector{Float64}
-    Initial grid spacing for the whole domain in [m].
+# Returns
+- `x_left::Vector{Float64}`: Refined left nodes in [m].
+- `x_right::Vector{Float64}`: Refined right nodes in [m].
+- `dx_l::Float64`: Last dx on the left side in [m].
+- `dx_r::Float64`: First dx on the right side in [m].
+- `x0::Vector{Float64}`: Initial grid spacing for the whole domain in [m].
 """
-
 function h_refinement1(Ri,RefineLevel,npoints)
     if length(npoints) != 2
         npoints = [npoints,npoints]
@@ -615,27 +603,18 @@ end
 
 Generate a locally refined mesh following the h-refinement method. The refinement will stop, if the last dx on the left side is smaller than Ri[1]*RefineCond.
 
-Arguments
-- Ri::AbstractVector{<:Real}
-    Monotonic vector of node coordinates (e.g. from inner to outer radius) that defines the base mesh. It has the length of npoints.
-- RefineCond::Union{Function, AbstractVector{Bool}}
-    Ratio between the first and the last dx on the left side. If the last dx is smaller than Ri[1]*RefineCond, the refinement stops.
-- npoints::Integer
-    Number of nodes in the original mesh. If you give 1 number, both sides will have the same number of points. If you give 2 numbers, the first number defines the left side, the second number the right side.
+# Arguments
+- `Ri::AbstractVector{<:Real}`: Monotonic vector `[left_radius, right_radius]` in [m] that defines the base mesh.
+- `RefineCond::Real`: Ratio between the first and the last dx on the left side. If the last dx is smaller than `Ri[1]*RefineCond`, the refinement stops.
+- `npoints::Union{Int, AbstractVector{<:Int}}`: Number of nodes in the original mesh. If you give 1 number, both sides will have the same number of points. If you give 2 numbers, the first number defines the left side, the second number the right side.
 
-Returns
-- x_left::Vector{Float64}
-    Refined left nodes in [m].
-- x_right::Vector{Float64}
-    Refined right nodes in [m].
-- dx_l::Float64
-    Last dx on the left side in [m].
-- dx_r::Float64
-    First dx on the right side in [m].
-- x0::Vector{Float64}
-    Initial grid spacing for the whole domain in [m].
+# Returns
+- `x_left::Vector{Float64}`: Refined left nodes in [m].
+- `x_right::Vector{Float64}`: Refined right nodes in [m].
+- `dx_l::Float64`: Last dx on the left side in [m].
+- `dx_r::Float64`: First dx on the right side in [m].
+- `x0::Vector{Float64}`: Initial grid spacing for the whole domain in [m].
 """
-
 function h_refinement2(Ri,RefineCond,npoints)
     max_it = 1000
     if length(npoints) != 2
@@ -976,7 +955,7 @@ function pchip(x,y,X)
 end
 
 """
-    regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, nr, nmin, MRefin, verbose)
+    regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, nr, nmin, MRefin, RefineCond, RefineLevel, nPoints, RefineMethod, verbose)
 
 Regrid the grid and interpolate the composition profiles. Units may differ from SI units if non-dimensionalisation has
 been performed.
@@ -991,7 +970,11 @@ been performed.
 - `V_ip::Float64`: Velocity of the interface in [m/s].
 - `nr::Vector`: Resolution.
 - `nmin::Int`: Minimum grid size.
-- `MRefin::Int`: Refinement factor.
+- `MRefin::Int`: Refinement factor, used when `RefineMethod == 1`.
+- `RefineCond::Real`: Refinement condition, used when `RefineMethod == 3` (see [`h_refinement2`](@ref)).
+- `RefineLevel::Int`: Number of refinement levels, used when `RefineMethod == 2` (see [`h_refinement1`](@ref)).
+- `nPoints::Union{Int, AbstractVector{<:Int}}`: Number of points for the initial grid, used when `RefineMethod` is `2` or `3`.
+- `RefineMethod::Int`: Refinement method; `1` = m-refinement, `2` = h-refinement by refinement level, `3` = h-refinement by refinement condition.
 - `verbose::Bool`: Whether to print additional information.
 
 # Returns
@@ -1084,7 +1067,6 @@ Rescales various input parameters based on provided scaling factors. Rescaled fa
 - `t_tot`: Dimensionalized total time in [s].
 - `t_ar`: Dimensionalized array of time points in [s].
 """
-
 function rescale(Ri0, Ri_input, x_left_input, x_right_input, x0_input, Di_input, D0_input, V_input, t_tot_input, t_ar_input, Lsc, Dsc, Vsc, tsc)
     #Rescaling utilized numbers
     #Dependent numbers
@@ -1131,7 +1113,6 @@ This function performs non-dimensionalization of the input parameters based on t
 The length scale (`Lsc`) is fixed at `1e-3` meters. The diffusion scale is the average of `Di_input` or `D0_input`.
 The function then calculates the dependent scales (`tsc`, `Vsc`) and non-dimensionalizes the input parameters accordingly.
 """
-
 function scaling(Ri_input, Di_input, D0_input, V_input, t_tot_input, t_ar_input)
     #Non-dimensionalization of input parameters
     #Independent scales
@@ -1155,16 +1136,16 @@ function scaling(Ri_input, Di_input, D0_input, V_input, t_tot_input, t_ar_input)
 end
 
 """
-    save_figure(save_path::String, save_file::Bool)
+    save_figure(save_name::String, save_path::String, save_file::Bool)
 
-Save the current figure to a file if `save_file` is `true`. The file will be saved in the directory specified by `save_path`
-with a filename `save_name` that includes the current date and time.
+Save the current figure to a file if `save_file` is `true`. The file is saved (as both `.pdf` and `.png`) in the
+directory specified by `save_path`, with a filename `save_name` that includes the current date and time.
 
 # Arguments
-- `save_path::String`: The directory path where the figure will be saved.
+- `save_name::String`: The base filename (without extension) the figure will be saved as.
+- `save_path::String`: The directory path where the figure will be saved; created if it does not already exist.
 - `save_file::Bool`: A flag indicating whether to save the figure or not.
 """
-
 function save_figure(save_name::String = "My_example",save_path::String = "MovingBoundaryMinerals.jl",save_file::Bool = false)
     if save_file
         !isdir(save_path) && mkdir(save_path)
@@ -1390,22 +1371,23 @@ function set_outer_bc!(BCout,L_g,R_g,C_left,C_right,ScF)
 end
 
 """
-    sinusoid_profile(C0, n, L, D, t, G)
+    sinusoid_profile(C0, n, L, D, t, G, x)
 
 Calculates a sinusoidal composition profile.
 
 This function takes the initial composition `C0`, the number of sinusoidal modes `n`, the length of the system `L`,
-the diffusion coefficient `D`, the time `t`, and the amplitude `G` as input parameters. It calculates the composition
-profile at a given time `t` using the sinusoidal equation. Units may differ from SI units if non-dimensionalisation has
-been performed.
+the diffusion coefficient `D`, the time `t`, the amplitude `G`, and the spatial coordinate `x` as input parameters. It
+calculates the composition profile at a given time `t` using the sinusoidal equation. Units may differ from SI units if
+non-dimensionalisation has been performed.
 
 # Arguments
-- `C0`: Initial composition at position x at `t = 0.0 in [-].
+- `C0`: Initial composition at position x at `t = 0.0` in [-].
 - `n`: Number of sinusoidal modes.
 - `L`: Length of the modelling domain in [m].
 - `D`: Diffusion coefficient in [m²/s].
 - `t`: Time in [s].
 - `G`: Amplitude.
+- `x`: Spatial coordinate(s) at which the profile is evaluated in [m].
 
 # Returns
 - `C`: Composition profile at time `t` in [-].

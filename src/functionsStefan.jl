@@ -1,5 +1,5 @@
 using  FileIO
-export calculate_density, coeff_trans_line, composition, ndgrid, set_inner_bc_stefan!,values_between_known_indices!
+export calculate_density, coeff_trans_line, composition, set_inner_bc_stefan!,values_between_known_indices!
 #Functions---------------------------------------------------
 
 """
@@ -161,7 +161,6 @@ Finds the values in `vec2` that correspond to the indices in `vec1` where the el
 # Errors
 - Throws an error if `val1` or `val2` are outside the range of values in `vec1`.
 """
-
 function values_between_known_indices!(vec1, vec2, val1, val2)
     idx1 = findfirst(x -> x <= val1, vec1)                                  #Find indices, where x is smaller than value 1
     idx2 = findlast(x -> x >= val2, vec1)                                   #Find indices, where x is larger than value 2

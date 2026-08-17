@@ -3,7 +3,7 @@ module Benchmarks
     using ..MovingBoundaryMinerals
     using LinearAlgebra, SpecialFunctions
 
-    export analytical_sol_step_function, analytical_sol_half_space, calc_sinus_sphere, crank_time_transformation1, crank_time_transformation2, lasaga, rayleigh_fractionation ,smith,crank_time_transformation3
+    export analytical_sol_step_function, analytical_sol_half_space, calc_sinus_sphere, crank_time_transformation1, crank_time_transformation2, rayleigh_fractionation ,smith,crank_time_transformation3
 
     """
         analytical_sol_step_function(Ri, Di, x, C0, t_tot)
@@ -23,7 +23,6 @@ module Benchmarks
     # Description
     This function computes the analytical solution for the composition profile of a step function diffusion problem using the error function (`erf`). The solution is based on the initial composition values and the diffusion coefficient over a specified time period.
     """
-
     function analytical_sol_step_function(Ri,Di,x,C0,t_tot)
         #Analytical solution-----------------------------------------
         x0  = copy(x)
@@ -50,7 +49,6 @@ module Benchmarks
     # Description
     This function computes the analytical solution for the composition profile in a half-space using the error function (`erf`). The composition profile is calculated based on the initial composition `C0`, the diffusion coefficient `Di`, and the total time `t_tot`.
     """
-
     function analytical_sol_half_space(H,Di,x,C0,t_tot)
         #Analytical solution-----------------------------------------
         x0  = copy(x)
@@ -78,7 +76,6 @@ module Benchmarks
     # Description
     This function computes the composition profile on a sphere over time using the eigenfunction expansion method. The method is based on the solution provided in Crank (1975): The Mathematics of Diffusion, chapter 6.3. The function iteratively updates the composition profile by summing the contributions from each term in the eigenfunction expansion.
     """
-
     function calc_sinus_sphere(x0,C0,D,tot,nterms)
         #Routine to test a linear diffusion code with Neumann BC
         #The solution is based on the eigenfuction expansion method
@@ -120,7 +117,6 @@ module Benchmarks
     # Description
     This function calculates the diffusion profile considering cooling and no growth, based on the method described by Crank (1956). It uses the trapezoidal integration method to compute the integral of the diffusion coefficient over time and applies the error function to determine the composition profile.
     """
-
     function crank_time_transformation1(C0,x0,T0,T,E,R,D0,t,Cl_i)
         #Calculate diffusion with cooling and without growth following Crank (1956)
         Tan     = LinRange(T0,T,1000)

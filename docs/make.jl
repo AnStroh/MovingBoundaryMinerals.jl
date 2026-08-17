@@ -1,5 +1,8 @@
 using Documenter
+using DocumenterCitations
 using MovingBoundaryMinerals
+
+bib = CitationBibliography(joinpath(@__DIR__, "src", "refs.bib"))
 
 # Get MovingBoundaryMinerals.jl root directory
 DC_root_dir = dirname(@__DIR__)
@@ -74,18 +77,24 @@ makedocs(;
     size_threshold_ignore = ["man/listfunctions.md"]), # easier local build
 
     warnonly = Documenter.except(:footnote),
+    plugins = [bib],
     pages=[
         "Home"      => "index.md",
-        #"General Remarks" => "man/general_remarks.md",
-        #"Stefan Problem" => "man/stefan_problem.md",
-        #"Digitization" => "man/digitalization.md",
+        "Getting Started" => "man/getting_started.md",
+        "GUI" => "man/gui.md",
+        "Interpreting Output" => "man/interpreting_output.md",
+        "General Remarks" => "man/general_remarks.md",
+        "Stefan Problem" => "man/stefan_problem.md",
+        "Digitization" => "man/digitalization.md",
         "List of examples" => "man/listexamples.md",
         "List of functions" => "man/listfunctions.md",
+        "Quick Reference" => "man/quick_reference.md",
         "Authors" => "man/authors.md",
         "Contributing" => "man/contributing.md",
         "Code of Conduct" => "man/code_of_conduct.md",
         "Security" => "man/security.md",
-        "License" => "man/license.md"
+        "License" => "man/license.md",
+        "References" => "man/references.md"
     ],
 )
 

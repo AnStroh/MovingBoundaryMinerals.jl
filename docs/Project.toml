@@ -1,5 +1,6 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+DocumenterCitations = "daee34ce-89f3-4625-b898-19384cb65244"
 MovingBoundaryMinerals = "ede1ac2d-c776-4409-bf2f-c421e41a2d87"
 
 [sources]
@@ -7,3 +8,4 @@ MovingBoundaryMinerals = {path = ".."}
 
 [compat]
 Documenter = "1"
+DocumenterCitations = "1"

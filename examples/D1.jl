@@ -190,6 +190,7 @@ function D1(;RefineMethod = 1, plot_sim = false, verbose= false)
         #Plotting-----------------------------------------------------------
         if plot_sim && it % 200 == 0
             #Plotting-------------------------------------------------------
+            fs = 12.0
             maxC = maximum([maximum(C_left),maximum(C_right)])
             Tp_min = (Tstop - 273.0) * 0.95
             Tp_max = (Tstart - 273.0)* 1.05

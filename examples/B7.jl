@@ -9,7 +9,7 @@ function B7(;RefineMethod = 1, plot_sim = false, verbose= false)
                                                                 #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     D0      = [NaN     NaN;]                                    #Pre-exponential factor in [m^2/s]                  -> not used in this example
     rho     = [1.0     1.0;]                                    #Normalized densities in [-]                        -> not used in this example
-    Ri      = [5.0     10;]                                     #Initial radii [interface    total length] in [m]   -> in [L]
+    Ri      = [5.0     10;]                                     #Initial radii [interface position, total length] in [m]   -> in [L]
     Cl_i    = 0.1                                               #Initial composition left side in [-]               -> in [C]
     Cr_i    = Cl_i/20.0                                         #Initial composition right side in [-]              -> -//-
     V_ip    = -5e-3                                             #Interface velocity in [m/s]                        -> in [V]

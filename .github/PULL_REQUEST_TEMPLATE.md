@@ -1,5 +1,6 @@
 ## What does this PR do?
 
+Briefly describe the change and why it's needed.
 <!-- Briefly describe the change and why it's needed. -->
 
 ## Checklist
@@ -11,4 +12,5 @@
 
 ## Related issues
 
+e.g. Closes #123
 <!-- e.g. Closes #123 -->

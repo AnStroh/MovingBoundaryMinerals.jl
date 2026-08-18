@@ -8,7 +8,7 @@ function DCNI(;RefineMethod = 1, plot_sim = false, verbose= false)
                                                         #If you want to calculate D with the Arrhenius equation, set Di = [-1.0 -1.0;]
     D0      = [NaN          NaN;]                       #Pre-exponential factor in [m^2/s]
     rho     = [1.0          1.0;]                       #Normalized densities in [-]
-    Ri      = [0.0002       0.0004;]                    #Initial radii [interface    total length] in [m]
+    Ri      = [0.0002       0.0004;]                    #Initial radii [interface position, total length] in [m]
     Cl_i    = 0.6                                       #Initial composition left side in [-]
     Cr_i    = 0.6                                       #Initial composition right side in [-]
     V_ip    = 0.0                                       #Interface velocity in [m/s]; CAUTION: This code only gives correct results, if V_ip is 0.

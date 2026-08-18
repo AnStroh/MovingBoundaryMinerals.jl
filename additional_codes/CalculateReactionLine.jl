@@ -1,6 +1,6 @@
 #= This code uses the digitized data from digitizePlot.jl (Stroh and Frasunkiewicz, 2025; https://github.com/AnStroh/PlotDigitizer.jl) (within this Pkg) to calculate the
 equation of the reaction line of two phases from a X-T phase diagram. The results are the
-coefficients a, b, c of X(T) = c + b*T + a*T², which are used in Chemical_Stefan_problem_XT.jl.
+coefficients a, b, c of X(T) = a + b*T + c*T², which are used in Chemical_Stefan_problem_XT.jl.
 =#
 using FileIO, DelimitedFiles, Plots
 

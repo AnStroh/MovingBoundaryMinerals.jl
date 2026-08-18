@@ -83,6 +83,7 @@ function SDG(; plot_sim = false)
         #Solve system -------------------------------------------------
         C = L_g \ R_g
         if plot_sim
+            fs = 12.0
             # Plotting ------------------------------------------------
             p = plot(x*1000,C, lw=2, label=L"\mathrm{Current\ composition}")
             p = plot!(x0*1000,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",

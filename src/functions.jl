@@ -8,7 +8,7 @@ Update the interface position and calculate new grids based on the advection vel
 non-dimensionalisation has been performed.
 
 # Arguments
-- `Ri::Float64`: Radii [interface    total length in [m].
+- `Ri::Vector{Float64}`: Radii [interface position, total length] in [m].
 - `V_ip::Float64`: Advection velocity in [m/s].
 - `dt::Float64`: Time step in [s].
 - `x_left::Vector{Float64}`: Left distance nodes in [m].
@@ -24,7 +24,7 @@ non-dimensionalisation has been performed.
 - `C_left::Vector{Float64}`: Updated composition values on the left nodes.
 - `C_right::Vector{Float64}`: Updated composition values on the right nodes.
 - `nr::Vector{Int}`: Updated resolution.
-- `Ri::Float64`: Updated radii [interface    total length].
+- `Ri::Vector{Float64}`: Updated radii [interface position, total length].
 """
 function advect_interface_regrid!(Ri,V_ip,dt,x_left,x_right,C_left,C_right,nr)
     Rio   = copy(Ri)
@@ -345,7 +345,7 @@ end
 Create grid with or without variable spacing.Units may differ from SI units if non-dimensionalisation has been performed.
 
 # Arguments
-- `Ri::Vector{Float64}`: Initial radii [interface    total length] in [m].
+- `Ri::Vector{Float64}`: Initial radii [interface position, total length] in [m].
 - `nr::Vector{Int}`: Resolution vector.
 - `MRefin::Int`: The refinement factor for the grid.
 - `verbose::Bool`: A boolean indicating whether to print additional information.
@@ -373,13 +373,13 @@ This function defines a new grid based on the given parameters. Units may differ
 has been performed.
 
 ## Arguments
-- `Ri`: Radii [interface    total length] in [m].
+- `Ri`: Radii [interface position, total length] in [m].
 - `nr`: Resolution of nodes on the left and right side.
 - `Rfact`: Grid refinement factor.
 - `verbose`: A boolean indicating whether to print additional information.
 
 ## Returns
-- `Ri`: Radii [interface    total length] in [m].
+- `Ri`: Radii [interface position, total length] in [m].
 - `nr`: Resolution of nodes on the left and right sides.
 - `x_left`:Left nodes in [m].
 - `x_right`: Right nodes in [m].
@@ -547,7 +547,7 @@ end
 """
     h_refinement1(Ri,RefineLevel,npoints)
 
-Generate a locally refined mesh following the h-refinement method. This function stops the refinement after a given number of refinement levels.
+Generate a locally refined mesh following the h-refinement method. The left side stops refining after `RefineLevel` levels; the right side then refines independently until its spacing at the interface matches the left side's.
 
 # Arguments
 - `Ri::AbstractVector{<:Real}`: Monotonic vector `[left_radius, right_radius]` in [m] that defines the base mesh.
@@ -601,7 +601,7 @@ end
 """
     h_refinement2(Ri, RefineCond, npoints)
 
-Generate a locally refined mesh following the h-refinement method. The refinement will stop, if the last dx on the left side is smaller than Ri[1]*RefineCond.
+Generate a locally refined mesh following the h-refinement method. The left side stops refining once its last `dx` drops below `Ri[1]*RefineCond`; the right side then refines independently until its spacing at the interface matches the left side's.
 
 # Arguments
 - `Ri::AbstractVector{<:Real}`: Monotonic vector `[left_radius, right_radius]` in [m] that defines the base mesh.
@@ -818,7 +818,7 @@ Constructs an array containing the right side `dx`.
 - `n::Integer`: Number of `dx` elements.
 
 # Returns
-- `dx::Array{Float64,1}`: Spatial distancenes for the right grid.
+- `dx::Array{Float64,1}`: Spatial distances for the right grid.
 """
 function make_dx_right(R, d1, n)
     dx    = zeros(n)
@@ -966,7 +966,7 @@ been performed.
 - `x_right::Vector`: Vector of right spatial nodes in [m].
 - `C_left::Vector`: Vector of left composition values in [-].
 - `C_right::Vector`: Vector of right composition values in [-].
-- `Ri::Vector`: Radii [interface    total length] in [m].
+- `Ri::Vector`: Radii [interface position, total length] in [m].
 - `V_ip::Float64`: Velocity of the interface in [m/s].
 - `nr::Vector`: Resolution.
 - `nmin::Int`: Minimum grid size.
@@ -1271,12 +1271,12 @@ differ from SI units if non-dimensionalisation has been performed.
 function set_inner_bc_Lasaga!(Cl_i,beta,t, KD,D_r,D_l,D0,C_left,C_right,dx1,dx2,rho,L_g,R_g,nr)
     #Set inner boundary conditions for major elements following Lasaga (1983)
     #Semi-analytical solution
-    BC_left_Las  = Cl_i * exp(- beta * t)                                                           #Conentration at the left side of the interface
+    BC_left_Las  = Cl_i * exp(- beta * t)                                                           #Concentration at the left side of the interface
     C_right_Las  = BC_left_Las * inv(1 - BC_left_Las) * inv(KD)
-    BC_right_Las = C_right_Las * inv(1 + C_right_Las)                                               #Conentration at the right side of the interface
+    BC_right_Las = C_right_Las * inv(1 + C_right_Las)                                               #Concentration at the right side of the interface
     #=Numerical solution--------------------------------------
-    Eq1 = (C_left[end]/(1-C_left[end])/(C_right[1]/(1-C_right[1})) == KD)
-    Eq2 = (-rho[2}*D0[2]/dx2*(C_right[2] - C_right[1]) == Jr)
+    Eq1 = (C_left[end]/(1-C_left[end])/(C_right[1]/(1-C_right[1])) == KD)
+    Eq2 = (-rho[2]*D0[2]/dx2*(C_right[2] - C_right[1]) == Jr)
     Eq3 = (-rho[1]*D0[1]/dx1*(C_left[end] - C_left[end-1]) == Jl)
     Eq4 = (-rho[1]*D0[1]/dx1*(C_left[end] - C_left[end-1])-(-rho[2]*D0[2]/dx2*(C_right[2] - C_right[1])) == 0)
 
@@ -1463,7 +1463,7 @@ units if non-dimensionalisation has been performed.
 - `Di::Vector{Float64}`: Diffusion coefficients in [m²/s].
 - `Ea1::Float64`: Activation energy for the left phase in [J/mol].
 - `Ea2::Float64`: Activation energy for the right phase in [J/mol].
-- `KD_ar::Vector{Float64}`: Array of distributioncoefficients.
+- `KD_ar::Vector{Float64}`: Array of distribution coefficients.
 - `R::Float64`: Gas constant in [J/(mol*K)].
 - `T_ar::Vector{Float64}`: Array of temperatures in [K].
 - `t_ar::Vector{Float64}`: Array of time in [s].

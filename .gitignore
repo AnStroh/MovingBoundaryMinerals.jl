@@ -6,3 +6,6 @@ Manifest.toml
 *.pdf
 *.png
 settings.json
+examples/B3.jl
+examples/D2.jl
+test/test_B3.jl

@@ -3,7 +3,7 @@ CurrentModule = MovingBoundaryMinerals
 ```
 # MovingBoundaryMinerals.jl
 
-[MovingBoundaryMinerals.jl](https://github.com/AnStroh/MovingBoundaryMinerals.jl) is a software package to model diffusion-controlled growth/resorption processes in mineral couples. It solves the moving-boundary (Stefan) problem directly, tracking the interface between two phases as part of the solution rather than prescribing its position or growth rate a priori. See [General Remarks](@ref) for an overview and [The Stefan Problem](@ref stefan-problem) for the underlying physics and numerics.
+[MovingBoundaryMinerals.jl](https://github.com/AnStroh/MovingBoundaryMinerals.jl) is a software package for modelling diffusion-controlled growth and resorption processes in mineral/mineral or mineral/matrix pairs. It can either calculate diffusion-limited growth or resorption for a prescribed rate, or solve the chemical Stefan problem, where the rate emerges from the solution instead of being prescribed. See [General Remarks](@ref) for an overview, [Numerical Approach](@ref numerical-approach) for the numerical scheme, and [Chemical Stefan Problem](@ref stefan-problem) for the thermodynamic constraint.
 
 For further details, we recommend reading [Stroh2025](@cite).
 
@@ -43,4 +43,4 @@ New to the package? [Getting Started](@ref getting-started) walks through runnin
 
 # AI use
 
-ChatGPT and Copilot were used in translating the original MATLAB© codes into Julia. Furthermore, Copilot was used in expanding the documentation of the functions. Moreover, we asked Claude to help with the documentation, finding/fixing bugs, increasing readability, and creating a GUI. All the results were checked and are approved by the authors.
+ChatGPT and Copilot were used in translating the original MATLAB© codes into Julia. Furthermore, Copilot was used in expanding the documentation of the functions. Moreover, we asked Claude to help with the documentation, finding/fixing bugs, increasing readability of the documentation, and creating a GUI/logo. All the results were checked and are approved by the authors.

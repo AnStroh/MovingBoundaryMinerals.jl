@@ -8,7 +8,7 @@ module Benchmarks
     """
         analytical_sol_step_function(Ri, Di, x, C0, t_tot)
 
-    Calculate the analytical solution for a initiala step function diffusion problem.
+    Calculate the analytical solution for an initial step function diffusion problem.
 
     # Arguments
     - `Ri::Vector{Float64}`: Vector containing the initial position of the step.
@@ -216,7 +216,7 @@ module Benchmarks
     - `x_left::Vector{Float64}`: Positions on the left side.
     - `C_left::Vector{Float64}`: Concentrations on the left side.
     - `Ri0::Vector{Float64}`: Initial radii.
-    - `Ri::Vector{Float64}`: Actuel radii.
+    - `Ri::Vector{Float64}`: Actual radii.
     - `C0_r::Vector{Float64}`: Initial concentrations.
     - `KD0::Float64`: Distribution coefficient.
     - `n::Int`: Geometry factor.
@@ -263,7 +263,7 @@ module Benchmarks
     # Arguments
     - `x_right::Array{Float64}`: Array of positions on the right side.
     - `C_right::Array{Float64}`: Array of concentrations on the right side.
-    - `Ri::Array{Float64}`: Actuel radii.
+    - `Ri::Array{Float64}`: Actual radii.
     - `Di::Array{Float64}`: Array of diffusion coefficients.
     - `t_tot::Float64`: Total time.
     - `KD::Float64`: Distribution coefficient.
@@ -275,7 +275,7 @@ module Benchmarks
     - `Can::Array{Float64}`: Array of calculated concentrations (analytical solution).
 
     # Notes
-    This function calculates the composition of a liquid in a growth medium against an advancing planar crystal interface using an analytical solution derived by Smith (1955). The calculation is performed only if `n == 1`.
+    This function calculates the composition of a liquid in a growth medium against an advancing planar crystal interface using an analytical solution derived by Smith (1955). The calculation only covers the planar case: for `n != 1` (cylindrical/spherical), `xan`/`Can` are never assigned and the function errors with an `UndefVarError`.
     """
     function smith(x_right,C_right,Ri,Di,t_tot,KD,V_ip,n)
         #Smith et al. (1955): analytical solution for the composition of a liquid in growth medium against an advancing planar crystal interface

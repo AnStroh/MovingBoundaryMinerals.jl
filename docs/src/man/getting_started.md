@@ -37,7 +37,7 @@ Every example in `examples/` follows the same overall structure, whether it mode
    - optionally plot or record diagnostics (mass balance, composition, etc.).
 5. **Post-processing** — the final state is returned and, if enabled, plotted.
 
-Examples that include a moving interface (letters B, C, D — see [List of examples](@ref)) add an extra step per iteration: the interface velocity is computed from the Stefan condition, the interface is advected, and the grid is regridded around its new position before the diffusion step. See [The Stefan Problem](@ref stefan-problem) for details.
+Examples that include a moving interface (letters B, C, D — see [List of examples](@ref)) add an extra step per iteration: the interface velocity follows from the interface condition (flux-balance, total-mass-balance, or the thermodynamically constrained Stefan condition, depending on the family), the interface is advected, and the grid is regridded around its new position before the diffusion step. See [Numerical Approach](@ref numerical-approach) for details.
 
 ### Temperature (and `K_D`) as a history, not a single number
 

@@ -50,6 +50,7 @@ function save_run_outputs(mode::String, p, profile, kwargs, extra_results::Dict;
     record = Dict(
         "mode" => mode,
         "timestamp" => timestamp,
+        "run_name" => run_name,
         "parameters" => Dict(string(k) => v for (k, v) in pairs(kwargs)),
         "results" => extra_results,
     )

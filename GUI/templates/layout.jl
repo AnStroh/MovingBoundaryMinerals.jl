@@ -14,6 +14,13 @@ function page(title::String, mode_slug::String, body_html::String)
       <title>$(title) - MovingBoundaryMinerals.jl</title>
       <link rel="icon" href="/static/favicon.ico">
       <link rel="stylesheet" href="/static/style.css">
+      <script>
+      (function() {
+        const saved = localStorage.getItem("theme");
+        const theme = saved || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", theme);
+      })();
+      </script>
     </head>
     <body>
       <nav class="nav">
@@ -21,6 +28,7 @@ function page(title::String, mode_slug::String, body_html::String)
         <a href="/diffusion-couple">Diffusion couple</a>
         <a href="/thermo-growth">Thermodynamic growth</a>
         <a href="/history">Past runs</a>
+        <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Toggle dark/light theme"></button>
       </nav>
       <main>
         <h1>$(title)</h1>
@@ -38,6 +46,37 @@ function page(title::String, mode_slug::String, body_html::String)
       let elapsedTimer = null;
       let runStart = null;
       let currentJobId = null;
+
+      const themeToggle = document.getElementById("theme-toggle");
+      function updateThemeIcon() {
+        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+        themeToggle.textContent = isDark ? "☀️ Light" : "🌙 Dark";
+      }
+      updateThemeIcon();
+      themeToggle.addEventListener("click", () => {
+        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+        const next = isDark ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", next);
+        localStorage.setItem("theme", next);
+        updateThemeIcon();
+      });
+
+      // History page only - deleting a saved run. Wired unconditionally since
+      // querySelectorAll simply finds nothing on pages without a history table.
+      document.querySelectorAll(".delete-run").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          if (!confirm("Delete this run permanently? This cannot be undone.")) return;
+          const folder = btn.dataset.folder;
+          btn.disabled = true;
+          const resp = await fetch(`/results/\${folder}/delete`, { method: "POST" });
+          if (resp.ok) {
+            document.getElementById(`run-\${folder}`)?.remove();
+          } else {
+            alert("Could not delete this run.");
+            btn.disabled = false;
+          }
+        });
+      });
 
       function formatElapsed(seconds) {
         const m = Math.floor(seconds / 60);
@@ -58,8 +97,23 @@ function page(title::String, mode_slug::String, body_html::String)
         await fetch(`/jobs/\${currentJobId}/cancel`, { method: "POST" });
       }
 
-      // The history page has no form - only attach the run/poll behaviour when one exists.
+      // The history page has no form - only attach form behaviour when one exists.
       if (form) {
+        // Remember the last-used values per mode, so repeat runs don't start from scratch.
+        // `run_name` is deliberately excluded - each run typically wants a fresh name.
+        const formStorageKey = (fieldName) => `mbm_form_\${modeSlug}_\${fieldName}`;
+        for (const el of form.elements) {
+          if (!el.name || el.name === "run_name") continue;
+          const saved = localStorage.getItem(formStorageKey(el.name));
+          if (saved !== null) el.value = saved;
+        }
+        form.addEventListener("change", () => {
+          for (const el of form.elements) {
+            if (!el.name || el.name === "run_name") continue;
+            localStorage.setItem(formStorageKey(el.name), el.value);
+          }
+        });
+
         form.addEventListener("submit", async (e) => {
           e.preventDefault();
           runButton.disabled = true;

@@ -92,7 +92,12 @@ end
             isfile(inputs_path) || continue
             try
                 record = TOML.parsefile(inputs_path)
-                push!(runs, (folder = folder, mode = record["mode"], timestamp = record["timestamp"]))
+                push!(runs, (
+                    folder = folder,
+                    mode = record["mode"],
+                    timestamp = record["timestamp"],
+                    run_name = get(record, "run_name", ""),
+                ))
             catch
                 continue   # skip anything unreadable/partially written rather than fail the whole page
             end
@@ -234,6 +239,18 @@ end
 @post "/jobs/{id}/cancel" function(req::HTTP.Request, id::String)
     ok = cancel_job!(id)
     return json(Dict("ok" => ok))
+end
+
+# ------------------------------------------------------------------
+# History cleanup
+# ------------------------------------------------------------------
+@post "/results/{folder}/delete" function(req::HTTP.Request, folder::String)
+    dir = joinpath(RESULTS_DIR, basename(folder))   # basename() blocks path traversal via "../"
+    if !isdir(dir)
+        return json(Dict("ok" => false, "error" => "Run not found."), status = 404)
+    end
+    rm(dir; recursive = true)
+    return json(Dict("ok" => true))
 end
 
 mkpath(RESULTS_DIR)   # the mount below requires the folder to exist even before any run has happened

@@ -19,6 +19,9 @@ All notable changes to `MovingBoundaryMinerals.jl` are documented in this file. 
 ### Changed
 - GUI: the Thermodynamic growth mode's temperature-time path is now an arbitrary list of (time, temperature) points (one `time [days], temperature [°C]` pair per line) instead of a fixed start/end pair — a 2-point path reproduces `D1.jl`'s linear cooling exactly as before, but more points now also reproduce `D2.jl`'s non-monotonic path, which the GUI previously couldn't run at all.
 
+- GUI: the citation line stamped on every plot, `.tab`, `inputs.toml`, `.xlsx`, and `.jld2` output now references the package's Zenodo software archive (doi:10.5281/zenodo.15535732) instead of the [Stroh2025](@cite) paper's DOI, since it's citing the specific software version a result was produced with, not the method paper.
+- README: the "How to cite" section now also lists the Zenodo software DOI alongside the paper citation.
+
 ### Fixed
 - `D2.jl`: the interior plotting block (only ever exercised when `plot_sim`/`animate_sim` is enabled) passed the initial composition `C0` to `plot!` as a `1×n` row matrix instead of a vector, which Plots.jl rejects; fixed with `vec(C0)`.
 - `D2.jl`: the final plotting block referenced `tpath`, a variable local to `D2()` that was never returned to the calling script, which would crash the script's default (`plot_end = true`) run at the very last plotting step; fixed by using the outer `t_user` instead, which holds identical values (`tpath = copy(t_user)` is never mutated).

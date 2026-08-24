@@ -49,7 +49,9 @@ The test can take a while.
 Don't want to write or edit Julia code at all? The [`GUI/`](GUI/) folder has a local, browser-based interface covering single-crystal diffusion, moving-boundary diffusion couples, and thermodynamically constrained crystal growth/resorption — pre-filled forms, one click to run, and downloadable results (plots at 300 dpi plus the raw profile data). See [`GUI/README.md`](GUI/README.md) for a quick start, or the [GUI documentation page](https://anstroh.github.io/MovingBoundaryMinerals.jl/dev/man/gui/) for the full walkthrough.
 
 ## How to cite
-Stroh, A., Aellig, P. S., and Moulas, E.: Numerical modelling of diffusion-limited mineral growth for geospeedometry applications, Geosci. Model Dev., 18, 10203–10220, https://doi.org/10.5194/gmd-18-10203-2025, 2025. 
+Stroh, A., Aellig, P. S., and Moulas, E.: Numerical modelling of diffusion-limited mineral growth for geospeedometry applications, Geosci. Model Dev., 18, 10203–10220, https://doi.org/10.5194/gmd-18-10203-2025, 2025.
+
+If you use the software itself, please also cite the specific version via its Zenodo archive: https://doi.org/10.5281/zenodo.15535732.
 
 ## Funding
 The development of this package is supported by the DFG project 524829125 (VECTOR) and by the European Research Council through the MAGMA project, ERC Consolidator Grant \#771143.

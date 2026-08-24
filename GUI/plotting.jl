@@ -3,10 +3,11 @@ using Plots
 const FONT_SIZE = 12.0
 const PLOT_DPI  = 300
 
-"""Package + paper reference stamped on every plot and saved file, so a shared/downloaded
-result stays traceable back to its source even without the surrounding folder. The version
-is read from the loaded package itself (not hardcoded), so this never goes stale."""
-const CITATION_LINE = "MovingBoundaryMinerals.jl v$(pkgversion(MovingBoundaryMinerals)) - Stroh et al. (2025), doi:10.5194/gmd-18-10203-2025"
+"""Package + Zenodo software-archive reference stamped on every plot and saved file, so a
+shared/downloaded result stays traceable back to its source even without the surrounding
+folder. The version is read from the loaded package itself (not hardcoded), so this never
+goes stale."""
+const CITATION_LINE = "MovingBoundaryMinerals.jl v$(pkgversion(MovingBoundaryMinerals)) - Stroh et al. (2025), doi:10.5281/zenodo.15535732"
 
 """Appends `CITATION_LINE` as a thin, borderless footer strip below the axes, so it sits
 truly outside the plotted data (not overlapping any curve) and outside the axes box itself.

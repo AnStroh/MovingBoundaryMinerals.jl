@@ -20,7 +20,8 @@
 
     @testset "run_thermo_growth" begin
         seen = Float64[]
-        run_thermo_growth(; t_tot_days = 0.001, report_progress = p -> push!(seen, p))
+        run_thermo_growth(; t_user = [0.0, 0.001 * 24 * 60 * 60], T_user = [1400.0, 1350.0] .+ 273.0,
+                           report_progress = p -> push!(seen, p))
         @test !isempty(seen)
         @test issorted(seen)
         @test seen[end] ≈ 1.0

@@ -5,11 +5,15 @@ using LinearAlgebra, SparseArrays, DelimitedFiles, Statistics
     run_thermo_growth(; kwargs...)
 
 GUI backend for the thermodynamically-constrained growth/resorption mode, adapted from
-`examples/D2.jl` (a 2-point, linear Tstart->Tstop path reproduces `examples/D1.jl`'s behaviour,
-so no separate D1 wrapper is needed). Every hardcoded physics/numerics value that a non-programmer
-would plausibly want to change is exposed as a keyword argument with the same default. Advanced/rarely
-changed settings (crystallographic angles, resolution/refinement) are kept fixed at the example's
-defaults. Never plots internally; always returns the raw arrays for the caller to plot.
+`examples/D2.jl`. `t_user`/`T_user` are the same user-defined temperature-time path D2.jl takes
+(in seconds/Kelvin here rather than days/degC, since this is the programmatic entry point - the
+GUI form layer converts from days/degC and validates the path before calling this); a 2-point
+path reproduces `examples/D1.jl`'s linear-cooling behaviour, so no separate D1 wrapper is needed,
+and a longer, non-monotonic path reproduces D2.jl's. Every hardcoded physics/numerics value that
+a non-programmer would plausibly want to change is exposed as a keyword argument with the same
+default. Advanced/rarely changed settings (crystallographic angles, resolution/refinement) are
+kept fixed at the example's defaults. Never plots internally; always returns the raw arrays for
+the caller to plot.
 
 Unlike the original example, the phase-diagram CSV files are located relative to the installed
 package directory (`pkgdir(MovingBoundaryMinerals)`), not the process's working directory, so this
@@ -19,10 +23,9 @@ works regardless of where the GUI server is launched from.
 `(; x_left, x_right, x0, C_left, C_right, C0, Tlin, XC_left, XC_right, Tstart, Tstop, KDlin, KD_sim, T_sim, Mass0, Mass, MB_Error, t_tot)`
 """
 function run_thermo_growth(;
-        Ri          = 0.0001,     #Initial interface radius in [m]
-        Tstart_C    = 1400.0,     #Starting temperature in [degC]
-        Tstop_C     = 1350.0,     #End temperature in [degC]
-        t_tot_days  = 30.0,       #Total time in [days]
+        Ri          = 0.0001,                          #Initial interface radius in [m]
+        t_user      = [0.0, 30.0 * 24 * 60 * 60],       #Time nodes of the T-t path in [s]; must be sorted ascending and start at 0.0
+        T_user      = [1400.0, 1350.0] .+ 273.0,        #Temperature nodes of the T-t path in [K]; same length as t_user, can go up and down (non-monotonic paths supported)
         P           = 1.0e6,      #Pressure in [Pa]
         D0          = 5.38e-9,    #Pre-exponential factor in [m^2/s]
         Ea          = 226000.0,   #Activation energy in [J/mol]
@@ -39,12 +42,21 @@ function run_thermo_growth(;
     verbose     = false
     RefineMethod = 1
 
-    t_tot   = t_tot_days * 24 * 60 * 60
-    t_user  = [0.0, t_tot]
-    T_user  = [Tstart_C, Tstop_C] .+ 273.0
-
+    if length(t_user) != length(T_user)
+        error("t_user and T_user must have the same length.")
+    end
+    if length(t_user) < 2
+        error("The T-t path needs at least 2 points.")
+    end
+    if !issorted(t_user)
+        error("t_user must be sorted in ascending order (time has to increase monotonically along the path).")
+    end
+    if t_user[1] != 0.0
+        error("t_user[1] must be 0.0 (the T-t path has to start at the beginning of the simulation).")
+    end
+    t_tot = t_user[end]
     if t_tot <= 0.0
-        error("t_tot_days must be positive.")
+        error("The total time (t_user[end]) must be positive.")
     end
 
     pkgroot = pkgdir(MovingBoundaryMinerals)

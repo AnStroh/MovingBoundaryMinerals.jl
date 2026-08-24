@@ -233,6 +233,22 @@ function text_field(name::String, label::String; placeholder::String = "")
 end
 
 """
+    textarea_field(name, label, value; hint="", rows=6) -> String
+
+A labelled, multi-line text input, pre-filled with `value`. Used for the thermo-growth
+temperature-time path, where a single number field isn't enough to describe an arbitrary
+number of (time, temperature) nodes.
+"""
+function textarea_field(name::String, label::String, value::String; hint::String = "", rows::Int = 6)
+    hint_html = isempty(hint) ? "" : """<small class="field-hint">$(hint)</small>"""
+    return """
+    <label for="$(name)">$(label)</label>
+    $(hint_html)
+    <textarea id="$(name)" name="$(name)" rows="$(rows)" required>$(value)</textarea>
+    """
+end
+
+"""
     select_field(name, label, options, selected) -> String
 
 A labelled dropdown; `options` is a vector of (value, display_label) pairs.

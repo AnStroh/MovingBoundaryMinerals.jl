@@ -19,6 +19,34 @@
         @test resp.status == 400
         @test occursin("CompInt", data.error) || occursin("composition of interest", lowercase(data.error))
     end
+
+    @testset "thermo growth: path with only 1 point -> 400" begin
+        bad = merge(VALID_THERMO_GROWTH_PARAMS, Dict("path" => "0, 1400"))
+        resp, data = post_form("/thermo-growth/run", bad)
+        @test resp.status == 400
+        @test occursin("at least 2 points", data.error)
+    end
+
+    @testset "thermo growth: path not starting at t=0 -> 400" begin
+        bad = merge(VALID_THERMO_GROWTH_PARAMS, Dict("path" => "1, 1400\n30, 1350"))
+        resp, data = post_form("/thermo-growth/run", bad)
+        @test resp.status == 400
+        @test occursin("first time value must be 0", data.error)
+    end
+
+    @testset "thermo growth: path with non-increasing time -> 400" begin
+        bad = merge(VALID_THERMO_GROWTH_PARAMS, Dict("path" => "0, 1400\n10, 1420\n5, 1350"))
+        resp, data = post_form("/thermo-growth/run", bad)
+        @test resp.status == 400
+        @test occursin("strictly increase", data.error)
+    end
+
+    @testset "thermo growth: malformed path line -> 400" begin
+        bad = merge(VALID_THERMO_GROWTH_PARAMS, Dict("path" => "0, 1400\nnot-a-pair"))
+        resp, data = post_form("/thermo-growth/run", bad)
+        @test resp.status == 400
+        @test occursin("time, temperature", data.error)
+    end
 end
 
 @testset "Concurrent run rejected (409)" begin

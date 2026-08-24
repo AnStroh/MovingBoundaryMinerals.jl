@@ -56,13 +56,13 @@ const VALID_DIFFUSION_COUPLE_PARAMS = Dict(
     "t_tot_years" => "1000.0",
 )
 
-"""A known-good parameter set for `/thermo-growth/run`, with `t_tot_days` cut down drastically
-from the form's own default (30 days) - the underlying physics needs a great many small time
-steps regardless of the requested duration, so 30 days would take minutes even fully JIT-warmed.
-0.001 days is still a real (if tiny) simulation, just a fast one, suitable for CI."""
+"""A known-good parameter set for `/thermo-growth/run`, with the path's total time cut down
+drastically from the form's own default (30 days) - the underlying physics needs a great many
+small time steps regardless of the requested duration, so 30 days would take minutes even fully
+JIT-warmed. 0.001 days is still a real (if tiny) simulation, just a fast one, suitable for CI."""
 const VALID_THERMO_GROWTH_PARAMS = Dict(
-    "Ri" => "0.0001", "n" => "1", "Tstart_C" => "1400.0", "Tstop_C" => "1350.0",
-    "t_tot_days" => "0.001", "P" => "1.0e6", "D0" => "5.38e-9", "Ea" => "226000.0", "CompInt" => "0.5",
+    "Ri" => "0.0001", "n" => "1", "path" => "0, 1400\n0.001, 1350",
+    "P" => "1.0e6", "D0" => "5.38e-9", "Ea" => "226000.0", "CompInt" => "0.5",
 )
 
 """Asserts every expected output file exists, is non-empty, and (for the text/bundled formats)

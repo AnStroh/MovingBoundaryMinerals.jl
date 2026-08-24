@@ -69,7 +69,10 @@ function write_xlsx(path::String, profile, kwargs, extra_results::Dict, mode::St
         row = 5
         for (k, v) in pairs(kwargs)
             params["A$(row)"] = string(k)
-            params["B$(row)"] = v
+            # A Vector assigned directly to a single cell silently spills across the following
+            # rows/cells instead of erroring, which would corrupt this one-row-per-parameter
+            # layout (e.g. thermo-growth's t_user/T_user path nodes) - write it as text instead.
+            params["B$(row)"] = v isa AbstractVector ? join(v, ", ") : v
             row += 1
         end
         for (k, v) in extra_results

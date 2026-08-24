@@ -45,6 +45,35 @@ function intg(form, key, label)
 end
 run_name_of(form) = get(form, "run_name", "")
 
+"""Parses a temperature-time path textarea (one 'time_days, temperature_C' pair per line) into
+`(t_user, T_user)` in the [s]/[K] units the physics functions expect - a 2-line path reproduces
+D1.jl's linear cooling, more lines reproduce D2.jl's non-monotonic paths. Blank lines are
+skipped so the field can be padded for readability. Validates the same invariants D2.jl itself
+checks (matching lengths is automatic from the pairwise parsing here): at least 2 points, time
+strictly increasing, and the first time value is 0."""
+function path(form, key, label)
+    raw = get(form, key, "")
+    t_days = Float64[]
+    T_C = Float64[]
+    for (i, line) in enumerate(split(raw, '\n'))
+        stripped = strip(line)
+        isempty(stripped) && continue
+        parts = split(stripped, ',')
+        length(parts) != 2 &&
+            error("'$(label)': line $(i) ('$(stripped)') must be 'time, temperature' with a single comma.")
+        t = tryparse(Float64, strip(parts[1]))
+        Tc = tryparse(Float64, strip(parts[2]))
+        (t === nothing || Tc === nothing) &&
+            error("'$(label)': line $(i) ('$(stripped)') must be two numbers separated by a comma.")
+        push!(t_days, t)
+        push!(T_C, Tc)
+    end
+    length(t_days) < 2 && error("'$(label)' needs at least 2 points (a start and an end).")
+    issorted(t_days) || error("'$(label)': time values must strictly increase from one line to the next.")
+    t_days[1] != 0.0 && error("'$(label)': the first time value must be 0.")
+    return t_days .* (24 * 60 * 60), T_C .+ 273.0
+end
+
 """Extracts a user-facing message from a caught input error. `num`/`intg` above always throw
 a plain `ErrorException` with a specific message; anything else (a missing form key, say)
 falls back to a generic message rather than leaking an internal exception string."""
@@ -190,12 +219,12 @@ end
     form = formdata(req)
     local kwargs
     try
+        t_user, T_user = path(form, "path", "Temperature-time path")
         kwargs = (
             Ri = num(form, "Ri", "Initial interface radius [m]"),
             n = intg(form, "n", "Geometry"),
-            Tstart_C = num(form, "Tstart_C", "Starting temperature [°C]"),
-            Tstop_C = num(form, "Tstop_C", "End temperature [°C]"),
-            t_tot_days = num(form, "t_tot_days", "Total time [days]"),
+            t_user = t_user,
+            T_user = T_user,
             P = num(form, "P", "Pressure [Pa]"),
             D0 = num(form, "D0", "Pre-exponential factor D0 [m²/s]"),
             Ea = num(form, "Ea", "Activation energy [J/mol]"),

@@ -38,7 +38,7 @@ Three modes, each a simplified, form-driven version of one example family:
 |:--|:--|:--|
 | Single crystal | [`Simple_Diff.jl`](https://github.com/AnStroh/MovingBoundaryMinerals.jl/blob/main/examples/Simple_Diff.jl) | Diffusion within a single homogeneous crystal, no moving boundary. |
 | Diffusion couple | [`Diff_couple_Flux.jl`](https://github.com/AnStroh/MovingBoundaryMinerals.jl/blob/main/examples/Diff_couple_Flux.jl) | Two phases in contact with a moving interface, flux-balance condition. |
-| Thermodynamic growth | [`D2.jl`](https://github.com/AnStroh/MovingBoundaryMinerals.jl/blob/main/examples/D2.jl) (a linear 2-point path reproduces [`D1.jl`](https://github.com/AnStroh/MovingBoundaryMinerals.jl/blob/main/examples/D1.jl)) | Thermodynamically constrained crystal growth/resorption from a digitized phase diagram. |
+| Thermodynamic growth | [`D2.jl`](https://github.com/AnStroh/MovingBoundaryMinerals.jl/blob/main/examples/D2.jl) — a 2-point path reproduces [`D1.jl`](https://github.com/AnStroh/MovingBoundaryMinerals.jl/blob/main/examples/D1.jl)'s linear cooling, more points reproduce D2.jl's non-monotonic path | Thermodynamically constrained crystal growth/resorption from a digitized phase diagram. |
 
 Fill in the form (every field is pre-filled with the same defaults as the underlying example, so you can just click "Run simulation" immediately) and the resulting composition profile is displayed once the run finishes. The more jargon-heavy fields (activation energy, CFL number, K_D, ...) have a short explanation shown right under their label.
 
@@ -62,7 +62,7 @@ Each run's row has its own **Delete** button, and a **Delete all runs** button a
 
 ## The GUI is a simplified entry point, not the full package
 
-**The GUI intentionally exposes only a subset of what the package can do.** To keep the forms usable for someone with no programming background, each mode fixes several parameters at sensible defaults rather than exposing everything: the grid refinement strategy, crystallographic angles (mode 3), multi-point/non-monotonic temperature-time paths (see [D2](https://github.com/AnStroh/MovingBoundaryMinerals.jl/blob/main/examples/D2.jl) for what a full path looks like), and the alternative interface conditions (total mass-balance, Lasaga) are not available through the form. The GUI also only ever shows the final composition profile, not the fuller diagnostic plots (phase-diagram overlay, K_D evolution, mass-balance history, ...) the example scripts can produce.
+**The GUI intentionally exposes only a subset of what the package can do.** To keep the forms usable for someone with no programming background, each mode fixes several parameters at sensible defaults rather than exposing everything: the grid refinement strategy, crystallographic angles (mode 3), and the alternative interface conditions (total mass-balance) are not available through the form. (Thermodynamic growth is the exception — its temperature-time path field accepts any number of points, so both `D1.jl`'s linear path and `D2.jl`'s non-monotonic one are fully supported.) The GUI also only ever shows the final composition profile, not the fuller diagnostic plots (phase-diagram overlay, K_D evolution, mass-balance history, ...) the example scripts can produce.
 
 **Directly working with the code always offers strictly more opportunities than the GUI does.** If you need a parameter, a boundary condition, a diagnostic, or a combination of settings the forms don't expose, you have two options, in increasing order of control:
 

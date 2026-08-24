@@ -57,4 +57,4 @@ The same physical setup as B4 — including the Rayleigh-fractionation analytica
 *Figure C1 of [Stroh2025](@cite), reproduced by [`C1.jl`](https://github.com/AnStroh/MovingBoundaryMinerals.jl/blob/main/examples/C1.jl).*
 
 !!! note "B3"
-    B3 (Lasaga formulation) isn't part of the paper and has no corresponding figure here yet — see [List of examples](@ref).
+    B3 isn't part of the paper and has no corresponding figure here yet — see [List of examples](@ref).

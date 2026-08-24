@@ -1,6 +1,9 @@
-using Dates, DelimitedFiles, TOML, Plots
+using Dates, DelimitedFiles, TOML, Plots, XLSX, JLD2
 
-const RESULTS_DIR = joinpath(@__DIR__, "results")
+"""Where completed runs are saved. Overridable via `MBM_GUI_RESULTS_DIR` so `GUI/test/` can
+point it at a throwaway directory instead of polluting a real `GUI/results/` folder; unset,
+it defaults to `GUI/results/` exactly as before."""
+const RESULTS_DIR = get(ENV, "MBM_GUI_RESULTS_DIR", joinpath(@__DIR__, "results"))
 
 """Turn a free-text run name into something safe to use as part of a folder name."""
 function sanitize_name(name::AbstractString)
@@ -19,6 +22,64 @@ function write_profile(path::String, x::Vector{Float64}, C::Vector{Float64})
     end
 end
 
+"""Write the initial/final profiles plus every input parameter and result into Julia's own
+native `.jld2` format (via JLD2.jl) - `source`, `mode`, `run_name`, `x_initial`, `C_initial`,
+`x_final`, `C_final`, `parameters`, `results` (the last two as nested `Dict`s), read back with
+`load("profiles.jld2")` - for users staying in Julia who want the data back as-is, without also
+opening `inputs.toml`."""
+function write_jld2(path::String, profile, kwargs, extra_results::Dict, mode::String, run_name::AbstractString)
+    jldsave(path;
+        source = CITATION_LINE,
+        mode = mode,
+        run_name = run_name,
+        x_initial = profile.x_initial,
+        C_initial = profile.C_initial,
+        x_final = profile.x_final,
+        C_final = profile.C_final,
+        parameters = Dict(string(k) => v for (k, v) in pairs(kwargs)),
+        results = extra_results,
+    )
+end
+
+"""Write the initial/final profiles plus every input parameter and result into a single
+Excel `.xlsx` workbook - a "Profile" sheet (initial and final columns side by side; they may
+have different lengths since some modes regrid) and a "Parameters" sheet (mode, run name,
+every input, then every result), so Excel users have everything needed to inspect or
+reproduce the run without also opening `inputs.toml`."""
+function write_xlsx(path::String, profile, kwargs, extra_results::Dict, mode::String, run_name::AbstractString)
+    XLSX.openxlsx(path; mode = "w") do xf
+        sheet = xf[1]
+        XLSX.rename!(sheet, "Profile")
+        sheet["A1"] = CITATION_LINE
+        sheet["A3"] = "distance_initial_m"
+        sheet["B3"] = "composition_initial"
+        sheet["C3"] = "distance_final_m"
+        sheet["D3"] = "composition_final"
+        sheet["A4", dim = 1] = profile.x_initial
+        sheet["B4", dim = 1] = profile.C_initial
+        sheet["C4", dim = 1] = profile.x_final
+        sheet["D4", dim = 1] = profile.C_final
+
+        params = XLSX.addsheet!(xf, "Parameters")
+        params["A1"] = CITATION_LINE
+        params["A3"] = "mode"
+        params["B3"] = mode
+        params["A4"] = "run_name"
+        params["B4"] = run_name
+        row = 5
+        for (k, v) in pairs(kwargs)
+            params["A$(row)"] = string(k)
+            params["B$(row)"] = v
+            row += 1
+        end
+        for (k, v) in extra_results
+            params["A$(row)"] = string(k)
+            params["B$(row)"] = v
+            row += 1
+        end
+    end
+end
+
 """
     save_run_outputs(mode, p, profile, kwargs, extra_results; run_name="") -> folder_name
 
@@ -29,6 +90,9 @@ results are never silently overwritten and every run is independently reproducib
 - `profile_initial.tab`, `profile_final.tab` - the raw (distance, composition) data, tab-delimited
 - `inputs.toml` - the mode, every input parameter used, and key scalar results (final time,
   final mass-balance error), so the run can be reproduced exactly
+- `profiles.xlsx`, `profiles.jld2` - the same initial/final profile data and inputs.toml
+  content, bundled into one file each for users who work in Excel or Julia (`profiles.jld2`,
+  via JLD2.jl) rather than plain text
 
 `profile` is a `(; x_initial, C_initial, x_final, C_final)` named tuple (see `plotting.jl`).
 `extra_results` is a Dict of additional scalar results to record (e.g. final time, MB error).
@@ -46,8 +110,11 @@ function save_run_outputs(mode::String, p, profile, kwargs, extra_results::Dict;
 
     write_profile(joinpath(folder, "profile_initial.tab"), profile.x_initial, profile.C_initial)
     write_profile(joinpath(folder, "profile_final.tab"), profile.x_final, profile.C_final)
+    write_xlsx(joinpath(folder, "profiles.xlsx"), profile, kwargs, extra_results, mode, run_name)
+    write_jld2(joinpath(folder, "profiles.jld2"), profile, kwargs, extra_results, mode, run_name)
 
     record = Dict(
+        "source" => CITATION_LINE,
         "mode" => mode,
         "timestamp" => timestamp,
         "run_name" => run_name,

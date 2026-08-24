@@ -30,6 +30,7 @@ function run_diffusion_couple(;
         t_tot_years = 1000.0,     #Total time in [years]
         n         = 3,            #Geometry; 1: planar, 2: cylindrical, 3: spherical
         should_stop::Function = () -> false,   #Checked every iteration; throw(SimulationCancelled()) if true
+        report_progress::Function = (_) -> nothing,   #Called every iteration with t/t_tot in [0, 1]
     )
     Di          = [-1.0 -1.0;]
     D0          = [D0_left D0_right;]
@@ -110,6 +111,7 @@ function run_diffusion_couple(;
         should_stop() && throw(SimulationCancelled())
         dt = find_dt(dx1, dx2, V_ip, D_l, D_r, CFL)
         t, dt, it = update_time!(t, dt, it, t_tot)
+        report_progress(t * inv(t_tot))
         D_l, D_r, KD, T = update_t_dependent_param!(D0, Di, Ea_left, Ea_right, KD_ar, R, T_ar, t_ar, t, t_tot)
         L_g, R_g, Co_l, Co_r = construct_matrix_fem(x_left, x_right, C_left, C_right, D_l, D_r, dt, n, res)
         L_g, R_g, ScF = set_inner_bc_flux!(L_g, R_g, KD, D_l, D_r, x_left, x_right, V_ip, rho, res)

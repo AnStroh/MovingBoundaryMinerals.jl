@@ -46,6 +46,7 @@ function page(title::String, mode_slug::String, body_html::String)
       let elapsedTimer = null;
       let runStart = null;
       let currentJobId = null;
+      let currentProgress = 0;
 
       const themeToggle = document.getElementById("theme-toggle");
       function updateThemeIcon() {
@@ -63,7 +64,7 @@ function page(title::String, mode_slug::String, body_html::String)
 
       // History page only - deleting a saved run. Wired unconditionally since
       // querySelectorAll simply finds nothing on pages without a history table.
-      document.querySelectorAll(".delete-run").forEach((btn) => {
+      document.querySelectorAll(".delete-run[data-folder]").forEach((btn) => {
         btn.addEventListener("click", async () => {
           if (!confirm("Delete this run permanently? This cannot be undone.")) return;
           const folder = btn.dataset.folder;
@@ -78,6 +79,22 @@ function page(title::String, mode_slug::String, body_html::String)
         });
       });
 
+      // History page only - deleting every saved run at once. Only present when there's
+      // at least one run (see history.jl), so the optional chaining below is just a guard
+      // for every other page, which has no history table at all.
+      document.getElementById("delete-all-runs")?.addEventListener("click", async (e) => {
+        if (!confirm("Delete ALL saved runs permanently? This cannot be undone.")) return;
+        const btn = e.currentTarget;
+        btn.disabled = true;
+        const resp = await fetch("/results/delete-all", { method: "POST" });
+        if (resp.ok) {
+          location.reload();
+        } else {
+          alert("Could not delete all runs.");
+          btn.disabled = false;
+        }
+      });
+
       function formatElapsed(seconds) {
         const m = Math.floor(seconds / 60);
         const s = Math.floor(seconds % 60);
@@ -86,7 +103,10 @@ function page(title::String, mode_slug::String, body_html::String)
 
       function renderRunning() {
         const elapsed = (Date.now() - runStart) / 1000;
+        const pct = Math.round(currentProgress * 100);
         statusDiv.innerHTML = `Running... \${formatElapsed(elapsed)} elapsed
+          <progress value="\${currentProgress}" max="1"></progress>
+          <span class="progress-pct">\${pct}%</span>
           <button type="button" id="cancel-button" class="cancel">Cancel</button>`;
         document.getElementById("cancel-button").addEventListener("click", cancelRun);
       }
@@ -135,6 +155,7 @@ function page(title::String, mode_slug::String, body_html::String)
           const { id } = await resp.json();
           currentJobId = id;
           runStart = Date.now();
+          currentProgress = 0;
           renderRunning();
           elapsedTimer = setInterval(renderRunning, 1000);
           pollTimer = setInterval(() => pollStatus(id), 1000);
@@ -145,6 +166,7 @@ function page(title::String, mode_slug::String, body_html::String)
         const resp = await fetch(`/jobs/\${id}/status`);
         const data = await resp.json();
         if (data.status === "running") {
+          if (typeof data.progress === "number") currentProgress = data.progress;
           return;
         }
         clearInterval(pollTimer);
@@ -158,11 +180,14 @@ function page(title::String, mode_slug::String, body_html::String)
               <a href="\${data.png_url}" download>Download PNG</a>
               <a href="\${data.pdf_url}" download>Download PDF</a>
               <a href="\${data.data_url}" download>Download data (final profile)</a>
+              <a href="\${data.xlsx_url}" download>Download .xlsx</a>
+              <a href="\${data.jld2_url}" download>Download .jld2</a>
               <a href="\${data.folder_url}">Open full results folder</a>
             </div>
             <p class="hint">Saved under <code>GUI/results/\${data.folder}/</code> - includes the plot (PNG + PDF, 300 dpi),
-            the initial and final profile data (tab-delimited), and <code>inputs.toml</code> recording every
-            input used, so this run can be found again and reproduced exactly.</p>
+            the initial and final profile data (tab-delimited, plus bundled together with every input parameter
+            in <code>.xlsx</code> and <code>.jld2</code>), and <code>inputs.toml</code> recording
+            every input used, so this run can be found again and reproduced exactly.</p>
           `;
         } else if (data.status === "cancelled") {
           statusDiv.textContent = "Cancelled.";

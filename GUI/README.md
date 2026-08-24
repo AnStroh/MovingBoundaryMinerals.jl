@@ -24,9 +24,9 @@ This opens automatically in Google Chrome (Chromium/Edge also work) as a standal
 
 1. Pick a mode from the navigation bar: Single crystal, Diffusion couple, or Thermodynamic growth.
 2. The form comes pre-filled with working defaults — click **Run simulation** right away, or change any values first.
-3. Once it finishes, download the result plot (PNG/PDF, 300 dpi) and the raw profile data (tab-delimited), or find any past run again later via **Past runs** in the nav bar.
+3. Once it finishes, download the result plot (PNG/PDF, 300 dpi) and the raw profile data (tab-delimited, or bundled with every input parameter into a single `.xlsx` or `.jld2` file), or find any past run again later via **Past runs** in the nav bar.
 
-Every completed run is saved permanently under `GUI/results/<timestamp>[_<name>]/`, including an `inputs.toml` recording every parameter used, so it can be reproduced exactly.
+Every completed run is saved permanently under `GUI/results/<timestamp>[_<name>]/`, including an `inputs.toml` recording every parameter used, so it can be reproduced exactly. Delete a single run or every saved run from the **Past runs** page at any time.
 
 ## This is a simplified entry point, not the full package
 

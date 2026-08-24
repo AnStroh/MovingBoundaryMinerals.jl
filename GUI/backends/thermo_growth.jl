@@ -29,6 +29,7 @@ function run_thermo_growth(;
         CompInt     = 0.50,       #Composition of interest of the solid solution (Fe number)
         n           = 1,          #Geometry; 1: planar, 2: cylindrical, 3: spherical
         should_stop::Function = () -> false,   #Checked every iteration; throw(SimulationCancelled()) if true
+        report_progress::Function = (_) -> nothing,   #Called every iteration with t/t_tot in [0, 1]
     )
     alpha       = 0.0
     beta        = 90.0
@@ -132,6 +133,7 @@ function run_thermo_growth(;
     while t < t_tot
         should_stop() && throw(SimulationCancelled())
         t, dt, it = update_time!(t, dt, it, t_tot)
+        report_progress(t * inv(t_tot))
         if t <= t_tot
             T = linear_interpolation_1D(tpath, Tpath, t)
         end

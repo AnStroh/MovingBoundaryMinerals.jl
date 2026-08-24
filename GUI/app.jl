@@ -61,6 +61,8 @@ function done_payload(job::Job)
         "png_url" => "$(base)/plot.png",
         "pdf_url" => "$(base)/plot.pdf",
         "data_url" => "$(base)/profile_final.tab",
+        "xlsx_url" => "$(base)/profiles.xlsx",
+        "jld2_url" => "$(base)/profiles.jld2",
         "folder_url" => "$(base)/",
     )
 end
@@ -131,8 +133,8 @@ end
         return json(Dict("error" => error_message(e)), status = 400)
     end
     run_name = run_name_of(form)
-    id = start_job!(:single_crystal) do should_stop
-        res = run_single_crystal(; kwargs..., should_stop)
+    id = start_job!(:single_crystal) do should_stop, report_progress
+        res = run_single_crystal(; kwargs..., should_stop, report_progress)
         p = plot_single_crystal(res)
         profile = profile_data_single_crystal(res)
         extra = Dict("final_time_s" => res.t_tot, "final_time_years" => res.t_tot / (365.25 * 24 * 60 * 60))
@@ -171,8 +173,8 @@ end
         return json(Dict("error" => error_message(e)), status = 400)
     end
     run_name = run_name_of(form)
-    id = start_job!(:diffusion_couple) do should_stop
-        res = run_diffusion_couple(; kwargs..., should_stop)
+    id = start_job!(:diffusion_couple) do should_stop, report_progress
+        res = run_diffusion_couple(; kwargs..., should_stop, report_progress)
         p = plot_diffusion_couple(res)
         profile = profile_data_two_phase(res)
         extra = Dict("final_time_s" => res.t_tot, "mass_balance_error_pct" => res.MB_Error[end])
@@ -206,8 +208,8 @@ end
         return json(Dict("error" => error_message(e)), status = 400)
     end
     run_name = run_name_of(form)
-    id = start_job!(:thermo_growth) do should_stop
-        res = run_thermo_growth(; kwargs..., should_stop)
+    id = start_job!(:thermo_growth) do should_stop, report_progress
+        res = run_thermo_growth(; kwargs..., should_stop, report_progress)
         p = plot_thermo_growth(res)
         profile = profile_data_two_phase(res)
         extra = Dict("final_time_s" => res.t_tot, "mass_balance_error_pct" => res.MB_Error[end])
@@ -226,7 +228,7 @@ end
     job = get_job(id)
     job === nothing && return json(Dict("status" => "failed", "error" => "Unknown job id."), status = 404)
     if job.status == :running
-        return json(Dict("status" => "running"))
+        return json(Dict("status" => "running", "progress" => job.progress))
     elseif job.status == :done
         return json(done_payload(job))
     elseif job.status == :cancelled
@@ -250,6 +252,16 @@ end
         return json(Dict("ok" => false, "error" => "Run not found."), status = 404)
     end
     rm(dir; recursive = true)
+    return json(Dict("ok" => true))
+end
+
+@post "/results/delete-all" function(req::HTTP.Request)
+    if isdir(RESULTS_DIR)
+        for folder in readdir(RESULTS_DIR)
+            dir = joinpath(RESULTS_DIR, folder)
+            isdir(dir) && rm(dir; recursive = true)
+        end
+    end
     return json(Dict("ok" => true))
 end
 
@@ -316,4 +328,10 @@ function main()
     wait(server)
 end
 
-main()
+# Guarded so `GUI/test/` can `include("../app.jl")` to register every route above and test them
+# via `Oxygen.internalrequest` without starting a real server - `main()` only runs when this file
+# is launched directly (`julia ... GUI/app.jl`, exactly what `run_gui.*` and the docs do), not
+# when some other file merely includes it.
+if abspath(PROGRAM_FILE) == @__FILE__
+    main()
+end

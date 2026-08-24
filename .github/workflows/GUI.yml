@@ -1,0 +1,59 @@
+name: GUI
+
+on:
+  push:
+    branches-ignore:
+      - gh-pages
+    paths:
+      - 'GUI/**'
+      - 'src/**'
+      - '.github/workflows/GUI.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'GUI/**'
+      - 'src/**'
+      - '.github/workflows/GUI.yml'
+
+# Cancel redundant CI tests automatically
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: GUI tests - Julia ${{ matrix.version }} - ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        version:
+          - 'lts' # latest LTS release (1.10)
+          - '1.11'
+        os:
+          - ubuntu-latest
+          - windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: ${{ matrix.version }}
+          arch: x64
+      - uses: actions/cache@v4
+        env:
+          cache-name: cache-artifacts
+        with:
+          path: ~/.julia/artifacts
+          key: ${{ runner.os }}-gui-${{ env.cache-name }}-${{ hashFiles('GUI/Project.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-gui-${{ env.cache-name }}-
+            ${{ runner.os }}-gui-
+            ${{ runner.os }}-
+      - name: Instantiate the GUI's own (isolated) project environment
+        run: julia --project=GUI -e 'using Pkg; Pkg.instantiate()'
+      - name: Run GUI tests
+        # -t auto is required: a run is dispatched on a background thread (Threads.@spawn, see
+        # GUI/jobs.jl) so the HTTP-handling thread stays responsive - single-threaded, jobs
+        # never progress and runtests.jl fails fast with a clear message instead of hanging.
+        run: julia -t auto --project=GUI GUI/test/runtests.jl

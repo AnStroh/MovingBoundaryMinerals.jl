@@ -32,10 +32,15 @@ function history_page(runs::Vector)
         ], "\n")
     end
 
+    delete_all_html = isempty(runs) ? "" : """
+    <button type="button" id="delete-all-runs" class="delete-run delete-all">Delete all runs</button>
+    """
+
     body = """
     <p>Every simulation you run is saved to its own timestamped folder under <code>GUI/results/</code>,
     together with the exact inputs used (<code>inputs.toml</code>) and the raw profile data - nothing is
     ever overwritten. This page lists them all, newest first.</p>
+    $(delete_all_html)
     <table class="history">
       <thead><tr><th>Mode</th><th>Run</th><th>Name</th><th>Plot</th><th>Downloads</th></tr></thead>
       <tbody>

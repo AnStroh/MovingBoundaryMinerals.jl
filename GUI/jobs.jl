@@ -9,7 +9,9 @@ A single simulation run, tracked from `:running` through `:done`/`:failed`/`:can
 `result_dir` holds the name of the folder under `GUI/results/` containing the saved
 plot/data/inputs once done; `summary` is a one-line human-readable result summary;
 `error` holds a readable message if the run failed; `cancel_requested` is set by the
-`/jobs/{id}/cancel` endpoint and checked by the running backend function itself.
+`/jobs/{id}/cancel` endpoint and checked by the running backend function itself; `progress`
+is a fraction in `[0, 1]` (`t / t_tot`), updated by the running backend via `report_progress`
+and read by the `/jobs/{id}/status` endpoint to drive the GUI's progress bar.
 """
 mutable struct Job
     id::String
@@ -20,6 +22,7 @@ mutable struct Job
     summary::Union{String,Nothing}
     error::Union{String,Nothing}
     cancel_requested::Bool
+    progress::Float64          # fraction in [0, 1], see docstring above
     started_at::Float64        # time(), used for elapsed-time display
 end
 
@@ -31,13 +34,14 @@ const JOB_LOCK = ReentrantLock()
 """
     start_job!(f, mode) -> job_id::String or nothing
 
-Starts `f` (a one-argument closure `f(should_stop)` that returns `(result_dir, summary_string)`,
-see `save_run_outputs` in `results.jl`) on a background thread via `Threads.@spawn`, so it
-doesn't block the HTTP server thread. `f` is called with a zero-argument `should_stop`
-function it should pass through to the backend's `should_stop` keyword argument. Returns the
-new job's id, or `nothing` if a job is already running (caller should respond with a "please
-wait" message in that case). `f` is the first argument (rather than `mode`) so this can be
-called with `do...end` block syntax: `start_job!(mode) do should_stop ... end`.
+Starts `f` (a two-argument closure `f(should_stop, report_progress)` that returns
+`(result_dir, summary_string)`, see `save_run_outputs` in `results.jl`) on a background thread
+via `Threads.@spawn`, so it doesn't block the HTTP server thread. `f` is called with a
+zero-argument `should_stop` function and a one-argument `report_progress(fraction)` function -
+pass these straight through to the backend's `should_stop`/`report_progress` keyword arguments.
+Returns the new job's id, or `nothing` if a job is already running (caller should respond with
+a "please wait" message in that case). `f` is the first argument (rather than `mode`) so this
+can be called with `do...end` block syntax: `start_job!(mode) do should_stop, report_progress ... end`.
 """
 function start_job!(f, mode::Symbol)
     lock(JOB_LOCK) do
@@ -45,11 +49,12 @@ function start_job!(f, mode::Symbol)
             return nothing
         end
         id = string(uuid4())
-        job = Job(id, mode, Task(() -> nothing), :running, nothing, nothing, nothing, false, time())
+        job = Job(id, mode, Task(() -> nothing), :running, nothing, nothing, nothing, false, 0.0, time())
         should_stop = () -> job.cancel_requested
+        report_progress = (fraction) -> (job.progress = fraction)
         job.task = Threads.@spawn begin
             try
-                result_dir, summary = f(should_stop)
+                result_dir, summary = f(should_stop, report_progress)
                 job.result_dir = result_dir
                 job.summary = summary
                 job.status = :done

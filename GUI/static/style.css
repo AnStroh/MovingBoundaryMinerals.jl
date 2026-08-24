@@ -116,7 +116,25 @@ label { margin-top: 0.4rem; }
   font-weight: 600;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.75rem;
+}
+
+.status progress {
+  width: 150px;
+  height: 0.6rem;
+  border: none;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.status progress::-webkit-progress-bar { background: var(--border); border-radius: 4px; }
+.status progress::-webkit-progress-value { background: var(--purple); border-radius: 4px; }
+.status progress::-moz-progress-bar { background: var(--purple); border-radius: 4px; }
+
+.progress-pct {
+  font-weight: 400;
+  color: var(--text-muted);
+  font-size: 0.85rem;
 }
 
 .cancel {
@@ -143,6 +161,11 @@ label { margin-top: 0.4rem; }
 }
 .delete-run:hover:not(:disabled) { background: var(--red); color: white; }
 .delete-run:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.delete-all {
+  display: block;
+  margin: 0.75rem 0 1rem;
+}
 
 #result img {
   max-width: 100%;

@@ -27,6 +27,7 @@ function run_single_crystal(;
         nx          = 100,        #Number of nodes
         CFL         = 0.99,       #CFL number for time step calculation
         should_stop::Function = () -> false,   #Checked every iteration; throw(SimulationCancelled()) if true
+        report_progress::Function = (_) -> nothing,   #Called every iteration with t/t_tot in [0, 1]
     )
     R       = 8.314472
     t_tot   = t_tot_years * 365.25 * 24 * 60 * 60
@@ -80,6 +81,7 @@ function run_single_crystal(;
         Co = copy(C)
         dt = calculate_dt(D, dx, CFL)
         t, dt, it = update_time!(t, dt, it, t_tot)
+        report_progress(t * inv(t_tot))
         D, T = update_t_dependent_param_simple!(D0, Di, Ea1, R, T_ar, t_ar, t, t_tot)
         L_g, R_g = fill_matrix!(C, x, D, dt, n, nels)
         ScF = sum(diag(L_g)) * inv(length(diag(L_g)))

@@ -18,7 +18,6 @@ All notable changes to `MovingBoundaryMinerals.jl` are documented in this file. 
 
 ### Changed
 - GUI: the Thermodynamic growth mode's temperature-time path is now an arbitrary list of (time, temperature) points (one `time [days], temperature [°C]` pair per line) instead of a fixed start/end pair — a 2-point path reproduces `D1.jl`'s linear cooling exactly as before, but more points now also reproduce `D2.jl`'s non-monotonic path, which the GUI previously couldn't run at all.
-
 - GUI: the citation line stamped on every plot, `.tab`, `inputs.toml`, `.xlsx`, and `.jld2` output now references the package's Zenodo software archive (doi:10.5281/zenodo.15535732) instead of the [Stroh2025](@cite) paper's DOI, since it's citing the specific software version a result was produced with, not the method paper.
 - README: the "How to cite" section now also lists the Zenodo software DOI alongside the paper citation.
 
@@ -34,6 +33,7 @@ All notable changes to `MovingBoundaryMinerals.jl` are documented in this file. 
 
 ### Removed
 - Dead package exports (`digitise_plot`, `ndgrid`, `lasaga`, `preallocations`) that referenced functions not defined anywhere in the package.
+- Codecov badge from the README.
 
 ## [1.0.0] - 2025-12-02
 

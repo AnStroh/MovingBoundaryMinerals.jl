@@ -5,7 +5,8 @@ Manifest.toml
 .DS_Store
 *.pdf
 *.png
+*.gif
+figures/
 settings.json
 examples/B3.jl
-examples/D2.jl
 test/test_B3.jl

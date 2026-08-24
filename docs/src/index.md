@@ -9,7 +9,7 @@ For further details, we recommend reading [Stroh2025](@cite).
 
 # Installation
 
-`MovingBoundaryMinerals.jl` requires Julia 1.10 or later (tested on the latest LTS release, 1.11, and pre-release Julia on Linux, macOS, and Windows — see the [CI workflow](https://github.com/AnStroh/MovingBoundaryMinerals.jl/blob/main/.github/workflows/CI.yml) for the exact matrix). It is a registered package and can be added as follows:
+`MovingBoundaryMinerals.jl` requires Julia 1.10 or later (tested on the latest LTS release and 1.11, on Linux, Windows, and macOS (Apple Silicon) — see the [CI workflow](https://github.com/AnStroh/MovingBoundaryMinerals.jl/blob/main/.github/workflows/CI.yml) for the exact matrix). It is a registered package and can be added as follows:
 
 ```julia
 using Pkg; Pkg.add("MovingBoundaryMinerals")

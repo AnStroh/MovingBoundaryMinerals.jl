@@ -25,7 +25,7 @@ For problems with a substantial, non-trivial initial mass (most diffusion-couple
 
 ## `Residual`
 
-Examples with a moving interface push `(V_ip*dC - (JR - JL))^2` into a `Residual` array at every time step — a self-consistency check on the interface-velocity equation used to enforce the Stefan condition (see [The Stefan Problem](@ref stefan-problem)). In SI-unit examples this typically stays near machine precision (``\sim 10^{-20}`` or smaller); in a non-dimensional or rescaled setup the natural magnitude will differ. What matters more than the absolute value is the trend: a `Residual` that grows over the course of a run usually indicates the time step is too large or the grid near the interface is too coarse, regardless of the units used.
+Examples using the Stefan condition (the "D" family — see [The (chemical) Stefan Problem](@ref stefan-problem)) push `(V_ip*dC - (JR - JL))^2` into a `Residual` array at every time step. Since `V_ip` is solved for there rather than prescribed, this is a self-consistency check on that solve — not something the flux-balance or total mass-balance families need, since their `V_ip` is a fixed input to begin with (see [Boundary Conditions](@ref boundary-conditions)). In SI-unit examples this typically stays near machine precision (``\sim 10^{-20}`` or smaller); in a non-dimensional or rescaled setup the natural magnitude will differ. What matters more than the absolute value is the trend: a `Residual` that grows over the course of a run usually indicates the time step is too large or the grid near the interface is too coarse, regardless of the units used.
 
 ## Other commonly returned diagnostics
 

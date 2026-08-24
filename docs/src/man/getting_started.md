@@ -37,7 +37,7 @@ Every example in `examples/` follows the same overall structure, whether it mode
    - optionally plot or record diagnostics (mass balance, composition, etc.).
 5. **Post-processing** — the final state is returned and, if enabled, plotted.
 
-Examples that include a moving interface (letters B, C, D — see [List of examples](@ref)) add an extra step per iteration: the interface velocity follows from the interface condition (flux-balance, total-mass-balance, or the thermodynamically constrained Stefan condition, depending on the family), the interface is advected, and the grid is regridded around its new position before the diffusion step. See [Numerical Approach](@ref numerical-approach) for details.
+Examples that include a moving interface (letters B, C, D — see [List of examples](@ref)) add an extra step per iteration: the interface condition is applied (flux-balance, total mass-balance, or the thermodynamically constrained Stefan condition, depending on the family — see [Boundary Conditions](@ref boundary-conditions) for how these differ, including which ones prescribe the interface velocity `V_ip` and which one solves for it), the interface is advected, and the grid is regridded around its new position before the diffusion step. See [Numerical Approach](@ref numerical-approach) for details.
 
 ### Temperature (and `K_D`) as a history, not a single number
 
@@ -61,7 +61,7 @@ The examples increase in complexity roughly in this order (see [List of examples
 
 1. `Simple_Diff` — single-crystal diffusion (this page).
 2. `Diff_couple_no_interaction` — two single crystals side by side, no interface reaction.
-3. `Diff_couple_Flux` / `Diff_couple_MB` — a true diffusion couple with a moving interface, using a flux-balance or total-mass-balance Stefan condition respectively.
+3. `Diff_couple_Flux` / `Diff_couple_MB` — a true diffusion couple with a moving interface, using the local flux-balance or total mass-balance interface condition respectively (see [Boundary Conditions](@ref boundary-conditions)).
 4. `Diff_couple_Flux_growth` / `Diff_couple_MB_growth` — the same, with simultaneous interface growth.
 5. `A1`–`C2` — benchmarked versions of the above against analytical/semi-analytical solutions.
 6. `D1`/`D2` — thermodynamically constrained crystal growth/resorption, where interface compositions come from a digitized phase diagram rather than a fixed `K_D` (see [Digitization](@ref digitization)).

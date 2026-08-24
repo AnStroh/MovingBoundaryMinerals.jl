@@ -8,20 +8,20 @@ Examples with the letter A refer to diffusion models in a single material, while
 3. B1: Intercrystalline diffusion within a spherical diffusion couple
 4. B2: Diffusion within a spherical diffusion couple for the case of time-evolving  diffusivity
 5. B3: Major element diffusion within a diffusion couple    => **Pending**
-6. B4: Spherical crystal growth due to Rayleigh fractionation in a growth and diffusion couple with $`D^A << D^B`$
+6. B4: Spherical crystal growth due to Rayleigh fractionation in a growth and diffusion couple with ``D^A \ll D^B``
 7. B5: Growth of an alloy from a melt in a planar geometry
-8. B6: Growth of a spherical crystal in a diffusion couple ($`v_A > 0`$)
-9. B7: Growth of a spherical crystal in a diffusion couple ($`v_A < 0`$)
-10. C1: Spherical crystal growth due to Rayleigh fractionation in a growth and diffusion couple with $`D^A << D^B`$
-11. C2: Growth of a spherical crystal in a diffusion couple ($`v_A < 0`$)
+8. B6: Growth of a spherical crystal in a diffusion couple (``v_A > 0``)
+9. B7: Growth of a spherical crystal in a diffusion couple (``v_A < 0``)
+10. C1: Spherical crystal growth due to Rayleigh fractionation in a growth and diffusion couple with ``D^A \ll D^B``
+11. C2: Growth of a spherical crystal in a diffusion couple (``v_A < 0``)
 12. D1: Diffusion-limited crystal growth of olivine
 13. D2: Diffusion-limited crystal growth of olivine with a user-defined, non-monotonic  temperature-time path   => **Pending**
-14. Simple_Diff: Diffusion within a single crystal
-15. Diff_couple_no_interaction: Diffusion couple, which is built from 2 single crystals without an ion-exchange reaction
-16. Diff_couple_Flux: Diffusion couple with ion-exchange using flux balance at the interface
-17. Diff_couple_MB: Diffusion couple with ion-exchange using total mass balance at the interface
-18. Diff_couple_Flux_growth: Diffusion couple with ion-exchange using flux balance at the interface and simultaneous growth
-19. Diff_couple_MB_growth: Diffusion couple with ion-exchange using total mass balance at the interface and simultaneous growth
+14. `Simple_Diff`: Diffusion within a single crystal
+15. `Diff_couple_no_interaction`: Diffusion couple, which is built from 2 single crystals without an ion-exchange reaction
+16. `Diff_couple_Flux`: Diffusion couple with ion-exchange using flux balance at the interface
+17. `Diff_couple_MB`: Diffusion couple with ion-exchange using total mass balance at the interface
+18. `Diff_couple_Flux_growth`: Diffusion couple with ion-exchange using flux balance at the interface and simultaneous growth
+19. `Diff_couple_MB_growth`: Diffusion couple with ion-exchange using total mass balance at the interface and simultaneous growth
 
 ## Correspondence to the companion paper
 

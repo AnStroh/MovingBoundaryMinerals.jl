@@ -49,6 +49,16 @@ open(joinpath(@__DIR__, "src", "man", "code_of_conduct.md"), "w") do io
   println(io, "")
   for line in eachline(joinpath(dirname(@__DIR__), "CODE_OF_CONDUCT.md"))
     line = replace(line, "[AUTHORS.md](AUTHORS.md)" => "[Authors](@ref)")
+    # Julia's Markdown parser doesn't support GFM reference-style links ([text][ref] +
+    # a separate "[ref]: url" line) - both render as literal bracket text otherwise. Rewrite
+    # the one reference link this file uses as a plain inline link, and drop the now-redundant
+    # definition line, rather than editing the canonical CODE_OF_CONDUCT.md (kept verbatim from
+    # the standard Contributor Covenant template).
+    line = replace(line, "[Contributor Covenant][homepage]" => "[Contributor Covenant](https://www.contributor-covenant.org)")
+    # Bare URLs aren't autolinked either, and the underscores in this one get parsed as
+    # emphasis markers (rendering as "code*of*conduct.html"); angle brackets fix both.
+    line = replace(line, "https://www.contributor-covenant.org/version/2/0/code_of_conduct.html" => "<https://www.contributor-covenant.org/version/2/0/code_of_conduct.html>")
+    startswith(line, "[homepage]:") && continue
     println(io, "> ", line)
   end
 end
@@ -84,10 +94,15 @@ makedocs(;
         "GUI" => "man/gui.md",
         "Interpreting Output" => "man/interpreting_output.md",
         "General Remarks" => "man/general_remarks.md",
+        "Configuration Options" => "man/configuration_options.md",
         "Numerical Approach" => "man/numerical_approach.md",
+        "Boundary Conditions" => "man/boundary_conditions.md",
+        "Mesh Refinement" => "man/mesh_refinement.md",
         "Chemical Stefan Problem" => "man/stefan_problem.md",
         "Digitization" => "man/digitalization.md",
         "List of examples" => "man/listexamples.md",
+        "Benchmarks" => "man/benchmarks.md",
+        "Example Gallery" => "man/example_gallery.md",
         "List of functions" => "man/listfunctions.md",
         "Quick Reference" => "man/quick_reference.md",
         "Authors" => "man/authors.md",

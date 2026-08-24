@@ -489,7 +489,7 @@ end
 """
     fill_matrix!(C, x, D, dt, ndim, nels)
 
-fill_matrix! function fills the global matrices L_g and R_g with the corresponding local matrices and vectors. Units may
+`fill_matrix!` function fills the global matrices `L_g` and `R_g` with the corresponding local matrices and vectors. Units may
 differ from SI units if non-dimensionalisation has been performed.
 
 # Arguments

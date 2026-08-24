@@ -19,6 +19,15 @@ julia> ]
 ```
 The test suite can take a while to run.
 
+**Running the GUI test suite:**
+
+The `GUI/` folder is its own isolated Julia project (see [Architecture](https://anstroh.github.io/MovingBoundaryMinerals.jl/dev/man/gui/#gui-architecture)), so its tests run separately, with multiple threads (a run is dispatched on a background thread - see `GUI/jobs.jl`):
+```julia-repl
+julia --project=GUI -e 'using Pkg; Pkg.instantiate()'
+julia -t auto --project=GUI GUI/test/runtests.jl
+```
+It spins up every route in-process via `Oxygen.internalrequest` (no real server, no browser needed) against a throwaway results directory, so it never touches a real `GUI/results/` folder you might have runs saved in.
+
 **Building the documentation locally:**
 ```julia-repl
 julia --project=docs -e 'using Pkg; Pkg.instantiate()'

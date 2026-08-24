@@ -1,0 +1,39 @@
+```@meta
+CurrentModule = MovingBoundaryMinerals
+```
+# [Example Gallery](@id example-gallery)
+
+The examples on this page have no closed-form solution to compare against — they show the kind of realistic or illustrative output the package produces rather than a validation. For examples tested against an analytical or semi-analytical solution instead, see [Benchmarks](@ref benchmarks).
+
+All figures below are reproduced from [Stroh2025](@cite) (© Author(s) 2025, distributed under the Creative Commons Attribution 4.0 License) by its authors; see [List of examples](@ref) for how every example maps to a paper figure, and the caption of each figure below for which script reproduces it.
+
+## B6 — Spherical crystal growth with a decreasing ``K_D``
+
+Chemical zoning produced by simultaneous growth and diffusion as the distribution coefficient decreases over the run (``V_{ip} > 0``).
+
+![B6 example](../assets/benchmarks/B6_f08.png)
+*Figure 8 of [Stroh2025](@cite), reproduced by [`B6.jl`](https://github.com/AnStroh/MovingBoundaryMinerals.jl/blob/main/examples/B6.jl).*
+
+## B7 — Spherical crystal resorption
+
+The resorption case (``V_{ip} < 0``): pronounced compositional gradients at the consuming interface.
+
+![B7 example](../assets/benchmarks/B7_f09.png)
+*Figure 9 of [Stroh2025](@cite), reproduced by [`B7.jl`](https://github.com/AnStroh/MovingBoundaryMinerals.jl/blob/main/examples/B7.jl).*
+
+## C2 — Resorption via the total mass-balance condition
+
+The same idea as B7, solved with the total mass-balance interface condition ([`set_inner_bc_mb!`](@ref)) instead of the flux-balance one.
+
+![C2 example](../assets/benchmarks/C2_f12.png)
+*Figure C2 of [Stroh2025](@cite), reproduced by [`C2.jl`](https://github.com/AnStroh/MovingBoundaryMinerals.jl/blob/main/examples/C2.jl).*
+
+## D1 — Diffusion-limited olivine crystallization
+
+The thermodynamically constrained (Stefan) family applied to a realistic geologic case: olivine crystallizing on cooling, with the modelled composition profile and the equilibrium interface compositions traced on the phase-diagram section (see [The (chemical) Stefan Problem](@ref stefan-problem)).
+
+![D1 example](../assets/benchmarks/D1_f10.png)
+*Figure 10 of [Stroh2025](@cite), reproduced by [`D1.jl`](https://github.com/AnStroh/MovingBoundaryMinerals.jl/blob/main/examples/D1.jl).*
+
+!!! note "D2"
+    D2 (non-monotonic temperature path) isn't part of the paper and has no corresponding figure here yet — see [List of examples](@ref).

@@ -3,7 +3,7 @@ CurrentModule = MovingBoundaryMinerals
 ```
 # MovingBoundaryMinerals.jl
 
-[MovingBoundaryMinerals.jl](https://github.com/AnStroh/MovingBoundaryMinerals.jl) is a software package for modelling diffusion-controlled growth and resorption processes in mineral/mineral or mineral/matrix pairs. It can either calculate diffusion-limited growth or resorption for a prescribed rate, or solve the chemical Stefan problem, where the rate emerges from the solution instead of being prescribed. See [General Remarks](@ref) for an overview, [Numerical Approach](@ref numerical-approach) for the numerical scheme, and [Chemical Stefan Problem](@ref stefan-problem) for the thermodynamic constraint.
+[MovingBoundaryMinerals.jl](https://github.com/AnStroh/MovingBoundaryMinerals.jl) is a software package for modelling diffusion-controlled growth and resorption processes in mineral/mineral or mineral/matrix pairs. It can either calculate diffusion-limited growth or resorption for a prescribed rate, or solve the chemical Stefan problem, where the rate emerges from the solution instead of being prescribed. See [General Remarks](@ref) for an overview, [Configuration Options](@ref configuration-options) for the switches that control which code path is used, [Numerical Approach](@ref numerical-approach) for the numerical scheme, [Boundary Conditions](@ref boundary-conditions) for the equations at the domain edges and the interface, [Mesh Refinement](@ref mesh-refinement) for how the grid is regenerated as the interface moves, and [Chemical Stefan Problem](@ref stefan-problem) for the thermodynamic constraint.
 
 For further details, we recommend reading [Stroh2025](@cite).
 

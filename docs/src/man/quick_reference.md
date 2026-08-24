@@ -15,12 +15,16 @@ A compact lookup for the input parameters that recur across almost every example
 
 ## Boundary conditions
 
+See [Boundary Conditions](@ref boundary-conditions) for the equations behind each of these.
+
 | Parameter | Meaning |
 |:--|:--|
 | `BCout` | Outer BC `[left right]`: `0` = Neumann, `1` = Dirichlet. |
-| Inner (interface) BC | Set by which function you call, not a flag: [`set_inner_bc_flux!`](@ref) (flux balance, "B" examples), [`set_inner_bc_mb!`](@ref) (total mass balance, "C" examples), [`set_inner_bc_stefan!`](@ref) (thermodynamically constrained, "D" examples), [`set_inner_bc_Lasaga!`](@ref) (Lasaga formulation). |
+| Inner (interface) BC | Set by which function you call, not a flag: [`set_inner_bc_flux!`](@ref) (flux-balance condition, "B" examples), [`set_inner_bc_mb!`](@ref) (total mass-balance condition, "C" examples), [`set_inner_bc_stefan!`](@ref) (thermodynamically constrained Stefan condition, "D" examples). |
 
 ## Grid resolution and refinement
+
+See [Mesh Refinement](@ref mesh-refinement) for the equations behind each `RefineMethod`.
 
 | Parameter | Meaning |
 |:--|:--|

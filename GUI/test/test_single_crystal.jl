@@ -11,7 +11,7 @@
 
     folder = joinpath(TEST_RESULTS_DIR, result.folder)
     @test isdir(folder)
-    check_result_files(folder)
+    check_result_files(folder, result)
 
     jl = JLD2.load(joinpath(folder, "profiles.jld2"))
     @test jl["source"] == CITATION_LINE

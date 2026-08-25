@@ -66,8 +66,15 @@ const VALID_THERMO_GROWTH_PARAMS = Dict(
 )
 
 """Asserts every expected output file exists, is non-empty, and (for the text/bundled formats)
-carries the small citation line - see `plotting.jl`'s `CITATION_LINE` and `gui.md`."""
-function check_result_files(folder::String)
+carries the small citation line - see `plotting.jl`'s `CITATION_LINE` and `gui.md`.
+
+`result` is the `done` job-status payload (has `png_url`/`pdf_url`/`data_url`/`xlsx_url`/
+`jld2_url`/`folder_url`) - every one of these is also fetched via `get_page` and checked for a
+200 status, since these routes (results/{folder}/{filename} and results/{folder}/) resolve the
+path fresh on every request rather than off a fixed set of routes registered once at server
+startup (see the comment above them in app.jl for why that distinction matters here): a disk
+check alone can't catch a route that 404s despite the file being right there on disk."""
+function check_result_files(folder::String, result)
     for f in ("plot.png", "plot.pdf", "profile_initial.tab", "profile_final.tab",
               "inputs.toml", "profiles.xlsx", "profiles.jld2")
         path = joinpath(folder, f)
@@ -77,4 +84,10 @@ function check_result_files(folder::String)
     @test occursin(CITATION_LINE, read(joinpath(folder, "inputs.toml"), String))
     @test occursin(CITATION_LINE, read(joinpath(folder, "profile_initial.tab"), String))
     @test occursin(CITATION_LINE, read(joinpath(folder, "profile_final.tab"), String))
+
+    for url in (result.png_url, result.pdf_url, result.data_url, result.xlsx_url, result.jld2_url, result.folder_url)
+        resp = get_page(url)
+        @test resp.status == 200
+        @test !isempty(resp.body)
+    end
 end

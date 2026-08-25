@@ -10,7 +10,7 @@
 
     folder = joinpath(TEST_RESULTS_DIR, result.folder)
     @test isdir(folder)
-    check_result_files(folder)
+    check_result_files(folder, result)
 
     jl = JLD2.load(joinpath(folder, "profiles.jld2"))
     @test jl["mode"] == "thermo_growth"
@@ -36,7 +36,7 @@ end
 
     folder = joinpath(TEST_RESULTS_DIR, result.folder)
     @test isdir(folder)
-    check_result_files(folder)
+    check_result_files(folder, result)
 
     jl = JLD2.load(joinpath(folder, "profiles.jld2"))
     @test jl["parameters"]["t_user"] ≈ [0.0, 0.0003, 0.0007, 0.001] .* (24 * 60 * 60)

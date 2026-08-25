@@ -294,12 +294,30 @@ end
     return json(Dict("ok" => true))
 end
 
-mkpath(RESULTS_DIR)   # the mount below requires the folder to exist even before any run has happened
+mkpath(RESULTS_DIR)
 
 staticfiles(joinpath(GUI_DIR, "static"), "static")
-# dynamicfiles (not staticfiles!): results/ gains new files at runtime as simulations
-# finish, and staticfiles only scans its folder once, at server startup.
-dynamicfiles(RESULTS_DIR, "results")
+
+# `dynamicfiles` re-reads each mounted file's *content* fresh on every request, but the set of
+# routes it registers is still a one-time snapshot of the folder taken when it's called (see
+# Oxygen's `mountfolder`) - it does not add routes for files created afterwards. Since
+# RESULTS_DIR is empty at this point (mkpath above just ensures it exists) and every run's
+# files are written well after the server has started, `dynamicfiles(RESULTS_DIR, "results")`
+# would 404 on every single result a real session produces, and the "Open full results folder"
+# link 404s unconditionally too (there's no index.html in a run's folder for it to serve). These
+# two routes serve the same content but resolve the actual path fresh on every request instead.
+@get "/results/{folder}/" function(req::HTTP.Request, folder::String)
+    dir = joinpath(RESULTS_DIR, basename(folder))   # basename() blocks path traversal via "../"
+    isdir(dir) || return HTTP.Response(404, "Not found")
+    items = join(["""<li><a href="/results/$(folder)/$(entry)">$(entry)</a></li>"""
+                  for entry in sort(readdir(dir))], "\n")
+    return html("<h1>$(folder)</h1><ul>$(items)</ul>")
+end
+@get "/results/{folder}/{filename}" function(req::HTTP.Request, folder::String, filename::String)
+    path = joinpath(RESULTS_DIR, basename(folder), basename(filename))
+    isfile(path) || return HTTP.Response(404, "Not found")
+    return file(path)
+end
 
 # ------------------------------------------------------------------
 # Launch a chromeless "app window" browser view pointing at the server

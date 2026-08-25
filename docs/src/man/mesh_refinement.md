@@ -5,6 +5,12 @@ CurrentModule = MovingBoundaryMinerals
 
 As the interface moves, the grid on both sides is rebuilt around its new position at (almost) every time step ([`regrid!`](@ref), called from within [`advect_interface_regrid!`](@ref) — see [Numerical Approach](@ref numerical-approach)). Three different strategies for how that new grid is graded are available via `RefineMethod` (see [Quick Reference](@ref quick-reference)). All three share one goal: put the smallest cells next to the interface, where composition gradients are steepest, while keeping the two sides' cell sizes comparable *at* the interface so the FEM stencil there stays well behaved.
 
+The plot below makes that shared goal, and the difference between the three methods, concrete: it shows the actual cell width `dx` at every node position for the same interface/domain, produced directly by [`create_grid!`](@ref), [`h_refinement1`](@ref), and [`h_refinement2`](@ref) respectively (note the log scale — the interface cells are roughly an order of magnitude smaller than the outer ones in every method).
+
+![Cell width vs. position for all three RefineMethods, same interface and domain](../assets/mesh_refinement/grid_spacing_comparison.png)
+
+`RefineMethod = 1` grades smoothly on both sides, with no jump anywhere in the profile. `RefineMethod = 2`/`3` instead produce the "abrupt cell-size jumps" mentioned in [Choosing a method](@ref) below — each flat plateau is one bisection level, so cell width drops by a factor of 2 all at once rather than tapering — and `3`'s resolution-triggered stopping condition here happens to refine one level further than `2`'s fixed `RefineLevel = 4`, ending with a visibly smaller cell at the interface.
+
 ## Resolution rebalancing
 
 Before grading, [`regrid!`](@ref) first adjusts how many nodes each side gets, `nr = [nr_left, nr_right]`. As one phase grows at the expense of the other, node count is shifted toward it so nodal density stays roughly comparable on both sides:

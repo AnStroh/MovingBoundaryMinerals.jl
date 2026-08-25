@@ -25,6 +25,10 @@ X(T) = a + b T + c T^2 \qquad (1)
 
 where `X` is the composition at the phase transition, `T` is the temperature in K, and `a`, `b`, `c` are the coefficients of the quadratic equation (in that order — `a` is the constant term, `c` the `T²` coefficient). The fitted coefficients are written to a CSV file (see `examples/Examples_phase_diagram/Coefficients_Reaction_lines.csv` for the file used e.g. by example [D1](https://github.com/AnStroh/MovingBoundaryMinerals.jl/blob/main/examples/D1.jl)) and can be loaded with [`coeff_trans_line`](@ref) and evaluated at any temperature with [`composition`](@ref).
 
+Here is that exact file: the two reaction lines digitized from D1's phase diagram (`digitized_data_1.csv`/`digitized_data_2.csv`), each with its fitted quadratic evaluated with [`composition`](@ref) over the digitized temperature range.
+
+![Digitized points from D1's phase diagram alongside their fitted quadratic curves](../assets/digitization/fit_vs_digitized_points.png)
+
 !!! tip "Fewer points can be more accurate"
     CSV files with fewer, carefully placed points tend to give a more accurate quadratic fit near the ends of the composition range (X close to 0 or 1) than files with many densely digitized points. Always check the fit against the original phase diagram near its boundaries.
 

@@ -82,3 +82,7 @@ C_{left}^{int} = C_{left}(T), \qquad C_{right}^{int} = C_{right}(T)
 | Interface compositions | solved from `K_D` + flux continuity | solved from `K_D` + global mass constraint | read from the phase diagram (Dirichlet) |
 | Interface velocity `V_ip` | prescribed model input | prescribed model input | solved for — see [The (chemical) Stefan Problem](@ref stefan-problem) |
 | Example family | "B" | "C" | "D" |
+
+The Stefan condition needs fundamentally different inputs (a phase diagram and a temperature path, not a fixed `K_D`), so it isn't directly comparable on the same setup — but the flux-balance and mass-balance conditions are: running the *exact same* stationary diffusion couple (same `D`, `Ri`, `K_D(t)` path, `V_ip = 0`) with each shows they agree in the far field (both conserve the same total mass) and have some small disagreement near the interface, since one enforces flux continuity there and the other only the domain-wide integral:
+
+![The same diffusion-couple setup solved with the flux-balance and mass-balance conditions](../assets/boundary_conditions/flux_vs_mass_balance.png)

@@ -11,7 +11,12 @@ This section covers the input parameters that need more explanation than their n
 
 ## Determining the interface composition
 
-Digitizing two adjacent reaction lines of the phase diagram reduces it to the binary, two-phase system our code solves for (see [Digitization](@ref digitization)). Each line is fit as a quadratic function of temperature:
+Digitizing two adjacent reaction lines of the phase diagram reduces it to the binary, two-phase system our code solves for (see [Digitization](@ref digitization)). This works for both magmatic (a) and metamorphic (b) systems — any pair of reaction lines bounding a two-phase field, e.g. melt + olivine or the garnet-forming dehydration reaction chlorite + quartz ``\rightleftharpoons`` garnet + H``_2``O shown below, reduces to the same binary setup:
+
+![Schematic binary phase-diagram sections](../assets/benchmarks/phase_diagram_schematic_f01.png)
+*Figure 1 of [Stroh2025](@cite) (© Author(s) 2025, distributed under the Creative Commons Attribution 4.0 License).*
+
+Each line is fit as a quadratic function of temperature:
 
 ```math
 X(T) = a + b T + c T^2 \qquad (1)

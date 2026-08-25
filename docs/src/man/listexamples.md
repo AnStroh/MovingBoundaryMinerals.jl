@@ -15,7 +15,7 @@ Examples with the letter A refer to diffusion models in a single material, while
 10. C1: Spherical crystal growth due to Rayleigh fractionation in a growth and diffusion couple with ``D^A \ll D^B``
 11. C2: Growth of a spherical crystal in a diffusion couple (``v_A < 0``)
 12. D1: Diffusion-limited crystal growth of olivine
-13. D2: Diffusion-limited crystal growth of olivine with a user-defined, non-monotonic  temperature-time path   => **Pending**
+13. D2: Diffusion-limited crystal growth of olivine with a user-defined, non-monotonic  temperature-time path
 14. `Simple_Diff`: Diffusion within a single crystal
 15. `Diff_couple_no_interaction`: Diffusion couple, which is built from 2 single crystals without an ion-exchange reaction
 16. `Diff_couple_Flux`: Diffusion couple with ion-exchange using flux balance at the interface
@@ -41,4 +41,4 @@ The benchmarked examples (A, B, C, D) reproduce the figures of [Stroh2025](@cite
 | C2      | Fig. C2 (Appendix C; same setup as B7/Fig. 9, but with the total mass-balance condition) |
 | D1      | Fig. 10 |
 
-B3 has no figure (it is not yet implemented, see above) and D2 is a documentation example added after publication, not part of the paper.
+B3 has no figure (it is not yet implemented, see above). D2 is a documentation example added after publication, not part of the paper — see [Example Gallery](@ref example-gallery) for its own figure.

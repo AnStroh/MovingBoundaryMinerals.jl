@@ -15,6 +15,14 @@ Each phase satisfies a diffusion equation, generalized to planar, cylindrical, o
 
 with `n = 1` planar, `n = 2` cylindrical, and `n = 3` spherical (see `n` in [Quick Reference](@ref quick-reference)). `D` is the diffusion coefficient of that phase — constant, or evaluated from an Arrhenius law (see below). The left and right phases each solve this equation on their own grid, with their own `D`, coupled only through the interface conditions ([Boundary Conditions](@ref boundary-conditions)).
 
+`x` is always the radial/planar coordinate measured from the domain's inner edge (the symmetry axis for `n = 2`, the center point for `n = 3`), with phase *A* occupying `[0, R_i[1]]` and phase *B* occupying `[R_i[1], R_i[2]]`:
+
+![Schematic cross-sections of the planar, cylindrical, and spherical geometries](../assets/numerical_approach/geometry_schematic.png)
+
+The geometry exponent's effect is real but modest for a diffusion couple that's mostly equilibrated — running the exact same diffusion-couple setup (same `D`, `Ri`, `K_D(t)` path) with each value of `n` gives interface compositions that shift monotonically by well under 1% (in the case of this parameter set) between `n = 1` and `n = 3`, invisible on the full profile but clearly separated once zoomed in near the interface:
+
+![Same diffusion-couple setup solved with n = 1, 2, 3, full profile and zoomed near the interface](../assets/numerical_approach/geometry_comparison.png)
+
 ## Diffusion coefficient
 
 Setting `Di = [-1.0, -1.0]` computes `D` per phase from the Arrhenius relationship instead of using a constant value (see [Quick Reference](@ref quick-reference)):

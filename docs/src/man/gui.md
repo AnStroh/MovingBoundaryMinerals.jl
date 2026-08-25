@@ -30,6 +30,10 @@ If none of Chrome, Chromium, or Edge are found, the GUI falls back to opening th
 5. When it finishes, the resulting composition-profile plot appears on the page, along with **Download PNG**, **Download PDF**, and **Download data** links, and a link to open the full results folder.
 6. To find a run again later, use the **Past runs** link in the navigation bar — every run you've ever completed is listed there, newest first, with its plot and downloads, whether or not the GUI has been restarted since.
 
+![The single-crystal diffusion form, pre-filled with its default values](../assets/gui/form_single_crystal.png)
+
+![A finished run: the composition-profile plot, download links, and a note on where the full results folder lives](../assets/gui/result_single_crystal.png)
+
 ## What it covers
 
 Three modes, each a simplified, form-driven version of one example family:
@@ -57,6 +61,8 @@ Every run that completes successfully is saved to its own timestamped folder und
 Every one of these files — plots, profiles, and the bundled exports alike — carries a small citation line naming the package version and its Zenodo software archive ([StrohZenodo2025](@cite)), so a result stays traceable back to its source even if shared or moved on its own, without being visually intrusive (a thin grey footer on plots, a `#`-comment line in the `.tab` files, a `source` field/cell in `inputs.toml`/`.xlsx`/`.jld2`).
 
 You can optionally name a run (e.g. "test-1") before clicking "Run simulation"; the name is appended to the folder's timestamp to make it easier to find later. Download links for all of these appear next to the result plot once a run finishes, and the **Past runs** page (linked in the navigation bar) lists every run you've ever done, newest first, with a thumbnail and download links for each — so results stay reachable even after closing and reopening the GUI, without needing to browse the file system directly.
+
+![The Past runs page, listing every completed run newest-first with a thumbnail and its downloads](../assets/gui/past_runs.png)
 
 Each run's row has its own **Delete** button, and a **Delete all runs** button appears above the table whenever at least one run is saved (it stays hidden on an empty history). Both ask for confirmation first and permanently remove the corresponding folder(s) under `GUI/results/` — there's no undo, so make sure you've downloaded anything you want to keep first.
 

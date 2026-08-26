@@ -20,7 +20,7 @@ function history_page(runs::Vector)
               <td>$(get(MODE_DISPLAY_NAME, r.mode, r.mode))</td>
               <td>$(r.timestamp)</td>
               <td>$(isempty(r.run_name) ? "" : r.run_name)</td>
-              <td><a href="/results/$(r.folder)/plot.png"><img class="thumb" src="/results/$(r.folder)/plot.png" alt="plot"></a></td>
+              <td><a href="/results/$(r.folder)/plot.png" download><img class="thumb" src="/results/$(r.folder)/plot.png" alt="plot"></a></td>
               <td>
                 <a href="/results/$(r.folder)/plot.png" download>PNG</a> ·
                 <a href="/results/$(r.folder)/plot.pdf" download>PDF</a> ·

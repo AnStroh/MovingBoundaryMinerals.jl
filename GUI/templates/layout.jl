@@ -24,6 +24,10 @@ function page(title::String, mode_slug::String, body_html::String)
     </head>
     <body>
       <nav class="nav">
+        <a href="/single-crystal" class="brand" aria-label="MovingBoundaryMinerals.jl">
+          <img src="/static/logo.svg" class="logo-light" alt="">
+          <img src="/static/logo-dark.svg" class="logo-dark" alt="">
+        </a>
         <a href="/single-crystal">Single crystal</a>
         <a href="/diffusion-couple">Diffusion couple</a>
         <a href="/thermo-growth">Thermodynamic growth</a>
@@ -113,6 +117,13 @@ function page(title::String, mode_slug::String, body_html::String)
 
       async function cancelRun() {
         if (!currentJobId) return;
+        // Stop the 1s renderRunning() tick now, not just pollTimer: otherwise it fires again
+        // within a second and clobbers this "Cancelling..." message (and regenerates a fresh
+        // Cancel button) before the backend has had a chance to notice cancel_requested and
+        // exit - making a click look like it did nothing even though it was already registered,
+        // and inviting repeated clicks that don't actually help. pollTimer is left running so
+        // pollStatus can still pick up the eventual "cancelled" status and finish cleanup.
+        clearInterval(elapsedTimer);
         statusDiv.textContent = "Cancelling...";
         await fetch(`/jobs/\${currentJobId}/cancel`, { method: "POST" });
       }
@@ -171,7 +182,9 @@ function page(title::String, mode_slug::String, body_html::String)
         }
         clearInterval(pollTimer);
         clearInterval(elapsedTimer);
-        runButton.disabled = false;
+        // Guarded (not every page reaching here has a form - see resumeRunningJobIfAny below,
+        // which can trigger this same finish path from e.g. the history page).
+        if (runButton) runButton.disabled = false;
         if (data.status === "done") {
           statusDiv.textContent = data.summary || "Done.";
           resultDiv.innerHTML = `
@@ -195,6 +208,33 @@ function page(title::String, mode_slug::String, body_html::String)
           statusDiv.textContent = "Simulation failed: " + (data.error || "unknown error");
         }
       }
+
+      // A simulation started from a *different* page load - a previous tab, a reload, or
+      // reopening the app window after closing it (see "Accidentally closed the window?" above)
+      // - keeps running on the server exactly as documented there, but without this, there'd be
+      // no way back to its progress bar/Cancel button: runStart/currentJobId only ever got set
+      // by *this* page's own submit handler, so a fresh page load had nothing to show even
+      // though the job was still very much in progress. Checked once, on load, on every page
+      // (including history, which has no form of its own but still benefits from seeing - and
+      // being able to cancel - a run in progress).
+      async function resumeRunningJobIfAny() {
+        let data;
+        try {
+          const resp = await fetch("/jobs/current");
+          data = await resp.json();
+        } catch {
+          return;   // server not reachable yet/at all - nothing to resume
+        }
+        if (!data.running) return;
+        currentJobId = data.id;
+        runStart = data.started_at * 1000;   // Julia time() is Unix seconds; Date.now() is ms
+        currentProgress = data.progress;
+        if (runButton) runButton.disabled = true;
+        renderRunning();
+        elapsedTimer = setInterval(renderRunning, 1000);
+        pollTimer = setInterval(() => pollStatus(currentJobId), 1000);
+      }
+      resumeRunningJobIfAny();
       </script>
     </body>
     </html>

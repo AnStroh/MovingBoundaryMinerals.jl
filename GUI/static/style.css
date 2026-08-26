@@ -45,6 +45,22 @@ body {
   font-weight: 600;
 }
 
+.nav .brand {
+  display: flex;
+  align-items: center;
+  margin-right: 0.5rem;
+}
+
+.nav .brand img {
+  height: 2rem;
+  width: auto;
+  display: block;
+}
+
+.nav .brand .logo-dark { display: none; }
+[data-theme="dark"] .nav .brand .logo-light { display: none; }
+[data-theme="dark"] .nav .brand .logo-dark { display: block; }
+
 .nav a:hover { color: var(--purple); }
 
 .theme-toggle {

@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="4 82 332 309">
+  <rect x="4" y="82" width="332" height="309" fill="#ffffff"/>
+  <defs>
+    <!-- Unit hexagons: a rhombic-dodecahedron (garnet habit) viewed corner-on projects to a
+         hexagonal outline with 3 rhombic facets meeting at the centre - exactly this shape. -->
+    <polygon id="rim"      points="85,0 37.5,-64.95 -40,-69.28 -88,0 -39,67.55 41,71.01"/>
+    <polygon id="mid"      points="52.7,0 23.25,-40.27 -24.8,-42.95 -54.56,0 -24.2,41.88 25.4,44.03"/>
+    <polygon id="core"     points="25.5,0 11.25,-19.5 -12,-20.8 -26.4,0 -11.7,20.27 12.3,21.3"/>
+    <polygon id="resorbed" points="68,0 30,-51.96 -32,-55.42 -70.4,0 -31.2,54.04 32.8,56.81"/>
+
+    <!-- The 3 garnet facets per grain (top = catches light, bottom-left = in shadow) -->
+    <polygon id="rim-top"      points="0,0 37.5,-64.95 -40,-69.28 -88,0"/>
+    <polygon id="rim-bottom"   points="0,0 -88,0 -39,67.55 41,71.01"/>
+    <polygon id="mid-top"      points="0,0 23.25,-40.27 -24.8,-42.95 -54.56,0"/>
+    <polygon id="mid-bottom"   points="0,0 -54.56,0 -24.2,41.88 25.4,44.03"/>
+    <polygon id="core-top"     points="0,0 11.25,-19.5 -12,-20.8 -26.4,0"/>
+    <polygon id="core-bottom"  points="0,0 -26.4,0 -11.7,20.27 12.3,21.3"/>
+    <polygon id="resorbed-top"    points="0,0 30,-51.96 -32,-55.42 -70.4,0"/>
+    <polygon id="resorbed-bottom" points="0,0 -70.4,0 -31.2,54.04 32.8,56.81"/>
+
+    <!-- Diffused (smoothly blended) colour gradients, standing in for discrete zoning -->
+    <radialGradient id="gradCore" cx="50%" cy="50%" r="65%">
+      <stop offset="0%"  stop-color="#b57bcf"/>
+      <stop offset="100%" stop-color="#9558B2"/>
+    </radialGradient>
+    <radialGradient id="gradMid" cx="50%" cy="50%" r="65%">
+      <stop offset="0%"   stop-color="#9558B2"/>
+      <stop offset="100%" stop-color="#CB3C33"/>
+    </radialGradient>
+    <radialGradient id="gradFull" cx="50%" cy="50%" r="65%">
+      <stop offset="0%"   stop-color="#9558B2"/>
+      <stop offset="40%"  stop-color="#CB3C33"/>
+      <stop offset="55%"  stop-color="#E8A33D"/>
+      <stop offset="100%" stop-color="#389826"/>
+    </radialGradient>
+    <radialGradient id="gradResorbed" cx="50%" cy="50%" r="65%">
+      <stop offset="0%"   stop-color="#9558B2"/>
+      <stop offset="45%"  stop-color="#9558B2"/>
+      <stop offset="72%"  stop-color="#CB3C33"/>
+      <stop offset="100%" stop-color="#CB3C33"/>
+    </radialGradient>
+
+    <g id="xtal-core">
+      <use href="#core" fill="url(#gradCore)" stroke="#3b1f47" stroke-width="10" stroke-linejoin="round"/>
+      <use href="#core-top" fill="#ffffff" opacity="0.16"/>
+      <use href="#core-bottom" fill="#000000" opacity="0.22"/>
+    </g>
+    <g id="xtal-mid">
+      <use href="#mid" fill="url(#gradMid)" stroke="#5e1310" stroke-width="5.8" stroke-linejoin="round"/>
+      <use href="#mid-top" fill="#ffffff" opacity="0.16"/>
+      <use href="#mid-bottom" fill="#000000" opacity="0.22"/>
+    </g>
+    <g id="xtal-full">
+      <use href="#rim" fill="url(#gradFull)" stroke="#173d10" stroke-width="4.1" stroke-linejoin="round"/>
+      <use href="#rim-top" fill="#ffffff" opacity="0.16"/>
+      <use href="#rim-bottom" fill="#000000" opacity="0.22"/>
+    </g>
+    <g id="xtal-resorbed">
+      <use href="#resorbed" fill="url(#gradResorbed)" stroke="#5e1310" stroke-width="5.4" stroke-linejoin="round"/>
+      <use href="#resorbed-top" fill="#ffffff" opacity="0.16"/>
+      <use href="#resorbed-bottom" fill="#000000" opacity="0.22"/>
+    </g>
+  </defs>
+
+  <!-- Top: t0, nucleation (enlarged, moved down) -->
+  <use href="#xtal-core" transform="translate(185,100) scale(0.48)"/>
+
+  <!-- Right: t1, intermediate growth -->
+  <use href="#xtal-mid" transform="translate(295,175) scale(0.62)"/>
+
+  <!-- Bottom: t2, fully grown crystal -->
+  <use href="#xtal-full" transform="translate(190,320) scale(0.88)"/>
+
+  <!-- Left: resorption branch - distinct mostly-purple profile -->
+  <use href="#xtal-resorbed" transform="translate(60,195) scale(0.68)"/>
+
+  <!-- Arrows: explicit start/end points, sized to be roughly comparable in length -->
+  <g stroke="#4a4a4a" fill="#4a4a4a">
+    <path d="M197.39,108.45 L257.01,149.10" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <polygon points="266.92,155.86 253.63,154.06 260.39,144.14"/>
+
+    <path d="M275.06,202.54 L242.79,247.10" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <polygon points="235.75,256.82 237.93,243.58 247.65,250.62"/>
+
+    <path d="M133.77,265.94 L103.25,236.59" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <polygon points="94.60,228.27 107.41,232.26 99.09,240.92"/>
+  </g>
+</svg>

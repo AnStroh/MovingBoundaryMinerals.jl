@@ -31,16 +31,29 @@ end
 # message the user can actually act on (e.g. "'Total time [years]' must be a number (got
 # '').") instead of one generic "check your inputs" for every possible mistake.
 # ------------------------------------------------------------------
-function num(form, key, label)
+"""`min`/`strict` mirror (and, for `strict`, tighten) the client-side `min=` already declared
+on the `<input>` in the templates - the browser's own HTML5 validation stops an ordinary user
+from ever submitting an out-of-range value, but this endpoint is also a plain HTTP API that
+nothing stops a raw request (or a browser with JS disabled) from hitting directly, so the
+`num`/`intg` -> `num()`/`solve_soe()` path they eventually feed into needs to be able to trust
+the numbers itself. `strict = true` for quantities where the boundary value (`0`, typically) is
+itself degenerate - a `dx == 0` domain, a `CFL == 0` that never advances `dt` and hangs the
+solver forever - rather than merely uninteresting."""
+function num(form, key, label; min = nothing, strict = false)
     raw = get(form, key, "")
     v = tryparse(Float64, raw)
     v === nothing && error("'$(label)' must be a number (got '$(raw)').")
+    if min !== nothing
+        ok = strict ? (v > min) : (v >= min)
+        ok || error("'$(label)' must be $(strict ? "greater than" : "at least") $(min) (got $(v)).")
+    end
     return v
 end
-function intg(form, key, label)
+function intg(form, key, label; min = nothing)
     raw = get(form, key, "")
     v = tryparse(Int, raw)
     v === nothing && error("'$(label)' must be a whole number (got '$(raw)').")
+    min !== nothing && v < min && error("'$(label)' must be at least $(min) (got $(v)).")
     return v
 end
 run_name_of(form) = get(form, "run_name", "")
@@ -145,19 +158,19 @@ end
     local kwargs
     try
         kwargs = (
-            D0 = num(form, "D0", "Pre-exponential factor D0 [m²/s]"),
-            Ea1 = num(form, "Ea1", "Activation energy [J/mol]"),
-            L = num(form, "L", "Domain length [m]"),
-            Cstart = num(form, "Cstart", "Initial composition [-]"),
-            Cinf = num(form, "Cinf", "Composition at infinity [-]"),
-            rho = num(form, "rho", "Density [kg/m³]"),
+            D0 = num(form, "D0", "Pre-exponential factor D0 [m²/s]"; min = 0, strict = true),
+            Ea1 = num(form, "Ea1", "Activation energy [J/mol]"; min = 0),
+            L = num(form, "L", "Domain length [m]"; min = 0, strict = true),
+            Cstart = num(form, "Cstart", "Initial composition [-]"; min = 0),
+            Cinf = num(form, "Cinf", "Composition at infinity [-]"; min = 0),
             n = intg(form, "n", "Geometry"),
             Tstart_C = num(form, "Tstart_C", "Starting temperature [°C]"),
             Tstop_C = num(form, "Tstop_C", "End temperature [°C]"),
-            t_tot_years = num(form, "t_tot_years", "Total time [years]"),
-            nx = intg(form, "nx", "Number of nodes"),
-            CFL = num(form, "CFL", "CFL number"),
+            t_tot_years = num(form, "t_tot_years", "Total time [years]"; min = 0, strict = true),
+            nx = intg(form, "nx", "Number of nodes"; min = 2),
+            CFL = num(form, "CFL", "CFL number"; min = 0, strict = true),
         )
+        kwargs.n in (1, 2, 3) || error("'Geometry' must be 1, 2, or 3.")
     catch e
         return json(Dict("error" => error_message(e)), status = 400)
     end
@@ -180,23 +193,31 @@ end
     local kwargs
     try
         kwargs = (
-            D0_left = num(form, "D0_left", "Pre-exponential factor, left [m²/s]"),
-            D0_right = num(form, "D0_right", "Pre-exponential factor, right [m²/s]"),
-            Ea_left = num(form, "Ea_left", "Activation energy, left [J/mol]"),
-            Ea_right = num(form, "Ea_right", "Activation energy, right [J/mol]"),
-            Ri_interface = num(form, "Ri_interface", "Initial interface position [m]"),
-            Ri_total = num(form, "Ri_total", "Total domain length [m]"),
-            Cl_i = num(form, "Cl_i", "Initial composition, left [-]"),
-            Cr_i = num(form, "Cr_i", "Initial composition, right [-]"),
-            KD_start = num(form, "KD_start", "Distribution coefficient K_D at t=0"),
-            KD_end = num(form, "KD_end", "Distribution coefficient K_D at end"),
+            D0_left = num(form, "D0_left", "Pre-exponential factor, left [m²/s]"; min = 0, strict = true),
+            D0_right = num(form, "D0_right", "Pre-exponential factor, right [m²/s]"; min = 0, strict = true),
+            Ea_left = num(form, "Ea_left", "Activation energy, left [J/mol]"; min = 0),
+            Ea_right = num(form, "Ea_right", "Activation energy, right [J/mol]"; min = 0),
+            Ri_interface = num(form, "Ri_interface", "Initial interface position [m]"; min = 0, strict = true),
+            Ri_total = num(form, "Ri_total", "Total domain length [m]"; min = 0, strict = true),
+            Cl_i = num(form, "Cl_i", "Initial composition, left [-]"; min = 0),
+            Cr_i = num(form, "Cr_i", "Initial composition, right [-]"; min = 0),
+            KD_start = num(form, "KD_start", "Distribution coefficient K_D at t=0"; min = 0, strict = true),
+            KD_end = num(form, "KD_end", "Distribution coefficient K_D at end"; min = 0, strict = true),
+            V_ip = num(form, "V_ip", "Interface velocity [m/s]"),
             n = intg(form, "n", "Geometry"),
             Tstart_C = num(form, "Tstart_C", "Starting temperature [°C]"),
             Tstop_C = num(form, "Tstop_C", "End temperature [°C]"),
-            t_tot_years = num(form, "t_tot_years", "Total time [years]"),
+            t_tot_years = num(form, "t_tot_years", "Total time [years]"; min = 0, strict = true),
+            nx_left = intg(form, "nx_left", "Number of nodes, left"; min = 2),
+            nx_right = intg(form, "nx_right", "Number of nodes, right"; min = 2),
+            CFL = num(form, "CFL", "CFL number"; min = 0, strict = true),
         )
+        kwargs.n in (1, 2, 3) || error("'Geometry' must be 1, 2, or 3.")
         if kwargs.Ri_interface >= kwargs.Ri_total
             error("'Initial interface position [m]' must be smaller than 'Total domain length [m]'.")
+        end
+        if kwargs.nx_left > kwargs.nx_right
+            error("'Number of nodes, left' must be at most 'Number of nodes, right'.")
         end
     catch e
         return json(Dict("error" => error_message(e)), status = 400)
@@ -220,18 +241,37 @@ end
     local kwargs
     try
         t_user, T_user = path(form, "path", "Temperature-time path")
+        t_tot_days = num(form, "t_tot_days", "Total time [days]"; min = 0, strict = true)
+        # The path's own time column sets the *shape* of the T-t history (relative spacing between
+        # nodes); this field is the "easy" total-duration knob the other two modes have via
+        # t_tot_years, without having to hand-edit every row just to stretch/compress the run.
+        # Scaling by t_user[end] (rather than replacing it outright) preserves that shape exactly.
+        t_user = t_user .* (t_tot_days * 24 * 60 * 60 * inv(t_user[end]))
         kwargs = (
-            Ri = num(form, "Ri", "Initial interface radius [m]"),
+            Ri = num(form, "Ri", "Initial interface radius [m]"; min = 0, strict = true),
             n = intg(form, "n", "Geometry"),
             t_user = t_user,
             T_user = T_user,
-            P = num(form, "P", "Pressure [Pa]"),
-            D0 = num(form, "D0", "Pre-exponential factor D0 [m²/s]"),
-            Ea = num(form, "Ea", "Activation energy [J/mol]"),
+            P = num(form, "P", "Pressure [Pa]"; min = 0, strict = true),
+            D0 = num(form, "D0", "Pre-exponential factor D0, crystal side [m²/s]"; min = 0, strict = true),
+            Ea = num(form, "Ea", "Activation energy, crystal side [J/mol]"; min = 0),
+            deltaV = num(form, "deltaV", "Activation volume [m³/mol]"; min = 0),
+            D0_right = num(form, "D0_right", "Pre-exponential factor D0, melt/fluid side [m²/s]"; min = 0, strict = true),
+            Ea_right = num(form, "Ea_right", "Activation energy, melt/fluid side [J/mol]"; min = 0),
+            alpha = num(form, "alpha", "Angle to [001] axis [°]"),
+            beta = num(form, "beta", "Angle to [010] axis [°]"),
+            gamma = num(form, "gamma", "Angle to [100] axis [°]"),
             CompInt = num(form, "CompInt", "Bulk composition of interest [-]"),
+            nx_left = intg(form, "nx_left", "Number of nodes, left"; min = 2),
+            nx_right = intg(form, "nx_right", "Number of nodes, right"; min = 2),
+            CFL = num(form, "CFL", "CFL number"; min = 0, strict = true),
         )
+        kwargs.n in (1, 2, 3) || error("'Geometry' must be 1, 2, or 3.")
         if !(0.0 < kwargs.CompInt < 1.0)
             error("'Bulk composition of interest [-]' must be between 0 and 1.")
+        end
+        if kwargs.nx_left > kwargs.nx_right
+            error("'Number of nodes, left' must not be greater than 'Number of nodes, right'.")
         end
     catch e
         return json(Dict("error" => error_message(e)), status = 400)
@@ -253,6 +293,20 @@ end
 # ------------------------------------------------------------------
 # Job polling and cancellation
 # ------------------------------------------------------------------
+# Lets a freshly-loaded page (a new tab, a reload, or reopening the app window after closing
+# it - see gui.md's "Accidentally closed the window?") discover a simulation that's still running
+# from *before* this page load, so it can reattach its progress bar/Cancel button instead of
+# showing a blank idle form with no way to see progress or cancel. Without this, the job keeps
+# running server-side exactly as documented, but there's no way back to its UI short of guessing
+# its id - effectively a second, subtler version of the dead-end problem the other results-page
+# fixes addressed.
+@get "/jobs/current" function(req::HTTP.Request)
+    job = CURRENT_JOB[]
+    (job === nothing || job.status != :running) && return json(Dict("running" => false))
+    return json(Dict("running" => true, "id" => job.id, "mode" => string(job.mode),
+                      "progress" => job.progress, "started_at" => job.started_at))
+end
+
 @get "/jobs/{id}/status" function(req::HTTP.Request, id::String)
     job = get_job(id)
     job === nothing && return json(Dict("status" => "failed", "error" => "Unknown job id."), status = 404)
@@ -308,10 +362,24 @@ staticfiles(joinpath(GUI_DIR, "static"), "static")
 # two routes serve the same content but resolve the actual path fresh on every request instead.
 @get "/results/{folder}/" function(req::HTTP.Request, folder::String)
     dir = joinpath(RESULTS_DIR, basename(folder))   # basename() blocks path traversal via "../"
-    isdir(dir) || return HTTP.Response(404, "Not found")
-    items = join(["""<li><a href="/results/$(folder)/$(entry)">$(entry)</a></li>"""
+    if !isdir(dir)
+        # A bare 404 body would be a worse dead end than the ones above - no nav at all - and
+        # this is reachable by ordinary use (e.g. a stale "Folder" link to a run deleted since
+        # the history page was loaded), not just a mistyped URL.
+        body = """<p>This run's results folder no longer exists (it may have been deleted).</p><p><a href="/history">&larr; Back to Past runs</a></p>"""
+        return html(page("Results not found", "", body); status = 404)
+    end
+    # download (not a plain link): without it, clicking e.g. plot.pdf navigates the tab to
+    # Chrome's built-in PDF viewer - a dead end in the chromeless app window this runs in, with
+    # no address bar/back button to escape it (see gui.md's "Accidentally closed the window?").
+    items = join(["""<li><a href="/results/$(folder)/$(entry)" download>$(entry)</a></li>"""
                   for entry in sort(readdir(dir))], "\n")
-    return html("<h1>$(folder)</h1><ul>$(items)</ul>")
+    # Uses the shared page shell (nav bar, styling) rather than a bare fragment: the GUI opens in
+    # a chromeless app window with no address bar or back button (see gui.md), so a page reached
+    # by clicking through from "Open full results folder" needs its own way back to the rest of
+    # the app - a bare <ul> of links would otherwise be a dead end once you're on it.
+    body = """<p><a href="/history">&larr; Back to Past runs</a></p><ul>$(items)</ul>"""
+    return html(page("Results: $(folder)", "", body))
 end
 @get "/results/{folder}/{filename}" function(req::HTTP.Request, folder::String, filename::String)
     path = joinpath(RESULTS_DIR, basename(folder), basename(filename))

@@ -47,6 +47,62 @@
         @test resp.status == 400
         @test occursin("time, temperature", data.error)
     end
+
+    # Found by manually bypassing the client-side HTML5 `min="0"` on these fields (form.noValidate
+    # = true) and submitting anyway: with no server-side check, a negative domain length was
+    # silently accepted and completed as a mirrored-but-plausible-looking domain (x from -L to 0)
+    # with nothing telling the user their input was invalid. num()/intg() now take an optional
+    # `min`/`strict` bound (see app.jl) so the same physically-invalid values are also rejected
+    # server-side, not just nudged away from client-side - the only path a raw API request (or a
+    # browser with JS disabled) actually goes through.
+    @testset "single crystal: negative domain length -> 400" begin
+        bad = merge(VALID_SINGLE_CRYSTAL_PARAMS, Dict("L" => "-0.001"))
+        resp, data = post_form("/single-crystal/run", bad)
+        @test resp.status == 400
+        @test occursin("Domain length", data.error)
+    end
+
+    @testset "single crystal: CFL = 0 -> 400 (would never advance dt otherwise)" begin
+        bad = merge(VALID_SINGLE_CRYSTAL_PARAMS, Dict("CFL" => "0"))
+        resp, data = post_form("/single-crystal/run", bad)
+        @test resp.status == 400
+        @test occursin("CFL", data.error)
+    end
+
+    @testset "single crystal: nx = 1 -> 400 (below the minimum viable grid)" begin
+        bad = merge(VALID_SINGLE_CRYSTAL_PARAMS, Dict("nx" => "1"))
+        resp, data = post_form("/single-crystal/run", bad)
+        @test resp.status == 400
+        @test occursin("Number of nodes", data.error)
+    end
+
+    @testset "single crystal: invalid geometry -> 400" begin
+        bad = merge(VALID_SINGLE_CRYSTAL_PARAMS, Dict("n" => "5"))
+        resp, data = post_form("/single-crystal/run", bad)
+        @test resp.status == 400
+        @test occursin("Geometry", data.error)
+    end
+
+    @testset "diffusion couple: negative diffusion coefficient -> 400" begin
+        bad = merge(VALID_DIFFUSION_COUPLE_PARAMS, Dict("D0_left" => "-2.75e-6"))
+        resp, data = post_form("/diffusion-couple/run", bad)
+        @test resp.status == 400
+        @test occursin("Pre-exponential factor", data.error)
+    end
+
+    @testset "diffusion couple: zero distribution coefficient -> 400" begin
+        bad = merge(VALID_DIFFUSION_COUPLE_PARAMS, Dict("KD_start" => "0"))
+        resp, data = post_form("/diffusion-couple/run", bad)
+        @test resp.status == 400
+        @test occursin("Distribution coefficient", data.error)
+    end
+
+    @testset "thermo growth: negative pressure -> 400" begin
+        bad = merge(VALID_THERMO_GROWTH_PARAMS, Dict("P" => "-1.0e6"))
+        resp, data = post_form("/thermo-growth/run", bad)
+        @test resp.status == 400
+        @test occursin("Pressure", data.error)
+    end
 end
 
 @testset "Concurrent run rejected (409)" begin

@@ -5,11 +5,14 @@ using LinearAlgebra, SparseArrays
     run_diffusion_couple(; kwargs...)
 
 GUI backend for the diffusion-couple (moving interface, flux-balance) mode, adapted from
-`examples/Diff_couple_Flux.jl`. Every hardcoded physics/numerics value in the original example
-that a non-programmer would plausibly want to change is exposed here as a keyword argument with
-the same default, so calling with no arguments reproduces the example's result. Advanced/rarely
-changed settings (refinement strategy, resolution, CFL) are kept fixed at the example's defaults.
-Never plots internally; always returns the raw arrays for the caller to plot.
+`examples/Diff_couple_Flux.jl` (`V_ip = 0`, the default) and `examples/Diff_couple_Flux_growth.jl`
+(`V_ip != 0`) - the same function covers both, exactly as the two example scripts differ only in
+that one value and the resulting grid needing to be re-advected/regridded every step once the
+interface actually moves. Every hardcoded physics/numerics value that a non-programmer would
+plausibly want to change is exposed here as a keyword argument with the same default, so calling
+with no arguments reproduces `Diff_couple_Flux.jl`'s result. Advanced/rarely changed settings (the
+grid refinement strategy/grading, as opposed to its resolution) are kept fixed at the example's
+defaults. Never plots internally; always returns the raw arrays for the caller to plot.
 
 # Returns
 `(; x_left, x_right, dx1, dx2, x0, res, Ri, C_left, C_right, C0, MB_Error, t_tot)`
@@ -28,7 +31,11 @@ function run_diffusion_couple(;
         Tstart_C  = 1000.0,       #Starting temperature in [degC]
         Tstop_C   = 700.0,        #End temperature in [degC]
         t_tot_years = 1000.0,     #Total time in [years]
+        V_ip      = 0.0,          #Interface velocity in [m/s]; 0 = stationary interface, >0 = growth (left phase consumes right), <0 = resorption
         n         = 3,            #Geometry; 1: planar, 2: cylindrical, 3: spherical
+        nx_left   = 100,          #Number of nodes, left side
+        nx_right  = 150,          #Number of nodes, right side
+        CFL       = 0.5,          #CFL number for time step calculation
         should_stop::Function = () -> false,   #Checked every iteration; throw(SimulationCancelled()) if true
         report_progress::Function = (_) -> nothing,   #Called every iteration with t/t_tot in [0, 1]
     )
@@ -36,7 +43,6 @@ function run_diffusion_couple(;
     D0          = [D0_left D0_right;]
     rho         = [1.0  1.0;]
     Ri          = [Ri_interface Ri_total;]
-    V_ip        = 0.0
     R           = 8.314472
     t_tot       = t_tot_years * 365.25 * 24 * 60 * 60
     RefineMethod = 1
@@ -48,8 +54,7 @@ function run_diffusion_couple(;
     T_ar    = LinRange(Tstart_C + 273.15, Tstop_C + 273.15, 1000)
 
     #Numerics-------------------------------------------------------
-    CFL         = 0.5
-    res         = [100 150;]
+    res         = [nx_left nx_right;]
     resmin      = copy(res)
     MRefin      = 2.0
     RefineLevel = 7
@@ -68,8 +73,6 @@ function run_diffusion_couple(;
         error("Please change the size of the system. Increase the total domain length.")
     elseif res[1] > res[2]
         error("Please change the resolution of the system. res[2] >= res[1].")
-    elseif V_ip != 0.0
-        error("Please change V_ip to 0.0. This code cannot handle moving interface.")
     end
     x_left, x_right, dx1, dx2, x0 = create_grid!(Ri, res, MRefin, verbose)
 
@@ -113,10 +116,14 @@ function run_diffusion_couple(;
         t, dt, it = update_time!(t, dt, it, t_tot)
         report_progress(t * inv(t_tot))
         D_l, D_r, KD, T = update_t_dependent_param!(D0, Di, Ea_left, Ea_right, KD_ar, R, T_ar, t_ar, t, t_tot)
+        # A no-op (Fl_regrid stays 0, x_left/x_right/res unchanged) when V_ip == 0, exactly as in
+        # Diff_couple_Flux.jl; only actually advects/regrids once the interface can move.
+        Fl_regrid, x_left, x_right, C_left, C_right, res, Ri = advect_interface_regrid!(Ri, V_ip, dt, x_left, x_right, C_left, C_right, res)
         L_g, R_g, Co_l, Co_r = construct_matrix_fem(x_left, x_right, C_left, C_right, D_l, D_r, dt, n, res)
         L_g, R_g, ScF = set_inner_bc_flux!(L_g, R_g, KD, D_l, D_r, x_left, x_right, V_ip, rho, res)
         L_g, R_g = set_outer_bc!(BCout, L_g, R_g, Co_l[1], Co_r[end], ScF)
         C_left, C_right = solve_soe(L_g, R_g, res)
+        x_left, x_right, C_left, C_right, dx1, dx2, res = regrid!(Fl_regrid, x_left, x_right, C_left, C_right, Ri, V_ip, res, resmin, MRefin, RefineCond, RefineLevel, nPoints, RefineMethod, verbose)
         Massnow = calc_mass_vol(x_left, x_right, C_left, C_right, n, rho)
         push!(Mass, Massnow)
         redirect_stdout(devnull) do

@@ -15,6 +15,14 @@
     jl = JLD2.load(joinpath(folder, "profiles.jld2"))
     @test jl["mode"] == "thermo_growth"
     @test jl["parameters"]["CompInt"] == 0.5
+
+    # Thermo-growth-only export: the T-t path actually used, back in the form's own days/°C units.
+    @test isfile(joinpath(folder, "path.tab"))
+    path_lines = readlines(joinpath(folder, "path.tab"))
+    @test occursin("time_days", path_lines[2])
+    last_day, last_C = parse.(Float64, split(path_lines[end], '\t'))
+    @test last_day ≈ 0.001
+    @test last_C == 1350.0
 end
 
 @testset "Thermodynamic growth: non-monotonic (D2-style) path" begin

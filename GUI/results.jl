@@ -22,6 +22,18 @@ function write_profile(path::String, x::Vector{Float64}, C::Vector{Float64})
     end
 end
 
+"""Write the thermodynamic-growth mode's temperature-time path as a tab-delimited file, in the
+same "time [days], temperature [°C]" units the form's textarea takes - not the seconds/Kelvin
+`t_user`/`T_user` are rescaled to internally - so it can be read back into the form's path field
+directly (copy-paste) to reproduce or tweak this run's T-t history."""
+function write_path(path::String, t_user::AbstractVector, T_user::AbstractVector)
+    open(path, "w") do io
+        println(io, "# ", CITATION_LINE)
+        writedlm(io, ["time_days" "temperature_C"], '\t')
+        writedlm(io, hcat(t_user ./ (24 * 60 * 60), T_user .- 273.0), '\t')
+    end
+end
+
 """Write the initial/final profiles plus every input parameter and result into Julia's own
 native `.jld2` format (via JLD2.jl) - `source`, `mode`, `run_name`, `x_initial`, `C_initial`,
 `x_final`, `C_final`, `parameters`, `results` (the last two as nested `Dict`s), read back with
@@ -100,6 +112,11 @@ results are never silently overwritten and every run is independently reproducib
 `profile` is a `(; x_initial, C_initial, x_final, C_final)` named tuple (see `plotting.jl`).
 `extra_results` is a Dict of additional scalar results to record (e.g. final time, MB error).
 If `run_name` is non-empty, it's appended to the timestamp to make the folder easier to find.
+
+For the thermodynamic growth mode, `kwargs` additionally carries `t_user`/`T_user` (the
+temperature-time path, in seconds/Kelvin after the "Total time" field's rescaling) - when both
+are present, an extra `path.tab` is written alongside the profiles, giving that path back in the
+same days/°C units and format the form's path field takes, for reuse or reproduction.
 """
 function save_run_outputs(mode::String, p, profile, kwargs, extra_results::Dict; run_name::AbstractString = "")
     timestamp = Dates.format(Dates.now(), "yyyymmdd_HHMMSS")
@@ -113,6 +130,9 @@ function save_run_outputs(mode::String, p, profile, kwargs, extra_results::Dict;
 
     write_profile(joinpath(folder, "profile_initial.tab"), profile.x_initial, profile.C_initial)
     write_profile(joinpath(folder, "profile_final.tab"), profile.x_final, profile.C_final)
+    if haskey(kwargs, :t_user) && haskey(kwargs, :T_user)
+        write_path(joinpath(folder, "path.tab"), kwargs.t_user, kwargs.T_user)
+    end
     write_xlsx(joinpath(folder, "profiles.xlsx"), profile, kwargs, extra_results, mode, run_name)
     write_jld2(joinpath(folder, "profiles.jld2"), profile, kwargs, extra_results, mode, run_name)
 

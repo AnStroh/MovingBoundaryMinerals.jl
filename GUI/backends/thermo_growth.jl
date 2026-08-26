@@ -11,9 +11,14 @@ GUI form layer converts from days/degC and validates the path before calling thi
 path reproduces `examples/D1.jl`'s linear-cooling behaviour, so no separate D1 wrapper is needed,
 and a longer, non-monotonic path reproduces D2.jl's. Every hardcoded physics/numerics value that
 a non-programmer would plausibly want to change is exposed as a keyword argument with the same
-default. Advanced/rarely changed settings (crystallographic angles, resolution/refinement) are
-kept fixed at the example's defaults. Never plots internally; always returns the raw arrays for
-the caller to plot.
+default. Advanced/rarely changed settings (mesh refinement behaviour, as opposed to the starting
+node counts `nx_left`/`nx_right`) are kept fixed at the example's defaults. Never plots internally;
+always returns the raw arrays for the caller to plot.
+
+`D0_right`/`Ea_right` reparametrize the original example's fixed melt/fluid diffusivity formula
+(`D_r = exp(-7.92 - 26222/T)`) into the same `D0*exp(-Ea/(R*T))` Arrhenius form used for the
+crystal (left) side's `D0`/`Ea` everywhere else in the GUI, so it can be exposed the same way -
+the defaults (`exp(-7.92)` and `26222*R`) reproduce the original formula exactly.
 
 Unlike the original example, the phase-diagram CSV files are located relative to the installed
 package directory (`pkgdir(MovingBoundaryMinerals)`), not the process's working directory, so this
@@ -27,17 +32,22 @@ function run_thermo_growth(;
         t_user      = [0.0, 30.0 * 24 * 60 * 60],       #Time nodes of the T-t path in [s]; must be sorted ascending and start at 0.0
         T_user      = [1400.0, 1350.0] .+ 273.0,        #Temperature nodes of the T-t path in [K]; same length as t_user, can go up and down (non-monotonic paths supported)
         P           = 1.0e6,      #Pressure in [Pa]
-        D0          = 5.38e-9,    #Pre-exponential factor in [m^2/s]
-        Ea          = 226000.0,   #Activation energy in [J/mol]
+        D0          = 5.38e-9,    #Pre-exponential factor, crystal (left) side, in [m^2/s]
+        Ea          = 226000.0,   #Activation energy, crystal (left) side, in [J/mol]
+        deltaV      = 7e-6,       #Activation volume in [m^3/mol]
+        D0_right    = 0.0003634023264950478,   #Pre-exponential factor, melt/fluid (right) side, in [m^2/s]
+        Ea_right    = 218022.084784,            #Activation energy, melt/fluid (right) side, in [J/mol]
+        alpha       = 0.0,        #Angle between the crystal's [001] axis and the profile direction, in [deg]
+        beta        = 90.0,       #Angle between the crystal's [010] axis and the profile direction, in [deg]
+        gamma       = 90.0,       #Angle between the crystal's [100] axis and the profile direction, in [deg]
         CompInt     = 0.50,       #Composition of interest of the solid solution (Fe number)
         n           = 1,          #Geometry; 1: planar, 2: cylindrical, 3: spherical
+        nx_left     = 50,         #Number of nodes, left side
+        nx_right    = 50,         #Number of nodes, right side
+        CFL         = 50.0,       #CFL number for time step calculation
         should_stop::Function = () -> false,   #Checked every iteration; throw(SimulationCancelled()) if true
         report_progress::Function = (_) -> nothing,   #Called every iteration with t/t_tot in [0, 1]
     )
-    alpha       = 0.0
-    beta        = 90.0
-    gamma       = 90.0
-    deltaV      = 7e-6
     R           = 8.314472
     verbose     = false
     RefineMethod = 1
@@ -72,8 +82,7 @@ function run_thermo_growth(;
     Tstop   = Tpath[end]
 
     #Numerics---------------------------------------------------------------
-    CFL         = 50.0
-    res         = [50 50;]
+    res         = [nx_left nx_right;]
     resmin      = copy(res)
     MRefin      = 5.0
     RefineLevel = 3
@@ -111,8 +120,8 @@ function run_thermo_growth(;
     D_001 = 10^log10D_001
     D_010 = 10^log10D_others
     D_100 = 10^log10D_others
-    D_l = D_001 * (cos(alpha))^2 + D_010 * (cos(beta))^2 + D_100 * (cos(gamma))^2
-    D_r = exp(-7.92 - 26222 / Tstart)
+    D_l = D_001 * (cosd(alpha))^2 + D_010 * (cosd(beta))^2 + D_100 * (cosd(gamma))^2
+    D_r = D0_right * exp(-Ea_right * inv(R) * inv(Tstart))
     L   = (Ri[1]^n * (Xc - C_leftB) * inv(C_rightB - Xc))^(1 * inv(n)) + Ri[1]
     Ri  = [Ri L]
 
@@ -158,8 +167,8 @@ function run_thermo_growth(;
         D_001 = 10^log10D_001
         D_010 = 10^log10D_others
         D_100 = 10^log10D_others
-        D_l = D_001 * (cos(alpha))^2 + D_010 * (cos(beta))^2 + D_100 * (cos(gamma))^2
-        D_r = exp(-7.92 - 26222 / T)
+        D_l = D_001 * (cosd(alpha))^2 + D_010 * (cosd(beta))^2 + D_100 * (cosd(gamma))^2
+        D_r = D0_right * exp(-Ea_right * inv(R) * inv(T))
 
         JL   = -D_l * rho[1] * (C_left[end] - C_left[end-1]) * inv(dx1)
         JR   = -D_r * rho[2] * (C_right[2] - C_right[1]) * inv(dx2)

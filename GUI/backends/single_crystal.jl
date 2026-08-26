@@ -5,9 +5,11 @@ using LinearAlgebra, SparseArrays
     run_single_crystal(; kwargs...)
 
 GUI backend for the single-crystal diffusion mode, adapted from `examples/Simple_Diff.jl`.
-Every hardcoded physics/numerics value in the original example is exposed here as a keyword
-argument with the same default, so calling with no arguments reproduces the example's result.
-Never plots internally (unlike the original); always returns the raw arrays for the caller to plot.
+Every hardcoded physics/numerics value in the original example that affects the actual diffusion
+result is exposed here as a keyword argument with the same default (`rho` is the one exception -
+see below - so the `MB_Error` diagnostic differs from the original example's, but the composition
+profile itself, `x`/`C`, is identical). Never plots internally (unlike the original); always
+returns the raw arrays for the caller to plot.
 
 # Returns
 `(; x, C, x0, C0, D, t, t_tot, MB_Error)`
@@ -18,7 +20,6 @@ function run_single_crystal(;
         L           = 0.001,      #Length of the domain in [m]
         Cinf        = 0.0,        #Composition at infinity in [-]
         Cstart      = 4.0,        #Initial composition in [-]
-        rho         = 2700.0,     #Density in [kg/m^3]
         Ea1         = 292880.0,   #Activation energy in [J/mol]
         Tstart_C    = 1000.0,     #Starting temperature in [degC]
         Tstop_C     = 650.0,      #End temperature in [degC]
@@ -30,6 +31,7 @@ function run_single_crystal(;
         report_progress::Function = (_) -> nothing,   #Called every iteration with t/t_tot in [0, 1]
     )
     R       = 8.314472
+    rho     = 1.0   #Normalized density in [-] - only feeds the MB_Error mass-balance diagnostic, never the diffusion solve itself, so it's fixed rather than exposed (matches run_diffusion_couple's convention)
     t_tot   = t_tot_years * 365.25 * 24 * 60 * 60
     BCout   = n == 1 ? [1, 1] : [0, 1]   #Left BC must be Neumann for cylindrical/spherical geometry
 

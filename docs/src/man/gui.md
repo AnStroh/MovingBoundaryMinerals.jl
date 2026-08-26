@@ -15,11 +15,18 @@ julia -t auto --project=GUI GUI/app.jl
 
 `-t auto` is required, not optional — it lets long simulations run on a background thread without freezing the interface (see [Architecture](@ref gui-architecture) below). This starts a local server at `http://127.0.0.1:8811` and opens it automatically in its own window.
 
+!!! tip "Precompile error mentioning a different Julia version"
+    If launching fails with something like `LoadError: Failed to precompile Oxygen ... to ".../compiled/v1.10/Oxygen/..."`, check that the Julia actually being invoked matches `julia_version` in `GUI/Manifest.toml` — a Manifest resolved for one Julia version usually won't precompile cleanly under another. This happens when more than one Julia install is present on the machine (e.g. a version installed directly alongside one managed by [juliaup](https://github.com/JuliaLang/juliaup)) and something other than your shell's default `julia` gets picked up — an IDE's own configured interpreter is a common culprit (VS Code's Julia extension has its own `julia.executablePath` setting, independent of your shell's `PATH`). Run `which julia && julia --version` in the exact terminal you're launching from to check, or side-step the ambiguity by invoking the binary you want directly, e.g. `~/.juliaup/bin/julia -t auto --project=GUI GUI/app.jl`.
+
 ### Which browser does it use?
 
 **Google Chrome is directly supported** and is the browser the launcher looks for first — if Chrome is installed, the GUI opens in a dedicated Chrome "app window" (no address bar or tabs, so it looks and feels like a standalone program rather than a website). Chromium and Microsoft Edge are supported the same way, in case Chrome isn't installed.
 
 If none of Chrome, Chromium, or Edge are found, the GUI falls back to opening the URL in your system's default browser instead — you'll just see the normal browser chrome (address bar, tabs) around it rather than the dedicated app window. And regardless of which browser gets auto-opened, the GUI is a completely ordinary local web page: **any modern browser can be pointed at it manually**, including Firefox or Safari. If a window doesn't open automatically, or you'd simply rather use a different browser, the URL is always printed to the terminal (`http://127.0.0.1:8811`) — copy it into whichever browser you prefer.
+
+### Accidentally closed the window?
+
+Closing the browser window does **not** stop the server — it's just a window showing a page served by the `julia` process still running in your terminal, so anything in progress (a simulation, a job you started) keeps going untouched. To get back to it, open any browser and go to `http://127.0.0.1:8811` (or whatever URL was printed at launch) — no need to relaunch anything. The server (and any running simulation) only actually stops when the underlying `julia` process itself is closed — closing its terminal window, or `Ctrl+C` inside it.
 
 ## Step-by-step: your first run
 
@@ -42,12 +49,40 @@ Three modes, each a simplified, form-driven version of one example family:
 |:--|:--|:--|
 | Single crystal | [`Simple_Diff.jl`](https://github.com/AnStroh/MovingBoundaryMinerals.jl/blob/main/examples/Simple_Diff.jl) | Diffusion within a single homogeneous crystal, no moving boundary. |
 | Diffusion couple | [`Diff_couple_Flux.jl`](https://github.com/AnStroh/MovingBoundaryMinerals.jl/blob/main/examples/Diff_couple_Flux.jl) | Two phases in contact with a moving interface, flux-balance condition. |
-| Thermodynamic growth | [`D2.jl`](https://github.com/AnStroh/MovingBoundaryMinerals.jl/blob/main/examples/D2.jl) — a 2-point path reproduces [`D1.jl`](https://github.com/AnStroh/MovingBoundaryMinerals.jl/blob/main/examples/D1.jl)'s linear cooling, more points reproduce D2.jl's non-monotonic path | Thermodynamically constrained crystal growth/resorption from a digitized phase diagram. |
+| Thermodynamic growth | [`D2.jl`](https://github.com/AnStroh/MovingBoundaryMinerals.jl/blob/main/examples/D2.jl) — a 2-point path reproduces [`D1.jl`](https://github.com/AnStroh/MovingBoundaryMinerals.jl/blob/main/examples/D1.jl)'s linear cooling, more points reproduce D2.jl's non-monotonic path | Thermodynamically constrained crystal growth/resorption, using the bundled olivine (Fe-Mg) phase diagram and diffusion data from [DohmenChakraborty2007b](@cite) and [DohmenChakraborty2007a](@cite).|
+
+!!! note "This mode is fixed to the bundled olivine phase diagram"
+    Unlike the other two modes, the thermodynamic growth mode isn't a general-purpose solver you point at your own data through the form - `examples/Examples_phase_diagram/Coefficients_Reaction_lines.csv` and `density_phases copy.tab` are hardcoded paths in `GUI/backends/thermo_growth.jl`, not something the form (or even `run_thermo_growth`'s own keyword arguments) can change. To use a different phase diagram, [digitize your own](@ref digitization) and either edit those hardcoded paths or copy `run_thermo_growth` into your own script with them substituted - see [The GUI is a simplified entry point, not the full package](@ref) below.
 
 Fill in the form (every field is pre-filled with the same defaults as the underlying example, so you can just click "Run simulation" immediately) and the resulting composition profile is displayed once the run finishes. The more jargon-heavy fields (activation energy, CFL number, K_D, ...) have a short explanation shown right under their label.
 
 !!! warning "The thermodynamic growth mode can take a long time"
-    Depending on the chosen total time and resolution, a run can take from several minutes up to an hour or more with the default settings. The page shows a running elapsed-time counter and a **Cancel** button while a simulation is in progress; only one simulation runs at a time.
+    Depending on the chosen total time and resolution, a run can take from several minutes up to an hour or more with the default settings. Lowering the "Total time" field, raising the CFL number, or lowering the node counts in the form will speed it up, at some cost to accuracy. The page shows a running elapsed-time counter and a **Cancel** button while a simulation is in progress; only one simulation runs at a time.
+
+Geometry defaults to Planar (`n=1`) in the thermodynamic growth mode, matching `D1.jl`/`D2.jl`.
+
+!!! tip "A working non-monotonic (\"D2-style\") path, and a temperature to avoid"
+    `D2.jl`'s own default path is known to work (it's what generates that example's figures) - paste it into the path field as-is, with the form's other defaults left untouched (in particular, "Total time" at its default of 30 days):
+    ```
+    0, 1400
+    3, 1390
+    6, 1390
+    9, 1380
+    12, 1385
+    15, 1385
+    18, 1375
+    21, 1365
+    24, 1365
+    27, 1370
+    30, 1350
+    ```
+
+    The bundled phase diagram (`examples/Examples_phase_diagram/`) is only digitized/fitted over a limited temperature range, and this mode can fail with `ArgumentError: matrix contains Infs or NaNs` if a path pushes outside it:
+
+    - Its two composition curves (the crystal and melt/fluid sides) cross at **≈1082°C** (1355 K), for the default parameters shown on this form. Interface velocity is computed from the *difference* between these two compositions, so a path that lingers at or very near 1082°C drives that difference toward zero and the velocity toward infinity. This is well below `D1.jl`/`D2.jl`'s normal 1350-1400°C operating range, so it isn't something an ordinary cooling/growth path will run into - it matters mainly for paths that deliberately dip much lower (a large, sustained resorption episode, for example).
+    - The density lookup table is only defined between 1000°C and 1600°C; a path that goes outside that range fails with a clearer `AssertionError` instead ("Value should be within x/y bounds to interpolate") - this is the more likely of the two to matter for an everyday custom path.
+
+    Changing `CompInt` or the pressure/activation-energy fields shifts where the composition curves actually cross, so 1082°C is specific to the defaults - if you've changed those and hit this error, the safest fix is a path that spends little time near whatever temperature triggered it, same as the default path does.
 
 ## Saved results and past runs
 
@@ -55,6 +90,7 @@ Every run that completes successfully is saved to its own timestamped folder und
 
 - `plot.png` and `plot.pdf` — the result figure at 300 dpi
 - `profile_initial.tab` and `profile_final.tab` — the raw (distance, composition) data, tab-delimited, for opening directly in Excel or any plotting/analysis tool
+- `path.tab` (thermodynamic growth only) — the temperature-time path actually used, in the same "time [days], temperature [°C]" units and format the form's path field takes, so it can be copied straight back in to reproduce or tweak the run
 - `inputs.toml` — every input parameter used for the run, plus key scalar results (final time, mass-balance error), so the run can be found again and reproduced exactly
 - `profiles.xlsx` and `profiles.jld2` — the initial/final profile data *and* everything from `inputs.toml`, bundled into a single file each for Excel and Julia (`profiles.jld2`, opened with `load(...)` from JLD2.jl) respectively — so you don't need to open `inputs.toml` separately just to see what a `.xlsx`/`.jld2` file was run with
 
@@ -68,7 +104,7 @@ Each run's row has its own **Delete** button, and a **Delete all runs** button a
 
 ## The GUI is a simplified entry point, not the full package
 
-**The GUI intentionally exposes only a subset of what the package can do.** To keep the forms usable for someone with no programming background, each mode fixes several parameters at sensible defaults rather than exposing everything: the grid refinement strategy, crystallographic angles (mode 3), and the alternative interface conditions (total mass-balance) are not available through the form. (Thermodynamic growth is the exception — its temperature-time path field accepts any number of points, so both `D1.jl`'s linear path and `D2.jl`'s non-monotonic one are fully supported.) The GUI also only ever shows the final composition profile, not the fuller diagnostic plots (phase-diagram overlay, K_D evolution, mass-balance history, ...) the example scripts can produce.
+**The GUI intentionally exposes only a subset of what the package can do.** To keep the forms usable for someone with no programming background, each mode fixes several parameters at sensible defaults rather than exposing everything: the mesh refinement *strategy* (as opposed to the starting node counts, which are all exposed) and the alternative interface conditions (total mass-balance) are not available through the form. (Thermodynamic growth is the exception in the other direction — its temperature-time path field accepts any number of points, so both `D1.jl`'s linear path and `D2.jl`'s non-monotonic one are fully supported.) The GUI also only ever shows the final composition profile, not the fuller diagnostic plots (phase-diagram overlay, K_D evolution, mass-balance history, ...) the example scripts can produce.
 
 **Directly working with the code always offers strictly more opportunities than the GUI does.** If you need a parameter, a boundary condition, a diagnostic, or a combination of settings the forms don't expose, you have two options, in increasing order of control:
 

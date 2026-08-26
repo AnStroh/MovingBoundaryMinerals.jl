@@ -37,6 +37,9 @@ The thermodynamically constrained (Stefan) family applied to a realistic geologi
 ![D1 example](../assets/benchmarks/D1_f10.png)
 *Figure 10 of [Stroh2025](@cite), reproduced by [`D1.jl`](https://github.com/AnStroh/MovingBoundaryMinerals.jl/blob/main/examples/D1.jl).*
 
+!!! warning "This figure differs slightly from the published Figure 10"
+    `D1.jl` (and `D2.jl`) used `cos()` (radians) instead of `cosd()` (degrees) for the crystallographic angles `alpha`/`beta`/`gamma`, which are degrees everywhere else in the package. With that fixed, the effective diffusion coefficient `D_l` is about 6.7% lower than before for the default angles shown here (`alpha=0°, beta=90°, gamma=90°`) - see `CHANGELOG.md` for the full explanation. The figure above reflects the fix, so it differs slightly from the version published in [Stroh2025](@cite).
+
 !!! note "D2"
     D2 (non-monotonic temperature path) isn't part of the paper — see [below](@ref example-gallery-templates) for its own figure instead.
 

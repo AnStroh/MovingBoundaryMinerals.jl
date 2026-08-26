@@ -2,6 +2,10 @@ using MovingBoundaryMinerals
 using Plots, LinearAlgebra, DelimitedFiles, SparseArrays, LaTeXStrings, Statistics
 #Main function--------------------------------------------------------------
 function D1(;RefineMethod = 1, plot_sim = false, verbose= false)
+    @info "D1.jl: as of 2026-08-26, the anisotropic diffusion weighting (D_l, below) uses cosd() " *
+          "(degrees) instead of the previous cos() (radians) bug - results differ by ~6.7% from " *
+          "versions of this package before that fix, including the published Figure 10 in " *
+          "Stroh et al. (2025). See CHANGELOG.md and the Example Gallery documentation page."
     #If you find a [] with two entries this belong to the respective side of
     #the diffusion couple ([left right])
     #Physics-----------------------------------------------------------------
@@ -73,7 +77,12 @@ function D1(;RefineMethod = 1, plot_sim = false, verbose= false)
     D_001               = 10^log10D_001                                                                 #Diffusion coefficient in direction 001
     D_010               = 10^log10D_others                                                              #Diffusion coefficient in direction 010
     D_100               = 10^log10D_others                                                              #Diffusion coefficient in direction 100
-    D_l                 = D_001*(cos(alpha))^2 + D_010*(cos(beta))^2 + D_100*(cos(gamma))^2             #Effective diffusion coefficient Olivine after Crank (1975), p. 7
+    #Fixed 2026-08-26: alpha/beta/gamma are angles in degrees (see their definitions above), but this
+    #previously called cos() (radians) instead of cosd() (degrees) - cosd(90) = 0 as intended, whereas
+    #cos(90) ≈ -0.448, so the two axes meant to be perpendicular to the profile (and so contribute
+    #nothing) were picking up a spurious cos(90)^2 ≈ 0.2 weight each. For the default alpha=0, beta=90,
+    #gamma=90 this overestimated D_l by about 6.7%.
+    D_l                 = D_001*(cosd(alpha))^2 + D_010*(cosd(beta))^2 + D_100*(cosd(gamma))^2             #Effective diffusion coefficient Olivine after Crank (1975), p. 7
     D_r                 = exp(-7.92-26222/(Tstart))                                                     #Diffusivity melt: Approximated after Zhang & Cherniak (2010) p. 332 EQ. 19
     L                   = (Ri[1] ^ n * (Xc - C_leftB) * inv((C_rightB - Xc)) ^ (1 * inv(n))) + Ri[1]    #Total length of the modelling domain
     Ri                  = [Ri L]                                                                        #Radii of the 2 phases
@@ -143,7 +152,7 @@ function D1(;RefineMethod = 1, plot_sim = false, verbose= false)
         D_001         = 10^log10D_001                                                                   #Diffusion coefficient in direction 001
         D_010         = 10^log10D_others                                                                #Diffusion coefficient in direction 010
         D_100         = 10^log10D_others                                                                #Diffusion coefficient in direction 100
-        D_l           = D_001*(cos(alpha))^2 + D_010*(cos(beta))^2 + D_100*(cos(gamma))^2               #Effective diffusion coefficient after Crank (1975), p. 7
+        D_l           = D_001*(cosd(alpha))^2 + D_010*(cosd(beta))^2 + D_100*(cosd(gamma))^2               #Effective diffusion coefficient after Crank (1975), p. 7
         D_r           = exp(-7.92-26222/(T))                                                            #Diffusivity melt: Approximated after Zhang & Cherniak (2010) p. 332 EQ. 19
         #Stefan condition -> Composition difference-------------------------
         JL   = - D_l * rho[1] * (C_left[end] - C_left[end-1]) * inv(dx1)                                #Flux of the left side to the right side

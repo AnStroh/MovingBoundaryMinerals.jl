@@ -13,6 +13,9 @@ using Plots, LinearAlgebra, DelimitedFiles, SparseArrays, LaTeXStrings, Statisti
 function D2(;RefineMethod = 1, plot_sim = false, verbose= false, animate_sim = false, frame_every = 50,
              t_user = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0] .* (60*60*24*30),                #Time nodes of the T-t path in [s]; USER INPUT - must be sorted in ascending order, does not need to be regularly spaced. Default: 30 days total, matching t_tot in D1.jl
              T_user = [1400.0, 1390.0, 1390.0,1380.0, 1385.0, 1385.0, 1375.0, 1365.0, 1365.0, 1370.0,1350.0] .+ 273.0)      #Temperature nodes of the T-t path in [K]; USER INPUT - can increase or decrease between nodes (non-monotonic paths are supported). Default: starts at 1400°C and ends at 1350°C, matching Tstart/Tstop in D1.jl
+    @info "D2.jl: as of 2026-08-26, the anisotropic diffusion weighting (D_l, below) uses cosd() " *
+          "(degrees) instead of the previous cos() (radians) bug - results differ by ~6.7% from " *
+          "versions of this package before that fix. See CHANGELOG.md and D1.jl for details."
     #If you find a [] with two entries this belong to the respective side of
     #the diffusion couple ([left right])
     #Check user-defined T-t path----------------------------------------------
@@ -91,7 +94,12 @@ function D2(;RefineMethod = 1, plot_sim = false, verbose= false, animate_sim = f
     D_001               = 10^log10D_001                                                                 #Diffusion coefficient in direction 001
     D_010               = 10^log10D_others                                                              #Diffusion coefficient in direction 010
     D_100               = 10^log10D_others                                                              #Diffusion coefficient in direction 100
-    D_l                 = D_001*(cos(alpha))^2 + D_010*(cos(beta))^2 + D_100*(cos(gamma))^2             #Effective diffusion coefficient Olivine after Crank (1975), p. 7
+    #Fixed 2026-08-26: alpha/beta/gamma are angles in degrees (see their definitions above), but this
+    #previously called cos() (radians) instead of cosd() (degrees) - cosd(90) = 0 as intended, whereas
+    #cos(90) ≈ -0.448, so the two axes meant to be perpendicular to the profile (and so contribute
+    #nothing) were picking up a spurious cos(90)^2 ≈ 0.2 weight each. For the default alpha=0, beta=90,
+    #gamma=90 this overestimated D_l by about 6.7%. See D1.jl for the same fix and CHANGELOG.md.
+    D_l                 = D_001*(cosd(alpha))^2 + D_010*(cosd(beta))^2 + D_100*(cosd(gamma))^2             #Effective diffusion coefficient Olivine after Crank (1975), p. 7
     D_r                 = exp(-7.92-26222/(Tstart))                                                     #Diffusivity melt: Approximated after Zhang & Cherniak (2010) p. 332 EQ. 19
     L                   = (Ri[1] ^ n * (Xc - C_leftB) * inv((C_rightB - Xc)) ^ (1 * inv(n))) + Ri[1]    #Total length of the modelling domain
     Ri                  = [Ri L]                                                                        #Radii of the 2 phases
@@ -161,7 +169,7 @@ function D2(;RefineMethod = 1, plot_sim = false, verbose= false, animate_sim = f
         D_001         = 10^log10D_001                                                                   #Diffusion coefficient in direction 001
         D_010         = 10^log10D_others                                                                #Diffusion coefficient in direction 010
         D_100         = 10^log10D_others                                                                #Diffusion coefficient in direction 100
-        D_l           = D_001*(cos(alpha))^2 + D_010*(cos(beta))^2 + D_100*(cos(gamma))^2               #Effective diffusion coefficient after Crank (1975), p. 7
+        D_l           = D_001*(cosd(alpha))^2 + D_010*(cosd(beta))^2 + D_100*(cosd(gamma))^2               #Effective diffusion coefficient after Crank (1975), p. 7
         D_r           = exp(-7.92-26222/(T))                                                            #Diffusivity melt: Approximated after Zhang & Cherniak (2010) p. 332 EQ. 19
         #Stefan condition -> Composition difference-------------------------
         JL   = - D_l * rho[1] * (C_left[end] - C_left[end-1]) * inv(dx1)                                #Flux of the left side to the right side
@@ -220,7 +228,11 @@ function D2(;RefineMethod = 1, plot_sim = false, verbose= false, animate_sim = f
             p1 = plot!(x0*1e3,vec(C0), label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
                   ylabel = L"X\mathrm{_{Fe}}", lw=1.5, grid=:on, legend = :right)
             p1 = plot!([x_left[end]; x_left[end];]*1e3, [0; 1*(maxC + 0.01)], color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}",ylim=[C0[1]-0.05; 1*(maxC + 0.01)])
-            p1 = annotate!(0.015, 0.75, L"\mathrm{(a)}")
+            #(a)'s y-position is a fraction of panel 1's own y-range (set two lines up) rather than a fixed
+            #data value: unlike D1.jl's monotonic cooling (where maxC only grows), D2's non-monotonic T-t
+            #path can transiently pull maxC below a hardcoded 0.75, pushing the label above the panel.
+            ylo_a, yhi_a = C0[1] - 0.05, 1*(maxC + 0.01)
+            p1 = annotate!(0.015, ylo_a + 0.95*(yhi_a - ylo_a), L"\mathrm{(a)}")
             #Phase diagram
             p2 = plot(Tlin .- 273.0,XC_left, lw=2, label=L"\mathrm{Left\ side}")
             p2 = plot!(Tlin .- 273.0,XC_right, lw=2, label=L"\mathrm{Right\ side}")
@@ -233,7 +245,7 @@ function D2(;RefineMethod = 1, plot_sim = false, verbose= false, animate_sim = f
             p2 = scatter!([Tstart-273.0],[C0[50]],marker=:circle, markersize=2, markercolor=:black,
                           markerstrokecolor=:black,label = "")
             p2 = plot!([Tstart-273.0; Tstart-273.0],[0; maximum(C0[end])],lw=1.5,color=:black,linestyle=:dash,label=L"T(t=0.0)")
-            p2 = plot!([T-273.0; T-273.0],[0; maximum([C_left[end],C_right[1]])],lw=1.5,color=:grey68,linestyle=:dashdot,label=L"T(t\mathrm{_{tot})}")
+            p2 = plot!([T-273.0; T-273.0],[0; maximum([C_left[end],C_right[1]])],lw=1.5,color=:grey68,linestyle=:dashdot,label=L"T(t)")
             p2 = plot!([T-273.0; 0],[C_left[end];C_left[end]],lw=1.5, label="",color=:royalblue,linestyle =:dot)
             p2 = plot!([T-273.0; 0],[C_right[1];C_right[1]],lw=1.5, label="",xlims=(Tp_min, Tp_max), ylims=(0, 1),color=:crimson,linestyle =:dot)
             p2 = annotate!(1300, 0.95, L"\mathrm{(b)}")
@@ -301,7 +313,11 @@ if run_and_plot
         p1 = plot!(x0*1e3,C0, label=L"\mathrm{Initial\ composition}",color=:black,linestyle=:dash,xlabel = L"x\ \mathrm{[mm]}",
               ylabel = L"X\mathrm{_{Fe}}", lw=1.5, grid=:on, legend = :right)
         p1 = plot!([x_left[end]; x_left[end];]*1e3, [0; 1*(maxC + 0.01)], color=:grey68,linestyle=:dashdot, lw=2,label=L"\mathrm{Interface}",ylim=[C0[1]-0.05; 1*(maxC + 0.01)])
-        p1 = annotate!(0.015, 0.75, L"\mathrm{(a)}")
+        #(a)'s y-position is a fraction of panel 1's own y-range (set two lines up) rather than a fixed
+        #data value: unlike D1.jl's monotonic cooling (where maxC only grows), D2's non-monotonic T-t
+        #path can transiently pull maxC below a hardcoded 0.75, pushing the label above the panel.
+        ylo_a, yhi_a = C0[1] - 0.05, 1*(maxC + 0.01)
+        p1 = annotate!(0.015, ylo_a + 0.95*(yhi_a - ylo_a), L"\mathrm{(a)}")
         #Phase diagram
         p2 = plot(Tlin .- 273.0,XC_left, lw=2, label=L"\mathrm{Left\ side}")
         p2 = plot!(Tlin .- 273.0,XC_right, lw=2, label=L"\mathrm{Right\ side}")

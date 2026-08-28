@@ -15,7 +15,7 @@ default. Advanced/rarely changed settings (mesh refinement behaviour, as opposed
 node counts `nx_left`/`nx_right`) are kept fixed at the example's defaults. Never plots internally;
 always returns the raw arrays for the caller to plot.
 
-`D0_right`/`Ea_right` reparametrize the original example's fixed melt/fluid diffusivity formula
+`D0_right`/`Ea_right` reparameterize the original example's fixed melt/fluid diffusivity formula
 (`D_r = exp(-7.92 - 26222/T)`) into the same `D0*exp(-Ea/(R*T))` Arrhenius form used for the
 crystal (left) side's `D0`/`Ea` everywhere else in the GUI, so it can be exposed the same way -
 the defaults (`exp(-7.92)` and `26222*R`) reproduce the original formula exactly.

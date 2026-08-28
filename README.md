@@ -3,6 +3,8 @@
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://anstroh.github.io/MovingBoundaryMinerals.jl/stable/)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://anstroh.github.io/MovingBoundaryMinerals.jl/dev/)
 [![CI](https://github.com/AnStroh/MovingBoundaryMinerals.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/AnStroh/MovingBoundaryMinerals.jl/actions/workflows/CI.yml)
+[![GUI](https://github.com/AnStroh/MovingBoundaryMinerals.jl/actions/workflows/GUI.yml/badge.svg)](https://github.com/AnStroh/MovingBoundaryMinerals.jl/actions/workflows/GUI.yml)
+[![Documentation](https://github.com/AnStroh/MovingBoundaryMinerals.jl/actions/workflows/Documenter.yml/badge.svg)](https://github.com/AnStroh/MovingBoundaryMinerals.jl/actions/workflows/Documenter.yml)
 [![Spell Check](https://github.com/AnStroh/MovingBoundaryMinerals.jl/actions/workflows/SpellCheck.yml/badge.svg)](https://github.com/AnStroh/MovingBoundaryMinerals.jl/actions/workflows/SpellCheck.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.15535732-blue.svg)](https://doi.org/10.5281/zenodo.15535732)

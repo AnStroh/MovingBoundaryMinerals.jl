@@ -4,15 +4,25 @@ using Plots, LinearAlgebra, DelimitedFiles, SparseArrays, LaTeXStrings, Statisti
 #This example is a variant of D1.jl that shows how to prescribe an arbitrary,
 #user-defined temperature-time (T-t) path instead of a linearly decreasing
 #one. The path does not need to be monotonic: temperature can go up and down
-#between nodes. The default path below uses the same total time and start/end
-#temperature as D1.jl (30 days, 1400°C -> 1350°C), but wiggles up and down
-#in between. At every time step the actual temperature is obtained by linear
-#interpolation between the user-supplied (t_user, T_user) nodes with
-#`linear_interpolation_1D`, which only requires `t_user` to be sorted ->
-#`T_user` itself can move freely up and down.
-function D2(;RefineMethod = 1, plot_sim = false, verbose= false, animate_sim = false, frame_every = 50,
-             t_user = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0] .* (60*60*24*30),                #Time nodes of the T-t path in [s]; USER INPUT - must be sorted in ascending order, does not need to be regularly spaced. Default: 30 days total, matching t_tot in D1.jl
-             T_user = [1400.0, 1390.0, 1390.0,1380.0, 1385.0, 1385.0, 1375.0, 1365.0, 1365.0, 1370.0,1350.0] .+ 273.0)      #Temperature nodes of the T-t path in [K]; USER INPUT - can increase or decrease between nodes (non-monotonic paths are supported). Default: starts at 1400°C and ends at 1350°C, matching Tstart/Tstop in D1.jl
+#between nodes. The default path below falls, plateaus, then rises gently -
+#genuinely non-monotonic, but with modest slope changes at each corner. At
+#every time step the actual temperature is obtained by linear interpolation
+#between the user-supplied (t_user, T_user) nodes with `linear_interpolation_1D`,
+#which only requires `t_user` to be sorted -> `T_user` itself can move freely
+#up and down.
+#Fixed 2026-08-28: the previous default path (1400->1390->1390->1380->1385->
+#1385->1375->1365->1365->1370->1350°C over 30 days, at Ri=0.0001, matching
+#D1.jl's Tstart/Tstop/Ri) has sharp corners - large slope changes packed into
+#3-day intervals - that drive the interface velocity into a stiff regime the
+#regridder cannot keep up with. Under the corrected cosd() physics (see the
+#cos()/cosd() fix above), a full run eventually hits "Cannot proceed (Newton
+#Failure)" after several hours. This default instead uses a larger seed
+#(Ri=0.0005, which also makes every run faster: bigger Ri means bigger dx,
+#hence bigger dt at the same CFL) and much gentler corners, which complete the
+#full 30 days in well under a minute. See CHANGELOG.md for details.
+function D2(;RefineMethod = 1, plot_sim = false, verbose= false, animate_sim = false, frame_every = 150,
+             t_user = [0.0, 10.0, 20.0, 30.0] .* (60*60*24),                #Time nodes of the T-t path in [s]; USER INPUT - must be sorted in ascending order, does not need to be regularly spaced. Default: 30 days total, falls then plateaus then rises gently
+             T_user = [1400.0, 1385.0, 1385.0, 1390.0] .+ 273.0)      #Temperature nodes of the T-t path in [K]; USER INPUT - can increase or decrease between nodes (non-monotonic paths are supported). Default: falls 1400->1385°C (day 0-10), plateaus (day 10-20), rises 1385->1390°C (day 20-30)
     @info "D2.jl: as of 2026-08-26, the anisotropic diffusion weighting (D_l, below) uses cosd() " *
           "(degrees) instead of the previous cos() (radians) bug - results differ by ~6.7% from " *
           "versions of this package before that fix. See CHANGELOG.md and D1.jl for details."
@@ -35,7 +45,7 @@ function D2(;RefineMethod = 1, plot_sim = false, verbose= false, animate_sim = f
     beta        = 90.0                                                                                  #Angle between [010] & profile
     gamma       = 90.0                                                                                  #Angle between [100] & profile
     deltaV      = 7*10^-6                                                                               #Volume change in [m^3/mol]
-    Ri          = 0.0001                                                                                #Position of the interface -> initial radius of the left phase in [m]
+    Ri          = 0.0005                                                                                #Position of the interface -> initial radius of the left phase in [m]. 5x D1.jl's 0.0001: see the note above the function signature.
     P           = 10^6                                                                                  #Pressure in [Pa]
     R           = 8.314472                                                                              #Universal gas constant in [J/(mol*K)]
     Myr2Sec     = 60*60*24*365.25*1e6                                                                   #Conversion factor from Myr to s
@@ -220,6 +230,11 @@ function D2(;RefineMethod = 1, plot_sim = false, verbose= false, animate_sim = f
             maxC = maximum([maximum(C_left),maximum(C_right)])
             Tp_min = (minimum(Tpath) - 273.0) * 0.95                                                    #Based on the min/max of the user-defined T-t path (not just start/stop, since the path can go up and down)
             Tp_max = (maximum(Tpath) - 273.0) * 1.05
+            #Dense tick marks, but only every 2nd one labelled (and never the very first,
+            #which would sit on top of the y-axis "0.0" label) to avoid crowding on this
+            #axis' range, which varies with the user's T-t path.
+            Tp_ticks = range(Tp_min, Tp_max, length=11)[2:2:end]                                            #Every 2nd of 11 evenly-spaced points, skipping the very first (which would sit on the y-axis "0.0" label) - only labelled ticks are drawn, no unlabelled ones in between
+            Tp_labels = string.(round.(Int, Tp_ticks))
             first_val, last_val = values_between_known_indices!(Tlin.-273.0,KDlin,maximum(Tpath)-273.0,minimum(Tpath)-273.0)
 
             #Composition profile
@@ -232,7 +247,11 @@ function D2(;RefineMethod = 1, plot_sim = false, verbose= false, animate_sim = f
             #data value: unlike D1.jl's monotonic cooling (where maxC only grows), D2's non-monotonic T-t
             #path can transiently pull maxC below a hardcoded 0.75, pushing the label above the panel.
             ylo_a, yhi_a = C0[1] - 0.05, 1*(maxC + 0.01)
-            p1 = annotate!(0.015, ylo_a + 0.95*(yhi_a - ylo_a), L"\mathrm{(a)}")
+            #(a)'s x-position is a fraction of the panel's own plotted x-range (0 to the domain's
+            #right edge) rather than a fixed 0.015 mm: that collided with the y-axis tick labels
+            #whenever the domain is small enough (e.g. a larger Ri) that 0.015 mm sits right on top
+            #of them instead of comfortably inside the panel.
+            p1 = annotate!(0.075*x_right[end]*1e3, ylo_a + 0.95*(yhi_a - ylo_a), L"\mathrm{(a)}")
             #Phase diagram
             p2 = plot(Tlin .- 273.0,XC_left, lw=2, label=L"\mathrm{Left\ side}")
             p2 = plot!(Tlin .- 273.0,XC_right, lw=2, label=L"\mathrm{Right\ side}")
@@ -247,13 +266,16 @@ function D2(;RefineMethod = 1, plot_sim = false, verbose= false, animate_sim = f
             p2 = plot!([Tstart-273.0; Tstart-273.0],[0; maximum(C0[end])],lw=1.5,color=:black,linestyle=:dash,label=L"T(t=0.0)")
             p2 = plot!([T-273.0; T-273.0],[0; maximum([C_left[end],C_right[1]])],lw=1.5,color=:grey68,linestyle=:dashdot,label=L"T(t)")
             p2 = plot!([T-273.0; 0],[C_left[end];C_left[end]],lw=1.5, label="",color=:royalblue,linestyle =:dot)
-            p2 = plot!([T-273.0; 0],[C_right[1];C_right[1]],lw=1.5, label="",xlims=(Tp_min, Tp_max), ylims=(0, 1),color=:crimson,linestyle =:dot)
-            p2 = annotate!(1300, 0.95, L"\mathrm{(b)}")
+            p2 = plot!([T-273.0; 0],[C_right[1];C_right[1]],lw=1.5, label="",xlims=(Tp_min, Tp_max), xticks=(Tp_ticks, Tp_labels), ylims=(0, 1),color=:crimson,linestyle =:dot)
+            #(b)'s x-position is a fraction of this panel's own (Tp_min, Tp_max) range rather than a
+            #fixed 1300 degC: for a narrower/different T-t path than the default, 1300 can sit right
+            #on the y-axis tick labels instead of comfortably inside the panel.
+            p2 = annotate!(Tp_min + 0.1*(Tp_max - Tp_min), 0.95, L"\mathrm{(b)}")
             #Evolution of KD(T)
             p3 = plot(Tlin .- 273.0, KDlin, lw=1.5, label=L"\mathrm{Thermodynamic\ data}", color=:black)
             p3 = scatter!([T_sim[end]-273.0],[KD_sim[end]],marker=:circle, markersize=3.0, markercolor=:black,markerstrokecolor=:black,
                           xlabel = L"T\ \mathrm{[°C]}", ylabel = L"K_{D}", lw=1.5,legend = :bottomleft,
-                          grid=:on, label=L"\mathrm{Model}",xlims=(Tp_min, Tp_max), ylims=(first_val-0.01,last_val+0.01))
+                          grid=:on, label=L"\mathrm{Model}",xlims=(Tp_min, Tp_max), xticks=(Tp_ticks, Tp_labels), ylims=(first_val-0.01,last_val+0.01))
             #ln(KD) vs 1/T
             p4 = plot(10000.0 ./ (T_sim),log.(KD_sim),xlabel = L"10,000/T\ \mathrm{[K^{-1}]}", ylabel = L"ln(K_{D})", lw=1.5,
                     grid=:on, label="", color=:black, ticks=:auto, xrotation=0)
@@ -285,11 +307,11 @@ if run_and_plot
     verbose     = false
     save_file   = false
     animate_sim = true                                                                                          #Set to true to save a movie of the composition profile/phase-diagram evolution (see save_path/save_name below)
-    frame_every = 50                                                                                             #Capture a movie frame every this many iterations; smaller = smoother but slower to render and a bigger file
-    #User-defined temperature-time path -> can be edited freely, temperature can go up and down between nodes
-    #Matches D1.jl's total time (30 days) and start/end temperature (1400°C -> 1350°C), but wiggles in between
-    t_user = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0] .* (60*60*24*30)                             #Time nodes in [s] (here: every 3 days, 0 to 30 days)
-    T_user = [1400.0, 1390.0, 1390.0,1380.0, 1385.0, 1385.0, 1375.0, 1365.0, 1365.0, 1370.0,1350.0] .+ 273.0     #Temperature nodes in [K], starts at 1400°C, ends at 1350°C, wiggles (heats up/plateaus) in between
+    frame_every = 150                                                                                            #Capture a movie frame every this many iterations; smaller = smoother but slower to render and a bigger file
+    #User-defined temperature-time path -> can be edited freely, temperature can go up and down between nodes.
+    #Falls, plateaus, then rises gently over 30 days - see the note above the D2() function signature for why.
+    t_user = [0.0, 10.0, 20.0, 30.0] .* (60*60*24)                                                               #Time nodes in [s]
+    T_user = [1400.0, 1385.0, 1385.0, 1390.0] .+ 273.0                                                           #Temperature nodes in [K]: falls 1400->1385°C, plateaus, rises 1385->1390°C
     x_left, x_right, x0, C_left, C_right, C0, maxC, Tlin, XC_left, XC_right, T, Tstart, Tstop, Tpath, KDlin, KD_sim,T_sim, Mass0, Mass, Mass01, Mass2, C_left_check, C_right_check, T_check,Residual, MB_Error, anim = D2(RefineMethod = 1, plot_sim=plot_sim, verbose=verbose, animate_sim=animate_sim, frame_every=frame_every, t_user=t_user, T_user=T_user)
     save_path = "figures"
     if animate_sim
@@ -305,6 +327,11 @@ if run_and_plot
         Tstop  = Tstop  - 273.0
         Tp_min = (minimum(Tpath) - 273.0) * 0.95                                                        #Based on the min/max of the user-defined T-t path (not just start/stop, since the path can go up and down)
         Tp_max = (maximum(Tpath) - 273.0) * 1.05
+        #Dense tick marks, but only every 2nd one labelled (and never the very first,
+        #which would sit on top of the y-axis "0.0" label) to avoid crowding on this
+        #axis' range, which varies with the user's T-t path.
+        Tp_ticks = range(Tp_min, Tp_max, length=11)[2:2:end]                                            #Every 2nd of 11 evenly-spaced points, skipping the very first (which would sit on the y-axis "0.0" label) - only labelled ticks are drawn, no unlabelled ones in between
+        Tp_labels = string.(round.(Int, Tp_ticks))
         first_val, last_val = values_between_known_indices!(Tlin.-273.0,KDlin,maximum(Tpath)-273.0,minimum(Tpath)-273.0)
         fs = 12.0
         #Composition profile
@@ -317,7 +344,7 @@ if run_and_plot
         #data value: unlike D1.jl's monotonic cooling (where maxC only grows), D2's non-monotonic T-t
         #path can transiently pull maxC below a hardcoded 0.75, pushing the label above the panel.
         ylo_a, yhi_a = C0[1] - 0.05, 1*(maxC + 0.01)
-        p1 = annotate!(0.015, ylo_a + 0.95*(yhi_a - ylo_a), L"\mathrm{(a)}")
+        p1 = annotate!(0.075*x_right[end]*1e3, ylo_a + 0.95*(yhi_a - ylo_a), L"\mathrm{(a)}")
         #Phase diagram
         p2 = plot(Tlin .- 273.0,XC_left, lw=2, label=L"\mathrm{Left\ side}")
         p2 = plot!(Tlin .- 273.0,XC_right, lw=2, label=L"\mathrm{Right\ side}")
@@ -332,13 +359,13 @@ if run_and_plot
         p2 = plot!([Tstart; Tstart],[0; maximum(C0[end])],lw=1.5,color=:black,linestyle=:dash,label=L"T(t=0.0)")
         p2 = plot!([T-273.0; T-273.0],[0; maximum([C_left[end],C_right[1]])],lw=1.5,color=:grey68,linestyle=:dashdot,label=L"T(t\mathrm{_{tot})}")
         p2 = plot!([T-273.0; 0],[C_left[end];C_left[end]],lw=1.5, label="",color=:royalblue,linestyle =:dot)
-        p2 = plot!([T-273.0; 0],[C_right[1];C_right[1]],lw=1.5, label="",xlims=(Tp_min, Tp_max), ylims=(0, 1),color=:crimson,linestyle =:dot)
-        p2 = annotate!(1300, 0.95, L"\mathrm{(b)}")
+        p2 = plot!([T-273.0; 0],[C_right[1];C_right[1]],lw=1.5, label="",xlims=(Tp_min, Tp_max), xticks=(Tp_ticks, Tp_labels), ylims=(0, 1),color=:crimson,linestyle =:dot)
+        p2 = annotate!(Tp_min + 0.1*(Tp_max - Tp_min), 0.95, L"\mathrm{(b)}")
         #Evolution of KD(T)
         p3 = plot(Tlin .- 273.0, KDlin, lw=1.5, label=L"\mathrm{Thermodynamic\ data}", color=:black)
         p3 = scatter!([T_sim[end]-273.0],[KD_sim[end]],marker=:circle, markersize=3.0, markercolor=:black,markerstrokecolor=:black,
                       xlabel = L"T\ \mathrm{[°C]}", ylabel = L"K_{D}", lw=1.5,legend = :bottomleft,
-                      grid=:on, label=L"\mathrm{Model}",xlims=(Tp_min, Tp_max), ylims=(first_val-0.01,last_val+0.01))
+                      grid=:on, label=L"\mathrm{Model}",xlims=(Tp_min, Tp_max), xticks=(Tp_ticks, Tp_labels), ylims=(first_val-0.01,last_val+0.01))
         #T-t path -> shows the user-defined, non-monotonic T-t path used for the linear interpolation in the simulation
         p5 = plot(t_user ./ (60*60*24), Tpath .- 273.0, lw=1.5, color=:black, label=L"\mathrm{Interpolated\ path}",
                   xlabel=L"t\ \mathrm{[days]}", ylabel=L"T\ \mathrm{[°C]}", grid=:on)

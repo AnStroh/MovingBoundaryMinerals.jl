@@ -4,6 +4,8 @@ All notable changes to `MovingBoundaryMinerals.jl` are documented in this file. 
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-08-28
+
 ### Added
 - Example D2: diffusion-limited crystal growth of olivine driven by a user-defined, non-monotonic temperature-time path (temperature may increase and decrease between user-specified nodes, unlike D1's monotonic cooling path). Optionally (`animate_sim = true`) saves a GIF of the composition-profile/phase-diagram evolution over the whole T-t path, via Plots.jl's `Animation`/`frame`/`gif`.
 - A local, browser-based GUI (`GUI/`) for running single-crystal diffusion, moving-interface diffusion couple, and thermodynamically constrained growth/resorption models without writing Julia code: pre-filled forms with inline explanations of the less obvious parameters, cancellable background runs with an elapsed-time display and a live progress bar (`t / t_tot`), and downloadable results (plot at 300 dpi as PNG/PDF, raw profile data, and an `inputs.toml` recording every parameter for exact reproducibility) organized by a "Past runs" history page. See `GUI/README.md` and the [GUI documentation page](https://anstroh.github.io/MovingBoundaryMinerals.jl/dev/man/gui/).
@@ -75,6 +77,7 @@ All notable changes to `MovingBoundaryMinerals.jl` are documented in this file. 
 
 Initial public release: diffusion-couple and moving-boundary (Stefan) solvers, with benchmarked examples (A, B, C series) and the thermodynamically constrained crystal-growth example D1.
 
-[Unreleased]: https://github.com/AnStroh/MovingBoundaryMinerals.jl/compare/v1.0.0...main
+[Unreleased]: https://github.com/AnStroh/MovingBoundaryMinerals.jl/compare/v1.1.0...main
+[1.1.0]: https://github.com/AnStroh/MovingBoundaryMinerals.jl/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/AnStroh/MovingBoundaryMinerals.jl/compare/v0.1.0...v1.0.0
 [0.1.0]: https://github.com/AnStroh/MovingBoundaryMinerals.jl/releases/tag/v0.1.0

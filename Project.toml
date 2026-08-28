@@ -1,7 +1,7 @@
 name = "MovingBoundaryMinerals"
 uuid = "ede1ac2d-c776-4409-bf2f-c421e41a2d87"
 authors = ["Annalena Stroh <anstroh@uni-mainz.de>, Evangelos Moulas <evmoulas@uni-mainz.de>, Pascal Aellig <paellig@uni-mainz.de>"]
-version = "1.0.0"
+version = "1.1.0"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"

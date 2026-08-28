@@ -28,9 +28,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # GUI/Manifest.toml is a *committed* lockfile (unlike the main package, whose CI floats
+        # across versions) pinned to a specific julia_version (see its header) - Manifest.toml's
+        # format and stdlib set are only forward/backward compatible within the same minor
+        # version, so testing against any other minor version fails at `Pkg.instantiate()`
+        # before a single test runs (e.g. 1.10/1.11 vs. a manifest resolved under 1.12: "Could
+        # not locate the source code for the JuliaSyntaxHighlighting package"). If you deliberately
+        # re-resolve GUI/Manifest.toml under a newer Julia, update this to match its new
+        # julia_version at the same time - don't add older/other versions here otherwise.
         version:
-          - 'lts' # latest LTS release (1.10)
-          - '1.11'
+          - '1.12'
         os:
           - ubuntu-latest
           - windows-latest

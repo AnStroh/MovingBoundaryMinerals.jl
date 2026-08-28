@@ -6,6 +6,11 @@ Manifest.toml
 *.pdf
 *.png
 *.gif
+# The blanket rules above are for scratch/generated output (figures/ and similar) - real
+# documentation assets under docs/src/assets/ need to stay trackable regardless of extension.
+!docs/src/assets/**/*.pdf
+!docs/src/assets/**/*.png
+!docs/src/assets/**/*.gif
 figures/
 settings.json
 examples/B3.jl

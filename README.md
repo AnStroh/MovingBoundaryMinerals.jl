@@ -16,6 +16,15 @@
 > This package is still under active development. If you have any suggestions/ideas or found bugs, please feel free to reach out.
 >  - The benchmarks and examples are working and provide the user with an insight into the capabilities of the package.
 
+## Examples
+
+`D1`/`D2`: thermodynamically constrained olivine crystal growth/resorption, animated over the full run (composition profile and phase-diagram trace evolving together) - `D1` cools linearly, `D2` follows an arbitrary, non-monotonic temperature-time path. See the [Example Gallery](https://anstroh.github.io/MovingBoundaryMinerals.jl/dev/man/example_gallery/) for the full write-up, including `D1`'s comparison to its published figure (these animations use a larger seed crystal than that figure, for a faster run).
+
+<p>
+  <img src="docs/src/assets/examples/D1.gif" alt="D1: linear cooling" width="49%">
+  <img src="docs/src/assets/examples/D2.gif" alt="D2: non-monotonic temperature path" width="49%">
+</p>
+
 ## Documentation
 
 The full documentation, including a [Getting Started](https://anstroh.github.io/MovingBoundaryMinerals.jl/dev/man/getting_started/) guide, is available for the [latest release](https://anstroh.github.io/MovingBoundaryMinerals.jl/stable/) and for the [development version](https://anstroh.github.io/MovingBoundaryMinerals.jl/dev/) on the `main` branch. See [CHANGELOG.md](CHANGELOG.md) for a summary of what changed between releases.

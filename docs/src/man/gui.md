@@ -62,22 +62,16 @@ Fill in the form (every field is pre-filled with the same defaults as the underl
 Geometry defaults to Planar (`n=1`) in the thermodynamic growth mode, matching `D1.jl`/`D2.jl`.
 
 !!! tip "A working non-monotonic (\"D2-style\") path, and a temperature to avoid"
-    `D2.jl`'s own default path is known to work (it's what generates that example's figures) - paste it into the path field as-is, with the form's other defaults left untouched (in particular, "Total time" at its default of 30 days):
+    `D2.jl`'s own default path is known to work (it's what generates that example's figures) - paste it into the path field as-is, with the form's other defaults left untouched (in particular, "Initial interface radius" `Ri` at its default of 0.0005 m, and "Total time" at its default of 30 days):
     ```
     0, 1400
-    3, 1390
-    6, 1390
-    9, 1380
-    12, 1385
-    15, 1385
-    18, 1375
-    21, 1365
-    24, 1365
-    27, 1370
-    30, 1350
+    10, 1385
+    20, 1385
+    30, 1390
     ```
+    This falls from 1400°C to 1385°C, plateaus, then rises gently to 1390°C - genuinely non-monotonic, but with gradual corners. An earlier, sharper version of this default path (bigger swings packed into 3-day intervals) drove the interface velocity into a regime the regridder couldn't keep up with, eventually failing with `ArgumentError: Cannot proceed (Newton Failure)` after several hours - if you're constructing your own non-monotonic path and hit that error, try spreading reversals over more days and/or increasing `Ri` (a larger seed crystal tolerates sharper reversals before running into this).
 
-    The bundled phase diagram (`examples/Examples_phase_diagram/`) is only digitized/fitted over a limited temperature range, and this mode can fail with `ArgumentError: matrix contains Infs or NaNs` if a path pushes outside it:
+    The bundled phase diagram (`examples/Examples_phase_diagram/`) is also only digitized/fitted over a limited temperature range, and this mode can separately fail with `ArgumentError: matrix contains Infs or NaNs` if a path pushes outside it:
 
     - Its two composition curves (the crystal and melt/fluid sides) cross at **≈1082°C** (1355 K), for the default parameters shown on this form. Interface velocity is computed from the *difference* between these two compositions, so a path that lingers at or very near 1082°C drives that difference toward zero and the velocity toward infinity. This is well below `D1.jl`/`D2.jl`'s normal 1350-1400°C operating range, so it isn't something an ordinary cooling/growth path will run into - it matters mainly for paths that deliberately dip much lower (a large, sustained resorption episode, for example).
     - The density lookup table is only defined between 1000°C and 1600°C; a path that goes outside that range fails with a clearer `AssertionError` instead ("Value should be within x/y bounds to interpolate") - this is the more likely of the two to matter for an everyday custom path.

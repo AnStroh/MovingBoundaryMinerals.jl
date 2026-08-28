@@ -28,7 +28,7 @@ works regardless of where the GUI server is launched from.
 `(; x_left, x_right, x0, C_left, C_right, C0, Tlin, XC_left, XC_right, Tstart, Tstop, KDlin, KD_sim, T_sim, Mass0, Mass, MB_Error, t_tot)`
 """
 function run_thermo_growth(;
-        Ri          = 0.0001,                          #Initial interface radius in [m]
+        Ri          = 0.0005,                          #Initial interface radius in [m]. 5x D1.jl's original 0.0001 - a larger seed keeps non-monotonic (D2-style) paths numerically robust; see D2.jl and CHANGELOG.md.
         t_user      = [0.0, 30.0 * 24 * 60 * 60],       #Time nodes of the T-t path in [s]; must be sorted ascending and start at 0.0
         T_user      = [1400.0, 1350.0] .+ 273.0,        #Temperature nodes of the T-t path in [K]; same length as t_user, can go up and down (non-monotonic paths supported)
         P           = 1.0e6,      #Pressure in [Pa]

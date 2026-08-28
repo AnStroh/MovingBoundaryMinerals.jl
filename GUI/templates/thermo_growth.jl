@@ -1,6 +1,6 @@
 function thermo_growth_page()
     fields = join([
-        number_field("Ri", "Initial interface radius [m]", 0.0001; min = 0),
+        number_field("Ri", "Initial interface radius [m]", 0.0005; min = 0),
         select_field("n", "Geometry", [1 => "Planar", 2 => "Cylindrical", 3 => "Spherical"], 1),
         textarea_field("path", "Temperature-time path", "0, 1400\n30, 1350";
                        hint = "One 'time [days], temperature [°C]' point per line, at least 2. Time must start " *

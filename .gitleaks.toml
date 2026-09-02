@@ -1,0 +1,10 @@
+title = "gitleaks config for MovingBoundaryMinerals.jl docs"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Julia package UUIDs in Manifest.toml are public identifiers, not secrets"
+paths = [
+  '''(^|/)Manifest\.toml$''',
+]

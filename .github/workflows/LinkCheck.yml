@@ -13,16 +13,8 @@ jobs:
       - name: Check internal links in built docs
         uses: lycheeverse/lychee-action@v2
         with:
-          # previews/, v0.1.0/, v1.0.0/ are frozen historical builds missing
-          # assets/favicon.ico (added to the Documenter theme after they were
-          # built) and will never be rebuilt, so their 404s can't be fixed here.
-          # The Ri[1] exclude works around a Documenter.jl anchor-slug bug on
-          # docs/src/man/quick_reference.md that needs fixing on main.
-          args: >-
-            --no-progress --offline
-            --exclude-path previews
-            --exclude-path 'v0\.1\.0'
-            --exclude-path 'v1\.0\.0'
-            --exclude 'Ri\[1\]'
-            './**/*.html'
+          # Excludes live in lychee.toml, not here: lychee-action's entrypoint
+          # runs this string through `eval`, which strips backslashes and
+          # mishandles quotes before lychee ever sees them.
+          args: --no-progress --offline --config lychee.toml .
           fail: true

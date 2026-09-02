@@ -1,0 +1,10 @@
+extensions = ["html"]
+
+# previews/, v0.1.0/, v1.0.0/ are frozen historical builds missing
+# assets/favicon.ico (added to the Documenter theme after they were built)
+# and will never be rebuilt, so their 404s can't be fixed here.
+exclude_path = ["previews", "v0.1.0", "v1.0.0"]
+
+# Works around a Documenter.jl anchor-slug bug on docs/src/man/quick_reference.md
+# (fixed on main in 3ab634b) that broke the built href for the "Ri[1]" note.
+exclude = ["phase%20A%20ends%20and%20phase%20B%20begins"]

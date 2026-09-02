@@ -10,7 +10,7 @@ A compact lookup for the input parameters that recur across almost every example
 | Parameter | Meaning |
 |:--|:--|
 | `n` | Geometry exponent: `1` = planar, `2` = cylindrical, `3` = spherical. |
-| `Ri` | Radii `[interface_position, total_domain_length]` in [m] (`Ri[1]` is where phase A ends and phase B begins). |
+| `Ri` | Radii `[interface_position, total_domain_length]` in \[m\] (`Ri[1]` is where phase A ends and phase B begins). |
 | `CompInt` | Bulk composition of interest of the solid solution/assemblage; sets the starting composition (D-family/Stefan examples). |
 
 ## Boundary conditions

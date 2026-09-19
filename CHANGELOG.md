@@ -4,6 +4,9 @@ All notable changes to `MovingBoundaryMinerals.jl` are documented in this file. 
 
 ## [Unreleased]
 
+### Changed
+- `.github/workflows/CompatHelper.yml`: added an `arch:` argument to the Julia setup step (matching the current upstream template) and a preflight step that validates the `DOCUMENTER_KEY` secret (reused as `COMPATHELPER_PRIV`) is a PEM-format private key before running CompatHelper, after the workflow's daily run started failing with no corresponding change in this repo - CompatHelper requires the key in strict PEM format, while `DOCUMENTER_KEY` was originally generated for Documenter.jl, which is more lenient. The preflight step surfaces a clear, actionable error immediately if the key is missing or malformed, whether or not it turns out to be the actual cause.
+
 ## [1.1.0] - 2026-08-28
 
 ### Added

@@ -18,7 +18,24 @@ jobs:
         uses: julia-actions/setup-julia@v2
         with:
           version: '1'
+          arch: ${{ runner.arch }}
         if: steps.julia_in_path.outcome != 'success'
+      - name: "Validate the COMPATHELPER_PRIV secret is a PEM-format private key"
+        run: |
+          if [ -z "$COMPATHELPER_PRIV" ]; then
+            echo "::error::The DOCUMENTER_KEY secret (used as COMPATHELPER_PRIV) is empty or not set. Add it under Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          if ! printf '%s' "$COMPATHELPER_PRIV" | grep -q "PRIVATE KEY"; then
+            # Not plain PEM text - it may be base64-encoded, which CompatHelper also accepts. Try decoding before giving up.
+            if ! printf '%s' "$COMPATHELPER_PRIV" | base64 -d 2>/dev/null | grep -q "PRIVATE KEY"; then
+              echo "::error::COMPATHELPER_PRIV does not look like a PEM-format private key (no 'PRIVATE KEY' header found, plain or base64-decoded). Regenerate it with: ssh-keygen -m PEM -N \"\" -f compathelper_key - then set the private key as this secret and the public key as a repo Deploy key with write access."
+              exit 1
+            fi
+          fi
+        env:
+          COMPATHELPER_PRIV: ${{ secrets.DOCUMENTER_KEY }}
+        shell: bash
       - name: "Add the General registry via Git"
         run: |
           import Pkg
